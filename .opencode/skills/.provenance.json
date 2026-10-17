@@ -1,0 +1,24 @@
+{
+  "note": "Installed verbatim; do not hand-edit vendored skill files. Update this record when refreshing them.",
+  "installedAt": "2026-10-18",
+  "installMethod": "Copied from the Vigrad project's pinned shared-skill tree",
+  "copiedFrom": "Vigrad project AI skill tree",
+  "sources": [
+    {
+      "repo": "https://github.com/mattpocock/skills",
+      "commit": "49dd158d1076134a641b33efb035946536778336",
+      "commitDate": "2026-10-09T11:56:49+01:00",
+      "license": "MIT",
+      "licenseFile": "LICENSES/Matt-Pocock-MIT.txt",
+      "skills": [
+        "skills/engineering/code-review -> code-review",
+        "skills/engineering/codebase-design -> codebase-design",
+        "skills/engineering/improve-codebase-architecture -> improve-codebase-architecture",
+        "skills/engineering/domain-modeling -> domain-modeling",
+        "skills/engineering/diagnosing-bugs -> diagnosing-bugs",
+        "skills/engineering/research -> research",
+        "skills/productivity/writing-for-agents -> writing-for-agents"
+      ]
+    }
+  ]
+}
