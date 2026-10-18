@@ -52,6 +52,7 @@ PSDK_COMPONENTS = (
 TI_ACCEPTANCE = Path.home() / ".config" / "sdos" / "ti-terms-accepted.json"
 INPUT_CACHE = Path(os.environ.get("SDOS_INPUT_CACHE", Path.home() / ".cache" / "sdos" / "inputs"))
 IMAGE_NAME = "sdos-dev"
+USER_AGENT = "sdos-bootstrap/1 (+https://github.com/Dimitrije7/sdos2026)"
 CURRENT_TAG = f"{IMAGE_NAME}:current"  # what .devcontainer opens; moved by each bootstrap
 
 
@@ -174,7 +175,9 @@ def fetch_input(input_id: str, cache: Path | None = None, manifest: Path = MANIF
     partial = target.with_name(target.name + ".part")
     for _attempt in range(8):
         offset = partial.stat().st_size if partial.exists() else 0
-        request = urllib.request.Request(item["source"]["url"], headers={"Range": f"bytes={offset}-"})
+        # TI's download server refuses Python's default user agent with 403.
+        headers = {"Range": f"bytes={offset}-", "User-Agent": USER_AGENT, "Accept": "*/*"}
+        request = urllib.request.Request(item["source"]["url"], headers=headers)
         try:
             with urllib.request.urlopen(request, timeout=60) as response, partial.open("ab") as out:
                 if offset and response.status != 206:
@@ -184,6 +187,8 @@ def fetch_input(input_id: str, cache: Path | None = None, manifest: Path = MANIF
             break
         except OSError as exc:
             print(f"download interrupted ({exc}); resuming", flush=True)
+    if not partial.exists():
+        raise RuntimeError(f"{input_id}: could not download {item['source']['url']}")
     if _sha256(partial) != expected:
         partial.unlink(missing_ok=True)
         raise RuntimeError(f"{input_id}: downloaded file does not match the manifest SHA-256")

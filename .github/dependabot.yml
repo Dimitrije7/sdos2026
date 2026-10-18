@@ -1,9 +1,13 @@
-# Dependabot proposes Action updates. Each proposal must also update the pin in
-# manifest/versions.json, or ci/test_workflows.py fails the pull request.
+# Dependabot opens pull requests only for security advisories: a limit of 0
+# disables routine version updates while security updates still use this file.
+# Newer versions arrive through deliberate revisions of manifest/versions.json,
+# whose selection cutoff a routine update would break (maintainer decision,
+# 2026-10-18). A security update must also revise the manifest pin, or
+# ci/validate_workflows.py fails the pull request.
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 0
