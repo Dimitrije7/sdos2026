@@ -164,3 +164,5 @@ python3 -m unittest -v ci.test_facade
 
 The tests cover preset selection, every unavailable command, refusal exit
 codes, and the container commands, without Docker.
+
+The gateway proof for Task 018 used pull request runs from this branch.
