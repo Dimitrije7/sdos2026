@@ -78,6 +78,11 @@ transitions, evidence rules, and the division of responsibility between agents
 and the maintainer. Read it when selecting, starting, completing, or unblocking
 a planned task.
 
+Claude Code and Codex alternate on this working tree. Follow the
+[agent handoff protocol](tasks/README.md#agent-handoff) when starting,
+resuming, pausing, or completing work, so the next agent can resume from the
+repository alone.
+
 Agents own the work: research, implementation, workstation commands, board
 commands, flashing, deployment, tests, evidence capture, and documentation.
 The maintainer connects requested hardware/media, approves destructive access

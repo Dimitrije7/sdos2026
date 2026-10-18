@@ -46,7 +46,7 @@ At the start of a task:
 
 1. read `AGENTS.md`, this file, the task, its dependency reports, and its cited
    plan sections;
-2. change the task to `in-progress`;
+2. change the task to `in-progress` and write its handoff record;
 3. state the acceptance conditions and applicable skills;
 4. inspect the worktree before editing.
 
@@ -56,8 +56,64 @@ At completion:
 2. archive generated evidence at the path required by the task;
 3. self-review the diff against the task and `AGENTS.md`;
 4. update documents or manifests invalidated by the result;
-5. change the task to `done` and unblock dependent tasks only when every
-   acceptance criterion holds.
+5. replace the handoff record with `## Completion evidence`, carrying over
+   every maintainer decision;
+6. change the task to `done` and unblock dependent tasks only when every
+   acceptance criterion holds; and
+7. commit the result as described in [Agent handoff](#agent-handoff).
+
+## Agent handoff
+
+Claude Code and Codex work this repository in turns on one working tree. A
+session can end at any moment through a usage limit, crash, or agent switch, so
+the repository carries all continuity. Chat history and agent-private memory
+are scratch space; project state belongs in task files, documents, manifests,
+and commits.
+
+### Handoff record
+
+Every `in-progress` task has a `## Handoff` section directly after `## Status`.
+It is a current snapshot, rewritten in place:
+
+- `Updated:` date and agent (`claude` or `codex`).
+- `State:` where the task stands, in one or two sentences.
+- `Done:` completed sub-steps, each naming the file or check that proves it.
+- `Next:` ordered remaining steps, concrete enough to resume from the record
+  alone.
+- `Decisions:` each question put to the maintainer, its answer as given, and
+  the date; `none` otherwise.
+- `Verification:` checks last run and their observed results.
+
+Rewrite the record after each completed sub-step and before any long research,
+build, or board operation. A record written only at the end of a session is
+lost when the session ends early.
+
+### Maintainer decisions
+
+Record a maintainer answer in the task file in the same turn it arrives. Quote
+the answer and give its date, then update the authoritative document the
+decision changes.
+
+### Resuming
+
+1. Run `git status` and `git log --oneline -10`, then find active work with
+   `grep -A2 '^## Status' tasks/0*.md | grep -E 'in-progress|blocked'`.
+2. Read each active task's handoff record and reconcile it with the worktree.
+   A change the record does not explain was made after the last checkpoint;
+   inspect it before building on it.
+3. When the record is missing or stale, read the other agent's latest session
+   transcript as evidence: Codex keeps them under `~/.codex/sessions/`, and
+   Claude Code under `~/.claude/projects/<working-directory-slug>/`. Write the
+   recovered state into the handoff record before continuing.
+4. Re-run the record's verification checks and confirm they still pass.
+
+### Commits
+
+Commit locally at task completion and at the end of each turn that leaves the
+work coherent, with the touched validators passing. Use a `task-NNN:` subject
+prefix and an `Agent: claude` or `Agent: codex` trailer. Commit only paths the
+session changed or adopted from the handoff, and push only when the maintainer
+asks.
 
 ## Checkpoints
 
