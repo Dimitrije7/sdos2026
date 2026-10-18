@@ -27,7 +27,7 @@ root=$work/root
 loop=""
 cleanup() {
   set +e
-  for mount_point in "$root/proc" "$root/sys" "$root/dev" "$root"; do
+  for mount_point in "$root/proc" "$root/sys" "$root/dev" "$root" "$work/bootfs"; do
     mountpoint -q "$mount_point" && sudo umount "$mount_point"
   done
   [[ -n $loop ]] && sudo losetup --detach "$loop"
@@ -63,12 +63,15 @@ loop=$(sudo losetup --find --show --partscan "$work/image.img")
 sudo udevadm settle
 rootfs_part=$(lsblk -lnpo NAME,FSTYPE,SIZE --bytes "$loop" |
   awk '$2 == "ext4" {print $3, $1}' | sort -n | tail -n 1 | cut -d ' ' -f 2)
-mkdir -p "$root"
+boot_part=$(lsblk -lnpo NAME,FSTYPE "$loop" | awk '$2 == "vfat" {print $1}' | head -n 1)
+partitions=$(lsblk -lnpo NAME,FSTYPE,LABEL,SIZE --bytes "$loop" | tail -n +2 | sed "s|$loop|loop|")
+mkdir -p "$root" "$work/bootfs"
 sudo mount -o ro "$rootfs_part" "$root"
+[[ -n $boot_part ]] && sudo mount -o ro "$boot_part" "$work/bootfs"
 
-facts=$(sudo python3 - "$root" <<'EOF'
-import glob, hashlib, json, os, subprocess, sys
-root = sys.argv[1]
+facts=$(sudo python3 - "$root" "$work/bootfs" "$partitions" <<'EOF'
+import glob, hashlib, json, os, re, subprocess, sys
+root, bootfs, partitions = sys.argv[1], sys.argv[2], sys.argv[3]
 def sha(path):
     with open(path, "rb") as handle:
         return hashlib.sha256(handle.read()).hexdigest()
@@ -89,11 +92,29 @@ with open(os.path.join(root, "etc/os-release")) as handle:
         if "=" in line:
             key, value = line.rstrip().split("=", 1)
             os_release[key] = value.strip('"')
-dtbs = sorted(glob.glob(os.path.join(root, "boot/dtbs/*/ti/k3-j721e-beagleboneai64*.dtb")))
+def walk(base, depth):
+    base = os.path.normpath(base)
+    for current, dirs, files in os.walk(base):
+        if current.count(os.sep) - base.count(os.sep) >= depth:
+            dirs[:] = []
+        for name in files + [d for d in dirs if os.path.islink(os.path.join(current, d))]:
+            yield os.path.join(current, name)
+dtb_roots = [os.path.join(root, "boot"), os.path.join(root, "usr/lib"), bootfs]
+dtbs = sorted({p for base in dtb_roots for p in walk(base, 6)
+               if re.search(r"k3-j721e-(beagleboneai64|sk)[^/]*\.dtb$", p)})
+boot_config = []
+for base in (os.path.join(root, "boot"), bootfs):
+    for path in walk(base, 3):
+        if os.path.basename(path) in {"extlinux.conf", "uEnv.txt", "sysconf.txt"}:
+            with open(path, errors="replace") as handle:
+                boot_config += [f"{os.path.basename(path)}: {line.strip()}" for line in handle
+                                if re.search(r"fdt|dtb|overlay", line, re.I) and not line.lstrip().startswith("#")]
 firmware = []
-for path in sorted(glob.glob(os.path.join(root, "lib/firmware/j7*"))):
+fw_candidates = sorted({p for p in walk(os.path.join(root, "usr/lib/firmware"), 3)
+                        if re.search(r"(j7|j721e|c66|c71|c7x|ipc)", os.path.basename(p), re.I)})
+for path in fw_candidates[:60]:
     real = resolve_in_root(path)
-    entry = {"name": os.path.basename(path)}
+    entry = {"name": os.path.relpath(path, os.path.join(root, "usr/lib/firmware"))}
     if os.path.islink(path):
         entry["link_target"] = os.readlink(path)
     if os.path.isfile(real):
@@ -101,15 +122,19 @@ for path in sorted(glob.glob(os.path.join(root, "lib/firmware/j7*"))):
         entry["bytes"] = os.path.getsize(real)
     firmware.append(entry)
 remoteproc = []
-if dtbs:
-    dts = subprocess.run(["dtc", "-q", "-I", "dtb", "-O", "dts", dtbs[0]],
+ai64 = [p for p in dtbs if "beagleboneai64" in p]
+if ai64:
+    dts = subprocess.run(["dtc", "-q", "-I", "dtb", "-O", "dts", ai64[0]],
                          capture_output=True, text=True, check=True).stdout
     remoteproc = sorted({line.strip() for line in dts.splitlines()
                          if "firmware-name" in line and ("c66" in line or "c71" in line)})
 print(json.dumps({
     "os_pretty_name": os_release.get("PRETTY_NAME"),
     "kernels": sorted(os.path.basename(p) for p in glob.glob(os.path.join(root, "lib/modules/*"))),
-    "dtbs": [{"path": os.path.relpath(p, root), "sha256": sha(p)} for p in dtbs],
+    "partitions": partitions.splitlines(),
+    "dtbs": [{"path": os.path.relpath(p, root) if p.startswith(root) else "bootfs/" + os.path.relpath(p, bootfs),
+              "sha256": sha(p)} for p in dtbs],
+    "boot_config_dtb_lines": boot_config[:20],
     "dsp_firmware_files": firmware,
     "dtb_dsp_firmware_names": remoteproc,
 }))

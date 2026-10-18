@@ -1,0 +1,21 @@
+{
+  "probe": "psdk-stream-extract",
+  "manifest_input": "ti.psdk-rtos-j721e-11.02.01.03",
+  "version": "11.02.01.03",
+  "archive_sha256_verified": true,
+  "stream_and_extract_seconds": 662,
+  "extracted_bytes": 1889179510,
+  "extract_peak_rss_kib": 3888,
+  "extracted_folders": [
+    "dsplib",
+    "dsplib_c66x_3_4_0_0",
+    "fftlib",
+    "mmalib_11_02_00_11",
+    "pdk_jacinto_11_02_01_08",
+    "psdk_rtos"
+  ],
+  "unmatched_patterns": [],
+  "disk_available_before_bytes": 92112818176,
+  "disk_available_after_bytes": 90149052416,
+  "runner_image": "ubuntu24 20261012.334.1"
+}

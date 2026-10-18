@@ -1,0 +1,26 @@
+{
+  "probe": "image-delta",
+  "manifest_input": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+  "download_and_verify_seconds": 25,
+  "bmap_expand_seconds": 62,
+  "expanded_allocated_bytes": 4903829504,
+  "chroot_package_install_seconds": 0,
+  "probe_package_installed_version": "0.0.1",
+  "disk_available_bytes": {
+    "start": 115556036608,
+    "after_download": 114430038016,
+    "after_expand": 110652198912,
+    "after_install": 110651469824
+  },
+  "static_image_facts": {
+    "os_pretty_name": "Debian GNU/Linux 13 (trixie)",
+    "kernels": [
+      "6.18.55-arm64-k3-r59"
+    ],
+    "dtbs": [],
+    "dsp_firmware_files": [],
+    "dtb_dsp_firmware_names": []
+  },
+  "evidence_class": "image-static, not booted-board evidence",
+  "runner_image": "ubuntu24-arm64 20261012.149.1"
+}
