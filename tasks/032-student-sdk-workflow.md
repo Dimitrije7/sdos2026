@@ -28,8 +28,11 @@ one-command student experience for both runtime profiles and all DSPs.
 
 ## Out of scope
 
-Linux bring-up, student linker/memory-map edits, JTAG as a requirement, or
+Linux bring-up, JTAG as a requirement, or
 duplicated per-lab build systems.
+
+Linker and memory-layout editing is in scope for users (policy P-002 as
+amended 2026-10-19; implemented by Task 041).
 
 ## Maintainer checkpoint
 

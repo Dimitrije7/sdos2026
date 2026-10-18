@@ -46,10 +46,18 @@ versioned runtime interface. Their build still produces a complete firmware ELF
 for `C66x_0`, `C66x_1`, or `C71x_0` in either FreeRTOS or bare-metal form; the
 ELF links the student module with the course runtime.
 
-The course owns startup, resource tables, linker and reserved-memory contracts,
-RPMsg endpoints, shared-buffer ownership, cache maintenance, tracing, crash
-records, and recovery. Normal labs do not permit replacing those components.
-Artifact validation rejects incompatible firmware before deployment.
+The course owns startup, resource tables, reserved-memory contracts, RPMsg
+endpoints, shared-buffer ownership, cache maintenance, tracing, crash records,
+and recovery. Normal labs do not permit replacing those components. Artifact
+validation rejects incompatible firmware before deployment.
+
+DSP memory layout is not restricted for teaching reasons. Amended 2026-10-19
+by the maintainer ("Teaching restrictions must not limit DSP memory layout";
+[Task 041](../tasks/041-dsp-linker-control.md)): every user may edit the
+native TI linker command files, including memory regions, section placement,
+alignment, symbols, load/run placement, and module fragments. The only limits
+are those with a recorded hardware, loader, ownership, or interoperability
+reason, which validation enforces.
 
 Consequences: labs teach DSP algorithms, optimization, scheduling, and measured
 behavior without turning platform bring-up into student work. Both runtime

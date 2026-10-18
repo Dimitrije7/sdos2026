@@ -186,3 +186,4 @@ work.
 | [038](038-connected-board-qualification.md) | Qualification harness and evidence | 031, 037 | hardware-ready |
 | [039](039-fleet-pilot-gate-7.md) | Fleet qualification and Gate 7 | 034, 037, 038 | hardware-ready, maintainer release decision |
 | [040](040-semester-release-gate-8.md) | Semester release and maintenance | 039 | maintainer-decision |
+| [041](041-dsp-linker-control.md) | Full, modular DSP linker-script control | 021, 022; ownership needs 012; proof needs 013 | hardware-ready for ownership and proof |
