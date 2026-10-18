@@ -1,0 +1,297 @@
+#!/usr/bin/env python3
+"""SDOS command facade: the single implementation behind ``make <command>``.
+
+Students, agents, and CI run the same commands; workflow files call ``make``
+and contain no build logic of their own. See docs/commands.md for the contract.
+
+Build commands run inside the pinned container from toolchain/Dockerfile, which
+``make bootstrap`` builds. Set ``SDOS_NATIVE=1`` to use tools installed on the
+host instead.
+
+Exit status: 0 success, 1 a check or build failed, 2 usage error,
+3 refused for safety, 4 the command or target is not available yet.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Sequence
+
+try:
+    from ci import container
+except ImportError:  # run as a script: ci/ is on sys.path, the repository root is not
+    import container  # type: ignore[no-redef]
+
+ROOT = Path(__file__).resolve().parents[1]
+EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_REFUSED, EXIT_NOT_YET = 0, 1, 2, 3, 4
+
+# Commands that exist in the contract but whose implementation belongs to a
+# later task. They fail explicitly instead of pretending to work.
+NOT_YET = {
+    "package": "Task 022 packages validated firmware and host artifacts",
+    "image": "Task 035 builds the course Linux image",
+    "deploy": "Task 030 deploys to a board through dspctl",
+    "target-smoke": "Task 038 runs on-board smoke tests",
+}
+
+# Programs the host presets need, with the minimum version where it matters.
+HOST_TOOLS = (
+    ("cmake", "3.22"),
+    ("ninja", "1.10"),
+    ("gcc-12", None),
+    ("clang-15", None),
+)
+BOARD_TOOLS = (("aarch64-linux-gnu-gcc-12", None),)
+TI_ROOTS = (("SDOS_TI_C6000_ROOT", "cl6x"), ("SDOS_TI_C7000_ROOT", "cl7x"))
+
+PYTHON_TEST_MODULES = (
+    "ci.test_validate_hardware",
+    "ci.test_validate_licenses",
+    "ci.test_validate_versions",
+    "ci.test_facade",
+    "ci.test_container",
+    "tests.target.test_sdos_board",
+)
+VALIDATORS = ("ci/validate_hardware.py", "ci/validate_licenses.py", "ci/validate_versions.py")
+
+
+class UsageError(Exception):
+    pass
+
+
+class NotYet(Exception):
+    pass
+
+
+def presets(root: Path = ROOT) -> list[str]:
+    data = json.loads((root / "CMakePresets.json").read_text(encoding="utf-8"))
+    return [item["name"] for item in data["configurePresets"] if not item.get("hidden")]
+
+
+def groups(names: Sequence[str]) -> dict[str, list[str]]:
+    return {
+        "host": [n for n in names if n.startswith("host-")],
+        "board-host": [n for n in names if n.startswith("aarch64-")],
+        "firmware": [n for n in names if re.match(r"c66x_|c71x_", n)],
+        "all": list(names),
+    }
+
+
+def expand(selection: str, names: Sequence[str]) -> list[str]:
+    """Turn ``host-gcc-debug``, ``host``, or ``a,b`` into preset names."""
+    known = groups(names)
+    result: list[str] = []
+    for part in filter(None, (item.strip() for item in selection.split(","))):
+        if part in known:
+            result.extend(known[part])
+        elif part in names:
+            result.append(part)
+        else:
+            raise UsageError(
+                f"unknown preset '{part}'. Groups: {', '.join(known)}. Presets: {', '.join(names)}"
+            )
+    if not result:
+        raise UsageError("no preset selected")
+    return list(dict.fromkeys(result))
+
+
+class Runner:
+    def __init__(self, dry_run: bool) -> None:
+        self.dry_run = dry_run
+
+    def __call__(self, argv: Sequence[str]) -> int:
+        print("+ " + " ".join(argv), flush=True)
+        if self.dry_run:
+            return 0
+        return subprocess.run(list(argv), cwd=ROOT, check=False).returncode
+
+
+def _version(program: str) -> str | None:
+    try:
+        out = subprocess.run([program, "--version"], capture_output=True, text=True, check=False)
+    except OSError:
+        return None
+    match = re.search(r"\d+\.\d+(\.\d+)?", out.stdout + out.stderr)
+    return match.group(0) if match else "unknown"
+
+
+def _at_least(found: str, wanted: str) -> bool:
+    def parts(value: str) -> tuple[int, ...]:
+        return tuple(int(p) for p in value.split(".") if p.isdigit())
+
+    return parts(found) >= parts(wanted)
+
+
+IN_CONTAINER_COMMANDS = ("bootstrap", "configure", "build", "test", "quality")
+
+
+def _native() -> bool:
+    return os.environ.get("SDOS_IN_CONTAINER") == "1" or os.environ.get("SDOS_NATIVE") == "1"
+
+
+def _container_args(args: argparse.Namespace) -> list[str]:
+    forwarded = [args.command, "--preset", args.preset]
+    if args.werror:
+        forwarded.append("--werror")
+    return ["python3", "ci/facade.py", *forwarded]
+
+
+def in_container(args: argparse.Namespace, run: Runner) -> int:
+    """Build the image for bootstrap, or rerun this command inside it."""
+    tag = container.image_tag()
+    rootless = True if run.dry_run else None  # a dry run does not query Docker
+    if not run.dry_run and not container.docker_available():
+        print(
+            "Docker is not available. Install Docker Engine or Docker Desktop, or set "
+            "SDOS_NATIVE=1 to use host tools (see docs/commands.md).",
+            file=sys.stderr,
+        )
+        return EXIT_FAILED
+    if args.command == "bootstrap":
+        code = run(container.build_command())
+        return code or run(container.run_command(tag, _container_args(args), rootless))
+    if not run.dry_run and not container.image_present(tag):
+        print(f"the pinned image {tag} is not built; run `make bootstrap` first", file=sys.stderr)
+        return EXIT_FAILED
+    return run(container.run_command(tag, _container_args(args), rootless))
+
+
+def cmd_bootstrap(args: argparse.Namespace, run: Runner) -> int:
+    missing = []
+    for program, minimum in HOST_TOOLS + BOARD_TOOLS:
+        version = _version(program) if shutil.which(program) else None
+        if version is None or (minimum and not _at_least(version, minimum)):
+            missing.append(program)
+            state = f"missing (need {minimum or 'any version'})" if version is None else f"{version}, need {minimum}"
+        else:
+            state = version
+        print(f"{program:28} {state}")
+    for variable, compiler in TI_ROOTS:
+        root = os.environ.get(variable, "")
+        ok = bool(root) and (Path(root) / "bin" / compiler).exists()
+        print(f"{variable:28} {root if ok else 'not set; firmware presets need it (Task 019)'}")
+    if missing:
+        print(
+            "bootstrap: missing " + ", ".join(missing) + ". Run without SDOS_NATIVE=1 "
+            "to use the pinned container, which provides every tool.",
+            file=sys.stderr,
+        )
+        return EXIT_FAILED
+    print("bootstrap: host and board-host presets can build")
+    return EXIT_OK
+
+
+def _configure(preset: str, run: Runner, werror: bool) -> int:
+    return run(["cmake", "--preset", preset, f"-DSDOS_WERROR={'ON' if werror else 'OFF'}"])
+
+
+def _build(preset: str, run: Runner, werror: bool) -> int:
+    return _configure(preset, run, werror) or run(["cmake", "--build", "--preset", preset])
+
+
+def _for_each(selection: list[str], step) -> int:
+    failed = [preset for preset in selection if step(preset) != 0]
+    if failed:
+        print("failed: " + ", ".join(failed), file=sys.stderr)
+        return EXIT_FAILED
+    return EXIT_OK
+
+
+def cmd_configure(args: argparse.Namespace, run: Runner) -> int:
+    return _for_each(args.selection, lambda p: _configure(p, run, args.werror))
+
+
+def cmd_build(args: argparse.Namespace, run: Runner) -> int:
+    return _for_each(args.selection, lambda p: _build(p, run, args.werror))
+
+
+def cmd_test(args: argparse.Namespace, run: Runner) -> int:
+    off_host = [p for p in args.selection if not p.startswith("host-")]
+    if off_host:
+        raise NotYet(
+            "tests run on host-* presets; " + ", ".join(off_host) + " need a board "
+            "or emulator, which Task 033 adds"
+        )
+    return _for_each(
+        args.selection,
+        lambda p: _build(p, run, args.werror) or run(["ctest", "--preset", p]),
+    )
+
+
+def cmd_quality(args: argparse.Namespace, run: Runner) -> int:
+    steps = [[sys.executable, path] for path in VALIDATORS]
+    steps.append([sys.executable, "-m", "unittest", *PYTHON_TEST_MODULES])
+    failed = [" ".join(step[1:]) for step in steps if run(step) != 0]
+    args.werror = True
+    if cmd_test(args, run) != 0:
+        failed.append("C build and tests")
+    if failed:
+        print("quality failed: " + "; ".join(failed), file=sys.stderr)
+        return EXIT_FAILED
+    return EXIT_OK
+
+
+def cmd_clean(args: argparse.Namespace, run: Runner) -> int:
+    print("+ remove build/", flush=True)
+    if not run.dry_run:
+        shutil.rmtree(ROOT / "build", ignore_errors=True)
+    return EXIT_OK
+
+
+def cmd_not_yet(args: argparse.Namespace, run: Runner) -> int:
+    if args.command in ("deploy", "target-smoke") and not args.board:
+        raise UsageError(f"{args.command} needs BOARD=<name>")
+    raise NotYet(f"'{args.command}' is not implemented yet: {NOT_YET[args.command]}")
+
+
+HANDLERS = {
+    "bootstrap": cmd_bootstrap,
+    "configure": cmd_configure,
+    "build": cmd_build,
+    "test": cmd_test,
+    "quality": cmd_quality,
+    "clean": cmd_clean,
+    **{name: cmd_not_yet for name in NOT_YET},
+}
+
+
+def parse_args(argv: Sequence[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(prog="make", description=__doc__.splitlines()[0])
+    parser.add_argument("command", choices=sorted(HANDLERS))
+    parser.add_argument("--preset", default="host-gcc-debug", help="preset, group, or comma list")
+    parser.add_argument("--board", default="", help="board name for deploy and target-smoke")
+    parser.add_argument("--dry-run", action="store_true", help="print commands without running them")
+    parser.add_argument("--werror", action="store_true", help="treat compiler warnings as errors")
+    return parser.parse_args(argv)
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    try:
+        args = parse_args(sys.argv[1:] if argv is None else argv)
+    except SystemExit as exc:
+        return EXIT_USAGE if exc.code else EXIT_OK
+    try:
+        if args.command in ("configure", "build", "test", "quality"):
+            selection = "host" if args.command == "quality" else args.preset
+            args.selection = expand(selection, presets())
+        run = Runner(args.dry_run)
+        if args.command in IN_CONTAINER_COMMANDS and not _native():
+            return in_container(args, run)
+        return HANDLERS[args.command](args, run)
+    except UsageError as exc:
+        print(f"usage error: {exc}", file=sys.stderr)
+        return EXIT_USAGE
+    except NotYet as exc:
+        print(f"not available yet: {exc}", file=sys.stderr)
+        return EXIT_NOT_YET
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

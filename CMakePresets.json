@@ -1,0 +1,402 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "release",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "gcc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc-12"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-15"
+      }
+    },
+    {
+      "name": "aarch64",
+      "hidden": true,
+      "toolchainFile": "${sourceDir}/cmake/toolchains/aarch64-linux-gnu.cmake"
+    },
+    {
+      "name": "c6000",
+      "hidden": true,
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ti-c6000.cmake"
+    },
+    {
+      "name": "c7000",
+      "hidden": true,
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ti-c7000.cmake"
+    },
+    {
+      "name": "freertos",
+      "hidden": true,
+      "cacheVariables": {
+        "SDOS_RTOS": "freertos"
+      }
+    },
+    {
+      "name": "baremetal",
+      "hidden": true,
+      "cacheVariables": {
+        "SDOS_RTOS": "baremetal"
+      }
+    },
+    {
+      "name": "host-gcc-debug",
+      "displayName": "PC host tools and tests, GCC, debug",
+      "inherits": [
+        "base",
+        "gcc",
+        "debug"
+      ]
+    },
+    {
+      "name": "host-gcc-release",
+      "displayName": "PC host tools and tests, GCC, release",
+      "inherits": [
+        "base",
+        "gcc",
+        "release"
+      ]
+    },
+    {
+      "name": "host-clang-debug",
+      "displayName": "PC host tools and tests, Clang, debug",
+      "inherits": [
+        "base",
+        "clang",
+        "debug"
+      ]
+    },
+    {
+      "name": "host-clang-release",
+      "displayName": "PC host tools and tests, Clang, release",
+      "inherits": [
+        "base",
+        "clang",
+        "release"
+      ]
+    },
+    {
+      "name": "aarch64-gcc-debug",
+      "displayName": "Board Linux programs for Cortex-A72, GCC, debug",
+      "inherits": [
+        "base",
+        "aarch64",
+        "debug"
+      ]
+    },
+    {
+      "name": "aarch64-gcc-release",
+      "displayName": "Board Linux programs for Cortex-A72, GCC, release",
+      "inherits": [
+        "base",
+        "aarch64",
+        "release"
+      ]
+    },
+    {
+      "name": "c66x_0-freertos-debug",
+      "displayName": "c66x_0 firmware, FreeRTOS, debug",
+      "inherits": [
+        "base",
+        "c6000",
+        "freertos",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_0"
+      }
+    },
+    {
+      "name": "c66x_0-freertos-release",
+      "displayName": "c66x_0 firmware, FreeRTOS, release",
+      "inherits": [
+        "base",
+        "c6000",
+        "freertos",
+        "release"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_0"
+      }
+    },
+    {
+      "name": "c66x_0-baremetal-debug",
+      "displayName": "c66x_0 firmware, bare metal, debug",
+      "inherits": [
+        "base",
+        "c6000",
+        "baremetal",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_0"
+      }
+    },
+    {
+      "name": "c66x_0-baremetal-release",
+      "displayName": "c66x_0 firmware, bare metal, release",
+      "inherits": [
+        "base",
+        "c6000",
+        "baremetal",
+        "release"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_0"
+      }
+    },
+    {
+      "name": "c66x_1-freertos-debug",
+      "displayName": "c66x_1 firmware, FreeRTOS, debug",
+      "inherits": [
+        "base",
+        "c6000",
+        "freertos",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_1"
+      }
+    },
+    {
+      "name": "c66x_1-freertos-release",
+      "displayName": "c66x_1 firmware, FreeRTOS, release",
+      "inherits": [
+        "base",
+        "c6000",
+        "freertos",
+        "release"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_1"
+      }
+    },
+    {
+      "name": "c66x_1-baremetal-debug",
+      "displayName": "c66x_1 firmware, bare metal, debug",
+      "inherits": [
+        "base",
+        "c6000",
+        "baremetal",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_1"
+      }
+    },
+    {
+      "name": "c66x_1-baremetal-release",
+      "displayName": "c66x_1 firmware, bare metal, release",
+      "inherits": [
+        "base",
+        "c6000",
+        "baremetal",
+        "release"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c66x_1"
+      }
+    },
+    {
+      "name": "c71x_0-freertos-debug",
+      "displayName": "c71x_0 firmware, FreeRTOS, debug",
+      "inherits": [
+        "base",
+        "c7000",
+        "freertos",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c71x_0"
+      }
+    },
+    {
+      "name": "c71x_0-freertos-release",
+      "displayName": "c71x_0 firmware, FreeRTOS, release",
+      "inherits": [
+        "base",
+        "c7000",
+        "freertos",
+        "release"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c71x_0"
+      }
+    },
+    {
+      "name": "c71x_0-baremetal-debug",
+      "displayName": "c71x_0 firmware, bare metal, debug",
+      "inherits": [
+        "base",
+        "c7000",
+        "baremetal",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c71x_0"
+      }
+    },
+    {
+      "name": "c71x_0-baremetal-release",
+      "displayName": "c71x_0 firmware, bare metal, release",
+      "inherits": [
+        "base",
+        "c7000",
+        "baremetal",
+        "release"
+      ],
+      "cacheVariables": {
+        "SDOS_CORE": "c71x_0"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "host-gcc-debug",
+      "configurePreset": "host-gcc-debug"
+    },
+    {
+      "name": "host-gcc-release",
+      "configurePreset": "host-gcc-release"
+    },
+    {
+      "name": "host-clang-debug",
+      "configurePreset": "host-clang-debug"
+    },
+    {
+      "name": "host-clang-release",
+      "configurePreset": "host-clang-release"
+    },
+    {
+      "name": "aarch64-gcc-debug",
+      "configurePreset": "aarch64-gcc-debug"
+    },
+    {
+      "name": "aarch64-gcc-release",
+      "configurePreset": "aarch64-gcc-release"
+    },
+    {
+      "name": "c66x_0-freertos-debug",
+      "configurePreset": "c66x_0-freertos-debug"
+    },
+    {
+      "name": "c66x_0-freertos-release",
+      "configurePreset": "c66x_0-freertos-release"
+    },
+    {
+      "name": "c66x_0-baremetal-debug",
+      "configurePreset": "c66x_0-baremetal-debug"
+    },
+    {
+      "name": "c66x_0-baremetal-release",
+      "configurePreset": "c66x_0-baremetal-release"
+    },
+    {
+      "name": "c66x_1-freertos-debug",
+      "configurePreset": "c66x_1-freertos-debug"
+    },
+    {
+      "name": "c66x_1-freertos-release",
+      "configurePreset": "c66x_1-freertos-release"
+    },
+    {
+      "name": "c66x_1-baremetal-debug",
+      "configurePreset": "c66x_1-baremetal-debug"
+    },
+    {
+      "name": "c66x_1-baremetal-release",
+      "configurePreset": "c66x_1-baremetal-release"
+    },
+    {
+      "name": "c71x_0-freertos-debug",
+      "configurePreset": "c71x_0-freertos-debug"
+    },
+    {
+      "name": "c71x_0-freertos-release",
+      "configurePreset": "c71x_0-freertos-release"
+    },
+    {
+      "name": "c71x_0-baremetal-debug",
+      "configurePreset": "c71x_0-baremetal-debug"
+    },
+    {
+      "name": "c71x_0-baremetal-release",
+      "configurePreset": "c71x_0-baremetal-release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "host-gcc-debug",
+      "configurePreset": "host-gcc-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "host-gcc-release",
+      "configurePreset": "host-gcc-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "host-clang-debug",
+      "configurePreset": "host-clang-debug",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "host-clang-release",
+      "configurePreset": "host-clang-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    }
+  ]
+}

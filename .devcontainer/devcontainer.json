@@ -1,0 +1,22 @@
+{
+  "name": "SDOS development",
+  "initializeCommand": "make bootstrap",
+  "image": "sdos-dev:current",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/work,type=bind",
+  "workspaceFolder": "/work",
+  "containerEnv": {
+    "SDOS_IN_CONTAINER": "1"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "llvm-vs-code-extensions.vscode-clangd",
+        "ms-vscode.cmake-tools"
+      ],
+      "settings": {
+        "cmake.useCMakePresets": "always",
+        "clangd.path": "/usr/local/bin/clangd"
+      }
+    }
+  }
+}

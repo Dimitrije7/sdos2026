@@ -1,0 +1,10 @@
+add_library(sdos_fir_q15 STATIC src/fir_q15.c)
+target_include_directories(sdos_fir_q15 PUBLIC include)
+sdos_target_warnings(sdos_fir_q15)
+
+if(SDOS_PRODUCT STREQUAL "host")
+  add_executable(test_fir_q15 tests/test_fir_q15.c)
+  target_link_libraries(test_fir_q15 PRIVATE sdos_fir_q15)
+  sdos_target_warnings(test_fir_q15)
+  add_test(NAME fir_q15 COMMAND test_fir_q15)
+endif()
