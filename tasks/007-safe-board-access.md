@@ -21,6 +21,9 @@ in-progress
   1. Hardware-ready: ask the maintainer to connect the board with power, the
      USB-UART adapter on its debug header, Ethernet on the PC's network, and
      the microSD reader with a card.
+     The workstation account is not in the `dialout` group, so the UART cannot
+     be opened yet. Adding it with `usermod` changes system privileges and
+     needs a fresh login; ask the maintainer before doing it.
   2. Run `discover --host <board>`, a short `capture`, `ssh-identity`, and
      `check-write-target`, all read-only. Store redacted outputs under
      `release/evidence/task-007/`.
