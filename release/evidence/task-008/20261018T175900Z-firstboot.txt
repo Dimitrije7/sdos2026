@@ -1,0 +1,95 @@
+## identity
+BeagleBoard.org Debian Trixie IOT Image 2026-10-09
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+VERSION_ID="13"
+6.18.55-arm64-k3-r59
+console=ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000 root=/dev/mmcblk1p3 ro rootfstype=ext4 fsck.repair=yes resume=/dev/mmcblk1p2 rootwait net.ifnames=0
+## boot device
+/dev/mmcblk1p3 ext4
+NAME          SIZE TYPE FSTYPE LABEL    MOUNTPOINTS
+mmcblk0      14.6G disk                 
+├─mmcblk0p1   128M part vfat   FIRMWARE 
+└─mmcblk0p2  14.5G part ext4   rootfs   
+zram0         1.8G disk swap   zram0    [SWAP]
+mmcblk0boot0    4M disk                 
+mmcblk0boot1    4M disk                 
+mmcblk1      29.1G disk                 
+├─mmcblk1p1   256M part vfat   BOOT     /boot/firmware
+├─mmcblk1p2     4G part swap            [SWAP]
+└─mmcblk1p3  24.9G part ext4   rootfs   /
+## bootloader
+2026.10-gb4086bd599be
+U-Boot 2026.10-gb4086bd599be
+U-Boot SPL 2026.10-gb4086bd599be (Oct 07 2026 - 20:59:49 +0000)
+U-Boot SPL 2026.10-gb4086bd599be (Oct 07 2026 - 20:59:49 +0000)
+## model
+BeagleBoard.org BeagleBone AI-64
+beagle,j721e-beagleboneai64ti,j721e
+## kernel package
+linux-image-6.18.55-arm64-k3-r59 1trixie
+## remoteproc
+remoteproc0 4d80800000.dsp offline j7-c66_0-fw
+remoteproc1 4d81800000.dsp offline j7-c66_1-fw
+remoteproc10 b004000.rtu offline j7-rtu0_0-fw
+remoteproc11 b00a000.txpru offline j7-txpru0_0-fw
+remoteproc12 b038000.pru offline j7-pru0_1-fw
+remoteproc13 b006000.rtu offline j7-rtu0_1-fw
+remoteproc14 b00c000.txpru offline j7-txpru0_1-fw
+remoteproc15 b134000.pru offline j7-pru1_0-fw
+remoteproc16 b104000.rtu offline j7-rtu1_0-fw
+remoteproc17 b10a000.txpru offline j7-txpru1_0-fw
+remoteproc18 b138000.pru offline j7-pru1_1-fw
+remoteproc19 b106000.rtu offline j7-rtu1_1-fw
+remoteproc2 64800000.dsp offline j7-c71_0-fw
+remoteproc20 b10c000.txpru offline j7-txpru1_1-fw
+remoteproc3 41000000.r5f attached unknown
+remoteproc5 5c00000.r5f offline j7-main-r5f0_0-fw
+remoteproc6 5d00000.r5f offline j7-main-r5f0_1-fw
+remoteproc7 5e00000.r5f offline j7-main-r5f1_0-fw
+remoteproc8 5f00000.r5f offline j7-main-r5f1_1-fw
+remoteproc9 b034000.pru offline j7-pru0_0-fw
+## dsp firmware files
+ls: cannot access '/lib/firmware/j7-c66_0-fw': No such file or directory
+ls: cannot access '/lib/firmware/j7-c66_1-fw': No such file or directory
+ls: cannot access '/lib/firmware/j7-c71_0-fw': No such file or directory
+## sysconf result
+root P 2026-10-09 0 99999 7 -1
+-rwxr-xr-x 1 debian debian 2599 Oct  9 17:40 /boot/firmware/sysconf.txt
+0
+## boot timing
+Startup finished in 4.965s (kernel) + 18.078s (userspace) = 23.044s 
+graphical.target reached after 17.481s in userspace.
+## memory
+               total        used        free      shared  buff/cache   available
+Mem:            3717         265        3207           1         290        3451
+## network
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             DOWN           
+usb0             UP             192.168.7.2/30 fe80::1eba:8cff:fea2:ed6b/64 
+docker0          DOWN           172.17.0.1/16 
+## first kernel lines
+[    0.000000] Booting Linux on physical CPU 0x0000000000 [0x411fd080]
+[    0.000000] Linux version 6.18.55-arm64-k3-r59 (voodoo@rpi5b8g-65) (gcc (Debian 14.2.0-19) 14.2.0, GNU ld (GNU Binutils for Debian) 2.44) #1 SMP PREEMPT_RT Sat Oct  3 20:19:12 UTC 2026
+[    0.000000] KASLR enabled
+[    0.000000] Machine model: BeagleBoard.org BeagleBone AI-64
+[    0.000000] earlycon: ns16550a0 at MMIO32 0x0000000002800000 (options '')
+[   11.296121] k3-dsp-rproc 4d80800000.dsp: assigned reserved memory node memory@a7000000
+[   11.296335] k3-dsp-rproc 4d80800000.dsp: configured DSP for remoteproc mode
+[   11.321575] remoteproc remoteproc0: 4d80800000.dsp is available
+[   11.329694] remoteproc remoteproc0: Direct firmware load for j7-c66_0-fw failed with error -2
+[   11.329712] remoteproc remoteproc0: powering up 4d80800000.dsp
+[   11.329770] remoteproc remoteproc0: Direct firmware load for j7-c66_0-fw failed with error -2
+[   11.329776] remoteproc remoteproc0: request_firmware failed: -2
+[   11.338647] k3-dsp-rproc 4d81800000.dsp: assigned reserved memory node memory@a6000000
+[   11.346764] k3-dsp-rproc 4d81800000.dsp: configured DSP for remoteproc mode
+[   11.347054] remoteproc remoteproc1: 4d81800000.dsp is available
+[   11.347265] remoteproc remoteproc1: Direct firmware load for j7-c66_1-fw failed with error -2
+[   11.347276] remoteproc remoteproc1: powering up 4d81800000.dsp
+[   11.347330] remoteproc remoteproc1: Direct firmware load for j7-c66_1-fw failed with error -2
+[   11.347336] remoteproc remoteproc1: request_firmware failed: -2
+[   11.348162] k3-dsp-rproc 64800000.dsp: assigned reserved memory node memory@a8000000
+[   11.358340] k3-dsp-rproc 64800000.dsp: configured DSP for remoteproc mode
+[   11.358600] remoteproc remoteproc2: 64800000.dsp is available
+[   11.358838] remoteproc remoteproc2: Direct firmware load for j7-c71_0-fw failed with error -2
+[   11.358849] remoteproc remoteproc2: powering up 64800000.dsp
+[   11.358902] remoteproc remoteproc2: Direct firmware load for j7-c71_0-fw failed with error -2
