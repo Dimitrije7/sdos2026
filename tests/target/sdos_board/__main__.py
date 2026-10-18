@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from . import flash, guards, network, report, serial_capture
+from . import dsp_ipc, flash, guards, network, report, serial_capture
 from .discovery import Discovery, FixtureHost, HostView, LiveHost, discover
 
 
@@ -139,6 +139,33 @@ def cmd_board_report(args: argparse.Namespace) -> int:
     return 1 if any(r["status"] == "fail" for r in results) else 0
 
 
+def cmd_dsp_ipc(args: argparse.Namespace) -> int:
+    from ci import container  # the repository root is on sys.path under `python3 -m`
+
+    try:
+        selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
+    except ValueError as exc:
+        print(f"dsp-ipc: {exc}", file=sys.stderr)
+        return 2
+    inputs = {item["id"]: item for item in json.loads(container.MANIFEST.read_text())["inputs"]}
+    license_file = container.fetch_input("ti.linux-firmware-license-ti")
+    dsp_ipc.upload(args.host, args.key, license_file, inputs["ti.linux-firmware-license-ti"]["integrity"]["sha256"])
+    failed = []
+    for core in selected:  # one DSP at a time: Task 013 excludes concurrent use
+        item = inputs[core.ti_echo_input]
+        firmware = container.fetch_input(core.ti_echo_input)
+        result = dsp_ipc.run_core(
+            core, args.host, args.key, firmware, item["integrity"]["sha256"], item["id"], args.out,
+            count=args.count, cycles=args.cycles,
+        )
+        verdict = "pass" if result["passed"] else "FAIL"
+        failing = [name for name, ok in result["checks"].items() if not ok]
+        print(f"{core.label:8} {verdict}" + (f"  failed: {', '.join(failing)}" if failing else ""))
+        if not result["passed"]:
+            failed.append(core.name)
+    return 1 if failed else 0
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="python3 -m tests.target.sdos_board", description=__doc__)
     parser.add_argument("--fixture", type=Path, help="read a recorded host listing instead of this machine")
@@ -177,6 +204,15 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--out", type=Path, help="directory for board-report.json, .txt, raw text, and live.dtb")
     sub.add_argument("--raw", type=Path, help="evaluate a saved raw report instead of connecting")
     sub.set_defaults(handler=cmd_board_report)
+
+    sub = commands.add_parser("dsp-ipc", help="Task 013: load, start, echo, stop, and restart TI echo firmware")
+    sub.add_argument("--host", default="192.168.7.2")
+    sub.add_argument("--key", type=Path, help="SSH private key for root on the board")
+    sub.add_argument("--core", action="append", help="c66x_0, c66x_1, or c71x_0; repeat; default all, in turn")
+    sub.add_argument("--out", type=Path, required=True, help="directory for per-core results and logs")
+    sub.add_argument("--count", type=int, default=10, help="ping messages per cycle")
+    sub.add_argument("--cycles", type=int, default=2, help="start/echo/stop cycles; 2 proves restart")
+    sub.set_defaults(handler=cmd_dsp_ipc)
 
     sub = commands.add_parser("flash", help="write a pinned image to an approved card and verify it")
     sub.add_argument("--id", required=True, help="exact /dev/disk/by-id name of the card")

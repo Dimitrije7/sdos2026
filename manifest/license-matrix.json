@@ -2,7 +2,7 @@
   "$schema": "./schemas/license-matrix.schema.json",
   "schema_version": "1.0.0",
   "matrix_id": "sdos-third-party-license-policy",
-  "revision": 6,
+  "revision": 7,
   "updated": "2026-10-18",
   "decision_status": "accepted",
   "policy": {
@@ -65,16 +65,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Fetch only the pinned upstream archive after the maintainer's acceptance of the exact no-cost terms is recorded."},
-        "install": {"status": "conditional", "conditions": "Install only from the verified archive in an authorized environment and retain the installed manifest."},
-        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
-        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
-        "student_access": {"status": "conditional", "conditions": "Students use TI's own distribution and accept presented terms, or receive only exact components whose included license permits project redistribution."},
-        "source_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted source path under its exact included license with notices and TI-device restrictions where applicable."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted binary whose exact included license permits it, normally unmodified and for TI-device use, with the license and notices."},
-        "public_container": {"status": "prohibited", "conditions": "The aggregate SDK is excluded from public OCI layers even when individual components are redistributable."},
-        "course_image": {"status": "conditional", "conditions": "Only file-level-cleared runtime or firmware components may enter the course image; development SDK content is excluded."},
-        "release": {"status": "conditional", "conditions": "Release only cleared outputs and components covered by the post-link inventory, notice bundle, and maintainer approval."}
+        "download": {
+          "status": "conditional",
+          "conditions": "Fetch only the pinned upstream archive after the maintainer's acceptance of the exact no-cost terms is recorded."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install only from the verified archive in an authorized environment and retain the installed manifest."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students use TI's own distribution and accept presented terms, or receive only exact components whose included license permits project redistribution."
+        },
+        "source_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute only an allowlisted source path under its exact included license with notices and TI-device restrictions where applicable."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute only an allowlisted binary whose exact included license permits it, normally unmodified and for TI-device use, with the license and notices."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "The aggregate SDK is excluded from public OCI layers even when individual components are redistributable."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Only file-level-cleared runtime or firmware components may enter the course image; development SDK content is excluded."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Release only cleared outputs and components covered by the post-link inventory, notice bundle, and maintainer approval."
+        }
       },
       "handling": {
         "lane": "trusted-github",
@@ -84,7 +114,10 @@
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-007"],
+      "blocker_ids": [
+        "LIC-001",
+        "LIC-007"
+      ],
       "notes": "The whole archive remains default-deny. A permissive PDK headline does not relicense TI firmware, optimized libraries, compiler payloads, or third-party exceptions."
     },
     {
@@ -123,16 +156,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Download only if the Gate 2 fallback is selected and the exact release manifest is available."},
-        "install": {"status": "conditional", "conditions": "Install only in an isolated evaluation environment with the exact manifest preserved."},
-        "ci_use": {"status": "unresolved", "conditions": "A selected fallback needs its own pinned acquisition and resource proof like the Task 005 runs for the RTOS SDK."},
-        "cache": {"status": "unresolved", "conditions": "Caching awaits exact package terms and a source/notice retention design."},
-        "student_access": {"status": "conditional", "conditions": "Students receive only a fully cleared image or use TI's upstream distribution under its terms."},
-        "source_redistribution": {"status": "conditional", "conditions": "Redistribute source per each component license and keep the exact build recipes and patches."},
-        "binary_redistribution": {"status": "unresolved", "conditions": "The exact installed manifest and corresponding-source plan must close before distributing an SDK image."},
-        "public_container": {"status": "prohibited", "conditions": "Do not place the aggregate SDK in the public toolchain container."},
-        "course_image": {"status": "prohibited", "conditions": "The accepted baseline uses the BeagleBoard image unless Gate 2 records a new architecture decision."},
-        "release": {"status": "unresolved", "conditions": "A fallback release requires component-level license closure, SBOM, notices, and sources."}
+        "download": {
+          "status": "conditional",
+          "conditions": "Download only if the Gate 2 fallback is selected and the exact release manifest is available."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install only in an isolated evaluation environment with the exact manifest preserved."
+        },
+        "ci_use": {
+          "status": "unresolved",
+          "conditions": "A selected fallback needs its own pinned acquisition and resource proof like the Task 005 runs for the RTOS SDK."
+        },
+        "cache": {
+          "status": "unresolved",
+          "conditions": "Caching awaits exact package terms and a source/notice retention design."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students receive only a fully cleared image or use TI's upstream distribution under its terms."
+        },
+        "source_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute source per each component license and keep the exact build recipes and patches."
+        },
+        "binary_redistribution": {
+          "status": "unresolved",
+          "conditions": "The exact installed manifest and corresponding-source plan must close before distributing an SDK image."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "Do not place the aggregate SDK in the public toolchain container."
+        },
+        "course_image": {
+          "status": "prohibited",
+          "conditions": "The accepted baseline uses the BeagleBoard image unless Gate 2 records a new architecture decision."
+        },
+        "release": {
+          "status": "unresolved",
+          "conditions": "A fallback release requires component-level license closure, SBOM, notices, and sources."
+        }
       },
       "handling": {
         "lane": "excluded",
@@ -142,7 +205,10 @@
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-003"],
+      "blocker_ids": [
+        "LIC-001",
+        "LIC-003"
+      ],
       "notes": "TI's GPLv3 development-image warning is not a substitute for a file-level distribution analysis."
     },
     {
@@ -188,16 +254,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
-        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded maintainer acceptance."},
-        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
-        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
-        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."},
-        "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
-        "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes the compiler installer and installed compiler binaries from releases and shared toolchain images."},
-        "public_container": {"status": "prohibited", "conditions": "No public OCI layer contains the compiler or installer."},
-        "course_image": {"status": "not-applicable", "conditions": "Host compiler tools do not belong in the AArch64 course image."},
-        "release": {"status": "conditional", "conditions": "Firmware output may ship only after its linked runtime objects are classified in the post-link inventory."}
+        "download": {
+          "status": "conditional",
+          "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install only from the verified archive under the recorded maintainer acceptance."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."
+        },
+        "source_redistribution": {
+          "status": "prohibited",
+          "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."
+        },
+        "binary_redistribution": {
+          "status": "prohibited",
+          "conditions": "The project policy excludes the compiler installer and installed compiler binaries from releases and shared toolchain images."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "No public OCI layer contains the compiler or installer."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "Host compiler tools do not belong in the AArch64 course image."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Firmware output may ship only after its linked runtime objects are classified in the post-link inventory."
+        }
       },
       "handling": {
         "lane": "trusted-github",
@@ -207,7 +303,10 @@
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-007"],
+      "blocker_ids": [
+        "LIC-001",
+        "LIC-007"
+      ],
       "notes": "Task 004 must use the SDK-declared compiler rather than silently upgrading to the newest standalone C6000 release."
     },
     {
@@ -253,16 +352,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
-        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded maintainer acceptance."},
-        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
-        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
-        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."},
-        "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
-        "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes installer and installed compiler binaries from releases and shared toolchain images."},
-        "public_container": {"status": "prohibited", "conditions": "No public OCI layer contains the compiler or installer."},
-        "course_image": {"status": "not-applicable", "conditions": "Host compiler tools do not belong in the AArch64 course image."},
-        "release": {"status": "conditional", "conditions": "Firmware output may ship only after linked runtime objects are classified in the post-link inventory."}
+        "download": {
+          "status": "conditional",
+          "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install only from the verified archive under the recorded maintainer acceptance."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."
+        },
+        "source_redistribution": {
+          "status": "prohibited",
+          "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."
+        },
+        "binary_redistribution": {
+          "status": "prohibited",
+          "conditions": "The project policy excludes installer and installed compiler binaries from releases and shared toolchain images."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "No public OCI layer contains the compiler or installer."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "Host compiler tools do not belong in the AArch64 course image."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Firmware output may ship only after linked runtime objects are classified in the post-link inventory."
+        }
       },
       "handling": {
         "lane": "trusted-github",
@@ -272,7 +401,10 @@
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-007"],
+      "blocker_ids": [
+        "LIC-001",
+        "LIC-007"
+      ],
       "notes": "The current standalone compiler manifest confirms the mixed model; Task 004 must archive the manifest shipped with the SDK-declared version."
     },
     {
@@ -302,16 +434,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Fetch from a separately published canonical source, or extract it during an authorized SDK acquisition and prove the exported tree contains only the BSD-classified paths."},
-        "install": {"status": "allowed", "conditions": "Install with its BSD notice and manifest."},
-        "ci_use": {"status": "conditional", "conditions": "May run in secret-free public PR jobs only after Task 004 publishes a hash-verified BSD-only source tree with its notice."},
-        "cache": {"status": "conditional", "conditions": "A public cache may contain only the audited BSD-only tree and must retain its notice and exact hash."},
-        "student_access": {"status": "conditional", "conditions": "Students may receive the audited BSD-only tree with its notice; otherwise they obtain it through the authorized TI acquisition path."},
-        "source_redistribution": {"status": "allowed", "conditions": "Retain the BSD notice, conditions, disclaimer, and non-endorsement term."},
-        "binary_redistribution": {"status": "allowed", "conditions": "Reproduce the BSD notice in accompanying documentation or materials."},
-        "public_container": {"status": "allowed", "conditions": "Include only the pinned verified files and license notice."},
-        "course_image": {"status": "conditional", "conditions": "Include only target runtime objects needed by shipped firmware and the BSD notice."},
-        "release": {"status": "allowed", "conditions": "Ship source or linked outputs with the required BSD notice and component manifest."}
+        "download": {
+          "status": "conditional",
+          "conditions": "Fetch from a separately published canonical source, or extract it during an authorized SDK acquisition and prove the exported tree contains only the BSD-classified paths."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install with its BSD notice and manifest."
+        },
+        "ci_use": {
+          "status": "conditional",
+          "conditions": "May run in secret-free public PR jobs only after Task 004 publishes a hash-verified BSD-only source tree with its notice."
+        },
+        "cache": {
+          "status": "conditional",
+          "conditions": "A public cache may contain only the audited BSD-only tree and must retain its notice and exact hash."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students may receive the audited BSD-only tree with its notice; otherwise they obtain it through the authorized TI acquisition path."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Retain the BSD notice, conditions, disclaimer, and non-endorsement term."
+        },
+        "binary_redistribution": {
+          "status": "allowed",
+          "conditions": "Reproduce the BSD notice in accompanying documentation or materials."
+        },
+        "public_container": {
+          "status": "allowed",
+          "conditions": "Include only the pinned verified files and license notice."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Include only target runtime objects needed by shipped firmware and the BSD notice."
+        },
+        "release": {
+          "status": "allowed",
+          "conditions": "Ship source or linked outputs with the required BSD notice and component manifest."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -321,7 +483,9 @@
         "license_acceptance_required": false,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001"],
+      "blocker_ids": [
+        "LIC-001"
+      ],
       "notes": "The BSD conclusion does not by itself authorize copying unrelated files from the mixed SDK archive. If the acquired DSPLIB paths differ, the shipped manifest controls."
     },
     {
@@ -375,16 +539,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Fetch only exact pinned packages after maintainer acceptance and license capture."},
-        "install": {"status": "conditional", "conditions": "Install only in the authorized TI layer and retain each library manifest."},
-        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
-        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
-        "student_access": {"status": "conditional", "conditions": "Students obtain the package from TI or receive only a cleared TI-device-use subset with its full license."},
-        "source_redistribution": {"status": "conditional", "conditions": "Redistribute only supplied source and derivatives for TI-device use with the full license and notices."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Redistribute supplied objects unmodified for TI-device use with the full license and notices."},
-        "public_container": {"status": "prohibited", "conditions": "No C7x proprietary library payload enters the public OCI layer."},
-        "course_image": {"status": "conditional", "conditions": "Only linked firmware and required unmodified objects may enter the image after a post-link inventory and notice bundle."},
-        "release": {"status": "conditional", "conditions": "Release only a file-level-cleared TI-device-use bundle approved by the maintainer."}
+        "download": {
+          "status": "conditional",
+          "conditions": "Fetch only exact pinned packages after maintainer acceptance and license capture."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install only in the authorized TI layer and retain each library manifest."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students obtain the package from TI or receive only a cleared TI-device-use subset with its full license."
+        },
+        "source_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute only supplied source and derivatives for TI-device use with the full license and notices."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute supplied objects unmodified for TI-device use with the full license and notices."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "No C7x proprietary library payload enters the public OCI layer."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Only linked firmware and required unmodified objects may enter the image after a post-link inventory and notice bundle."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Release only a file-level-cleared TI-device-use bundle approved by the maintainer."
+        }
       },
       "handling": {
         "lane": "trusted-github",
@@ -394,7 +588,10 @@
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-007"],
+      "blocker_ids": [
+        "LIC-001",
+        "LIC-007"
+      ],
       "notes": "The component page and aggregate manifest can disagree on displayed library versions; the acquired package and hashes decide."
     },
     {
@@ -424,18 +621,70 @@
           "honor device-use and no-reverse-engineering restrictions where present"
         ]
       },
-      "components": [],
+      "components": [
+        {
+          "name": "ti-ipc/j721e/ipc_echo_test_c66xdsp_1_release_strip.xe66",
+          "role": "Unmodified TI IPC echo firmware for C66x_0, used by Task 013",
+          "expression": "LicenseRef-TI-TSPA",
+          "source_url": "https://github.com/TexasInstruments/ti-linux-firmware/blob/e853cc767f4b5431ea10f8f986b455e14a60b282/ti-ipc/j721e/ipc_echo_test_c66xdsp_1_release_strip.xe66",
+          "license_url": "https://github.com/TexasInstruments/ti-linux-firmware/blob/e853cc767f4b5431ea10f8f986b455e14a60b282/LICENSE.ti"
+        },
+        {
+          "name": "ti-ipc/j721e/ipc_echo_test_c66xdsp_2_release_strip.xe66",
+          "role": "Unmodified TI IPC echo firmware for C66x_1, used by Task 013",
+          "expression": "LicenseRef-TI-TSPA",
+          "source_url": "https://github.com/TexasInstruments/ti-linux-firmware/blob/e853cc767f4b5431ea10f8f986b455e14a60b282/ti-ipc/j721e/ipc_echo_test_c66xdsp_2_release_strip.xe66",
+          "license_url": "https://github.com/TexasInstruments/ti-linux-firmware/blob/e853cc767f4b5431ea10f8f986b455e14a60b282/LICENSE.ti"
+        },
+        {
+          "name": "ti-ipc/j721e/ipc_echo_test_c7x_1_release_strip.xe71",
+          "role": "Unmodified TI IPC echo firmware for C71x_0, used by Task 013",
+          "expression": "LicenseRef-TI-TSPA",
+          "source_url": "https://github.com/TexasInstruments/ti-linux-firmware/blob/e853cc767f4b5431ea10f8f986b455e14a60b282/ti-ipc/j721e/ipc_echo_test_c7x_1_release_strip.xe71",
+          "license_url": "https://github.com/TexasInstruments/ti-linux-firmware/blob/e853cc767f4b5431ea10f8f986b455e14a60b282/LICENSE.ti"
+        }
+      ],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Fetch the pinned public repository commit or exact distribution package."},
-        "install": {"status": "conditional", "conditions": "Install only allowlisted blobs with their license mapping."},
-        "ci_use": {"status": "allowed", "conditions": "Static image and manifest checks may run in secret-free public jobs."},
-        "cache": {"status": "conditional", "conditions": "Cache only the pinned allowlisted blobs with their WHENCE and license files."},
-        "student_access": {"status": "conditional", "conditions": "Students may receive blobs whose referenced license permits redistribution, with the required terms."},
-        "source_redistribution": {"status": "not-applicable", "conditions": "Binary-only firmware has no corresponding source unless the per-blob record says otherwise."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Redistribute each blob only under its WHENCE-referenced terms with required notices."},
-        "public_container": {"status": "not-applicable", "conditions": "Target firmware does not belong in the public host-tool container."},
-        "course_image": {"status": "conditional", "conditions": "Include only the pinned per-blob-cleared set and its license bundle."},
-        "release": {"status": "conditional", "conditions": "Ship the per-blob manifest, hashes, WHENCE mapping, and licenses with the image or firmware bundle."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch the pinned public repository commit or exact distribution package."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install only allowlisted blobs with their license mapping."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Static image and manifest checks may run in secret-free public jobs."
+        },
+        "cache": {
+          "status": "conditional",
+          "conditions": "Cache only the pinned allowlisted blobs with their WHENCE and license files."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students may receive blobs whose referenced license permits redistribution, with the required terms."
+        },
+        "source_redistribution": {
+          "status": "not-applicable",
+          "conditions": "Binary-only firmware has no corresponding source unless the per-blob record says otherwise."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute each blob only under its WHENCE-referenced terms with required notices."
+        },
+        "public_container": {
+          "status": "not-applicable",
+          "conditions": "Target firmware does not belong in the public host-tool container."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Include only the pinned per-blob-cleared set and its license bundle."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Ship the per-blob manifest, hashes, WHENCE mapping, and licenses with the image or firmware bundle."
+        }
       },
       "handling": {
         "lane": "trusted-github",
@@ -445,8 +694,10 @@
         "license_acceptance_required": false,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-007"],
-      "notes": "Repository admission criteria support redistribution but do not erase the conditions in each blob's referenced license."
+      "blocker_ids": [
+        "LIC-007"
+      ],
+      "notes": "Repository admission criteria support redistribution but do not erase the conditions in each blob's referenced license. On 2026-10-18 the J721E IPC echo blobs were pinned at commit e853cc767f4b of TI's GitHub mirror, because git.ti.com was unreachable. WHENCE assigns them 'Redistributable. See LICENSE.ti'. LICENSE.ti permits unmodified binary redistribution for use only with TI devices, without reverse engineering, and requires the license text to accompany it."
     },
     {
       "id": "freertos.kernel",
@@ -474,16 +725,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Fetch the pinned public commit and verify its hash."},
-        "install": {"status": "allowed", "conditions": "Install with the MIT notice."},
-        "ci_use": {"status": "allowed", "conditions": "May run in secret-free public PR jobs."},
-        "cache": {"status": "allowed", "conditions": "Cache the pinned source with its MIT notice."},
-        "student_access": {"status": "allowed", "conditions": "Students may receive and modify the source with the MIT notice."},
-        "source_redistribution": {"status": "allowed", "conditions": "Include the MIT notice."},
-        "binary_redistribution": {"status": "allowed", "conditions": "Include the MIT notice with firmware distributions."},
-        "public_container": {"status": "allowed", "conditions": "Include only pinned source and the MIT notice."},
-        "course_image": {"status": "conditional", "conditions": "Ship only selected firmware outputs and their complete component notices."},
-        "release": {"status": "allowed", "conditions": "Include the MIT notice and separately classified vendor-port terms."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch the pinned public commit and verify its hash."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install with the MIT notice."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "May run in secret-free public PR jobs."
+        },
+        "cache": {
+          "status": "allowed",
+          "conditions": "Cache the pinned source with its MIT notice."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may receive and modify the source with the MIT notice."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Include the MIT notice."
+        },
+        "binary_redistribution": {
+          "status": "allowed",
+          "conditions": "Include the MIT notice with firmware distributions."
+        },
+        "public_container": {
+          "status": "allowed",
+          "conditions": "Include only pinned source and the MIT notice."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Ship only selected firmware outputs and their complete component notices."
+        },
+        "release": {
+          "status": "allowed",
+          "conditions": "Include the MIT notice and separately classified vendor-port terms."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -528,16 +809,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Fetch only the catalog-pinned upstream image and companion Syft inventory and verify the recorded hashes."},
-        "install": {"status": "allowed", "conditions": "Use as a build input without modifying the archived original."},
-        "ci_use": {"status": "allowed", "conditions": "Static and image-builder jobs may consume the verified public image on trusted GitHub-hosted lanes."},
-        "cache": {"status": "conditional", "conditions": "Cache the immutable upstream archive only after aggregate redistribution review, with its Syft inventory, hashes, and source-location record; prefer the official immutable URL until then."},
-        "student_access": {"status": "allowed", "conditions": "Students may download the pinned upstream image directly; a course image waits for release closure."},
-        "source_redistribution": {"status": "conditional", "conditions": "Distribute project scripts and the corresponding source required by each included license."},
-        "binary_redistribution": {"status": "unresolved", "conditions": "Do not republish the upstream or transformed aggregate until the 178 unresolved inventory entries, every firmware license, and the corresponding-source plan are closed."},
-        "public_container": {"status": "not-applicable", "conditions": "The board image is not embedded in the public host-tool OCI image."},
-        "course_image": {"status": "conditional", "conditions": "Build and test privately from the pinned image; public distribution waits for the generated license manifest, valid SPDX SBOM, notice bundle, and source closure."},
-        "release": {"status": "unresolved", "conditions": "Gate 6 must resolve the 178 unknown-license inventory results and prove notices, corresponding source, firmware terms, valid SPDX, hashes, and provenance for the actual image."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch only the catalog-pinned upstream image and companion Syft inventory and verify the recorded hashes."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Use as a build input without modifying the archived original."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Static and image-builder jobs may consume the verified public image on trusted GitHub-hosted lanes."
+        },
+        "cache": {
+          "status": "conditional",
+          "conditions": "Cache the immutable upstream archive only after aggregate redistribution review, with its Syft inventory, hashes, and source-location record; prefer the official immutable URL until then."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may download the pinned upstream image directly; a course image waits for release closure."
+        },
+        "source_redistribution": {
+          "status": "conditional",
+          "conditions": "Distribute project scripts and the corresponding source required by each included license."
+        },
+        "binary_redistribution": {
+          "status": "unresolved",
+          "conditions": "Do not republish the upstream or transformed aggregate until the 178 unresolved inventory entries, every firmware license, and the corresponding-source plan are closed."
+        },
+        "public_container": {
+          "status": "not-applicable",
+          "conditions": "The board image is not embedded in the public host-tool OCI image."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Build and test privately from the pinned image; public distribution waits for the generated license manifest, valid SPDX SBOM, notice bundle, and source closure."
+        },
+        "release": {
+          "status": "unresolved",
+          "conditions": "Gate 6 must resolve the 178 unknown-license inventory results and prove notices, corresponding source, firmware terms, valid SPDX, hashes, and provenance for the actual image."
+        }
       },
       "handling": {
         "lane": "trusted-github",
@@ -547,7 +858,9 @@
         "license_acceptance_required": false,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-003"],
+      "blocker_ids": [
+        "LIC-003"
+      ],
       "notes": "The companion filename ends in .syft.spdx.json.xz, but the decompressed document declares the Syft 16.1.11 schema and has an artifacts array rather than SPDX packages. The recommended first release distributes SDOS deltas and scripts over the official hash-pinned image; a complete derived image remains blocked until Gate 6."
     },
     {
@@ -578,16 +891,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Fetch the pinned public source commit and verify its archive hash."},
-        "install": {"status": "allowed", "conditions": "Install build outputs while retaining the exact source, config, patches, and notices."},
-        "ci_use": {"status": "allowed", "conditions": "Public secret-free jobs may build, inspect, and test the kernel artifacts."},
-        "cache": {"status": "allowed", "conditions": "Cache immutable source and build inputs with hashes and GPL notices."},
-        "student_access": {"status": "allowed", "conditions": "Students may receive source and binaries under the applicable GPL terms."},
-        "source_redistribution": {"status": "allowed", "conditions": "Preserve GPL notices and project modifications."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Accompany binary distribution with a compliant corresponding-source mechanism."},
-        "public_container": {"status": "conditional", "conditions": "Build tools or headers may enter a container only with their applicable notices and source compliance."},
-        "course_image": {"status": "allowed", "conditions": "Include the pinned kernel/modules/DTBs with notices and corresponding-source evidence."},
-        "release": {"status": "conditional", "conditions": "Publish binaries only with the exact corresponding source, config, patches, notices, hashes, and provenance."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch the pinned public source commit and verify its archive hash."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install build outputs while retaining the exact source, config, patches, and notices."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Public secret-free jobs may build, inspect, and test the kernel artifacts."
+        },
+        "cache": {
+          "status": "allowed",
+          "conditions": "Cache immutable source and build inputs with hashes and GPL notices."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may receive source and binaries under the applicable GPL terms."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Preserve GPL notices and project modifications."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Accompany binary distribution with a compliant corresponding-source mechanism."
+        },
+        "public_container": {
+          "status": "conditional",
+          "conditions": "Build tools or headers may enter a container only with their applicable notices and source compliance."
+        },
+        "course_image": {
+          "status": "allowed",
+          "conditions": "Include the pinned kernel/modules/DTBs with notices and corresponding-source evidence."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Publish binaries only with the exact corresponding source, config, patches, notices, hashes, and provenance."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -630,16 +973,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Pull the pinned public OCI digest and frozen package indexes."},
-        "install": {"status": "allowed", "conditions": "Install only the explicit package lock and retain license metadata."},
-        "ci_use": {"status": "allowed", "conditions": "May run on public GitHub-hosted jobs with no restricted TI payload in the open targets."},
-        "cache": {"status": "conditional", "conditions": "Cache only immutable public layers and packages with source/license metadata."},
-        "student_access": {"status": "allowed", "conditions": "Students may pull the public digest and receive the open project layers."},
-        "source_redistribution": {"status": "conditional", "conditions": "Redistribute component source under each package license and preserve notices."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Publish an installed license manifest and satisfy every package's notice and source obligations."},
-        "public_container": {"status": "conditional", "conditions": "Allowed only after the exact installed package closure, notices, source plan, SBOM, and vulnerability checks pass."},
-        "course_image": {"status": "not-applicable", "conditions": "The x86-64 host base is separate from the AArch64 board image."},
-        "release": {"status": "conditional", "conditions": "Release OCI images by digest with SBOM, notices, source locations, checksums, and provenance."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Pull the pinned public OCI digest and frozen package indexes."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install only the explicit package lock and retain license metadata."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "May run on public GitHub-hosted jobs with no restricted TI payload in the open targets."
+        },
+        "cache": {
+          "status": "conditional",
+          "conditions": "Cache only immutable public layers and packages with source/license metadata."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may pull the public digest and receive the open project layers."
+        },
+        "source_redistribution": {
+          "status": "conditional",
+          "conditions": "Redistribute component source under each package license and preserve notices."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Publish an installed license manifest and satisfy every package's notice and source obligations."
+        },
+        "public_container": {
+          "status": "conditional",
+          "conditions": "Allowed only after the exact installed package closure, notices, source plan, SBOM, and vulnerability checks pass."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "The x86-64 host base is separate from the AArch64 board image."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Release OCI images by digest with SBOM, notices, source locations, checksums, and provenance."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -649,7 +1022,9 @@
         "license_acceptance_required": false,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-005"],
+      "blocker_ids": [
+        "LIC-005"
+      ],
       "notes": "Task 017 closes the actual package set; adding a package without updating the SBOM/license manifest is a gate failure."
     },
     {
@@ -814,16 +1189,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Fetch only pinned public artifacts from the allowlist and verify hashes."},
-        "install": {"status": "allowed", "conditions": "Install the explicit lock and retain package licenses and notices."},
-        "ci_use": {"status": "allowed", "conditions": "May run in secret-free public PR jobs."},
-        "cache": {"status": "allowed", "conditions": "Cache only immutable public artifacts with hashes and source/license metadata."},
-        "student_access": {"status": "allowed", "conditions": "Students may receive the pinned open tool set with its notices."},
-        "source_redistribution": {"status": "conditional", "conditions": "Follow each component's notices, source, modification, and copyleft conditions."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Publish only with the exact component/license manifest and any required corresponding source."},
-        "public_container": {"status": "conditional", "conditions": "Allowed after Task 017 closes the installed SBOM, notices, source plan, scan, and reproducibility checks."},
-        "course_image": {"status": "not-applicable", "conditions": "Host quality tools are excluded from the minimal board image unless a later task separately justifies and classifies one."},
-        "release": {"status": "conditional", "conditions": "OCI/tool bundles require SBOM, notices, source obligations, hashes, and provenance."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch only pinned public artifacts from the allowlist and verify hashes."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install the explicit lock and retain package licenses and notices."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "May run in secret-free public PR jobs."
+        },
+        "cache": {
+          "status": "allowed",
+          "conditions": "Cache only immutable public artifacts with hashes and source/license metadata."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may receive the pinned open tool set with its notices."
+        },
+        "source_redistribution": {
+          "status": "conditional",
+          "conditions": "Follow each component's notices, source, modification, and copyleft conditions."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Publish only with the exact component/license manifest and any required corresponding source."
+        },
+        "public_container": {
+          "status": "conditional",
+          "conditions": "Allowed after Task 017 closes the installed SBOM, notices, source plan, scan, and reproducibility checks."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "Host quality tools are excluded from the minimal board image unless a later task separately justifies and classifies one."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "OCI/tool bundles require SBOM, notices, source obligations, hashes, and provenance."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -833,7 +1238,9 @@
         "license_acceptance_required": false,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-005"],
+      "blocker_ids": [
+        "LIC-005"
+      ],
       "notes": "Composite component rows summarize tools that share handling. Task 017 must split any component whose exact package terms differ from this conclusion."
     },
     {
@@ -945,16 +1352,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Fetch the pinned public source or release artifact and verify its hash."},
-        "install": {"status": "allowed", "conditions": "Install with GPL notices and corresponding-source metadata."},
-        "ci_use": {"status": "allowed", "conditions": "Run the open checker and project-owned rule-ID map without loading proprietary guideline text."},
-        "cache": {"status": "allowed", "conditions": "Cache only the open pinned build and license/source metadata."},
-        "student_access": {"status": "allowed", "conditions": "Students may receive and run the open checker under GPL terms."},
-        "source_redistribution": {"status": "allowed", "conditions": "Redistribute under GPL-3.0-or-later with notices."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Provide corresponding source and GPL notices."},
-        "public_container": {"status": "conditional", "conditions": "Include the pinned binary only with GPL notices and corresponding-source evidence."},
-        "course_image": {"status": "not-applicable", "conditions": "Static-analysis tooling runs on the host/CI layer, not the board image."},
-        "release": {"status": "conditional", "conditions": "Tool containers need GPL notices, corresponding source, SBOM, and hash."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch the pinned public source or release artifact and verify its hash."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install with GPL notices and corresponding-source metadata."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Run the open checker and project-owned rule-ID map without loading proprietary guideline text."
+        },
+        "cache": {
+          "status": "allowed",
+          "conditions": "Cache only the open pinned build and license/source metadata."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may receive and run the open checker under GPL terms."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Redistribute under GPL-3.0-or-later with notices."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Provide corresponding source and GPL notices."
+        },
+        "public_container": {
+          "status": "conditional",
+          "conditions": "Include the pinned binary only with GPL notices and corresponding-source evidence."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "Static-analysis tooling runs on the host/CI layer, not the board image."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Tool containers need GPL notices, corresponding source, SBOM, and hash."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -1096,16 +1533,45 @@
         }
       ],
       "operations": {
-        "download": {"status": "allowed", "conditions": "Install pinned open packages from verified repositories."},
-        "install": {"status": "allowed", "conditions": "Retain package licenses and record versions."},
-        "ci_use": {"status": "allowed", "conditions": "May run in public PR jobs on GitHub-hosted runners."},
-        "cache": {"status": "allowed", "conditions": "Cache open binaries and public layers with hashes and provenance."},
-        "student_access": {"status": "allowed", "conditions": "Tier 1 students may install the open engine components under Apache-2.0."},
-        "source_redistribution": {"status": "allowed", "conditions": "Retain Apache notices and modification markings."},
-        "binary_redistribution": {"status": "conditional", "conditions": "Include applicable Apache license and NOTICE material."},
-        "public_container": {"status": "not-applicable", "conditions": "The engine builds and runs containers and need not be embedded in project images."},
-        "course_image": {"status": "not-applicable", "conditions": "The board image does not require the host container engine."},
-        "release": {"status": "not-applicable", "conditions": "The project publishes requirements and recipes rather than repackaging the engine."
+        "download": {
+          "status": "allowed",
+          "conditions": "Install pinned open packages from verified repositories."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Retain package licenses and record versions."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "May run in public PR jobs on GitHub-hosted runners."
+        },
+        "cache": {
+          "status": "allowed",
+          "conditions": "Cache open binaries and public layers with hashes and provenance."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Tier 1 students may install the open engine components under Apache-2.0."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Retain Apache notices and modification markings."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Include applicable Apache license and NOTICE material."
+        },
+        "public_container": {
+          "status": "not-applicable",
+          "conditions": "The engine builds and runs containers and need not be embedded in project images."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "The board image does not require the host container engine."
+        },
+        "release": {
+          "status": "not-applicable",
+          "conditions": "The project publishes requirements and recipes rather than repackaging the engine."
         }
       },
       "handling": {
@@ -1146,16 +1612,46 @@
       },
       "components": [],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Each eligible user obtains Docker Desktop from Docker's distribution channel."},
-        "install": {"status": "conditional", "conditions": "Each eligible user accepts Docker's no-cost terms; the project buys no subscription."},
-        "ci_use": {"status": "not-applicable", "conditions": "GitHub-hosted Linux CI does not use Docker Desktop."},
-        "cache": {"status": "prohibited", "conditions": "The project does not cache or mirror the Desktop installer."},
-        "student_access": {"status": "unresolved", "conditions": "Tier 2 remains conditional until cohort and institution eligibility are confirmed."},
-        "source_redistribution": {"status": "not-applicable", "conditions": "The proprietary Desktop product is not redistributed as source."},
-        "binary_redistribution": {"status": "prohibited", "conditions": "The project links to Docker's installer and does not redistribute it."},
-        "public_container": {"status": "not-applicable", "conditions": "Docker Desktop is a host product, not a project OCI layer."},
-        "course_image": {"status": "not-applicable", "conditions": "Docker Desktop does not enter the board image."},
-        "release": {"status": "not-applicable", "conditions": "No Desktop payload is included in course releases."}
+        "download": {
+          "status": "conditional",
+          "conditions": "Each eligible user obtains Docker Desktop from Docker's distribution channel."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Each eligible user accepts Docker's no-cost terms; the project buys no subscription."
+        },
+        "ci_use": {
+          "status": "not-applicable",
+          "conditions": "GitHub-hosted Linux CI does not use Docker Desktop."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "The project does not cache or mirror the Desktop installer."
+        },
+        "student_access": {
+          "status": "unresolved",
+          "conditions": "Tier 2 remains conditional until cohort and institution eligibility are confirmed."
+        },
+        "source_redistribution": {
+          "status": "not-applicable",
+          "conditions": "The proprietary Desktop product is not redistributed as source."
+        },
+        "binary_redistribution": {
+          "status": "prohibited",
+          "conditions": "The project links to Docker's installer and does not redistribute it."
+        },
+        "public_container": {
+          "status": "not-applicable",
+          "conditions": "Docker Desktop is a host product, not a project OCI layer."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "Docker Desktop does not enter the board image."
+        },
+        "release": {
+          "status": "not-applicable",
+          "conditions": "No Desktop payload is included in course releases."
+        }
       },
       "handling": {
         "lane": "excluded",
@@ -1165,7 +1661,9 @@
         "license_acceptance_required": true,
         "repository_payload": "none"
       },
-      "blocker_ids": ["LIC-008"],
+      "blocker_ids": [
+        "LIC-008"
+      ],
       "notes": "This does not block the Tier 1 Ubuntu path or Gate 0 baseline."
     },
     {
@@ -1218,16 +1716,46 @@
         }
       ],
       "operations": {
-        "download": {"status": "allowed", "conditions": "GitHub fetches pinned public action source by full commit SHA."},
-        "install": {"status": "not-applicable", "conditions": "Hosted services and actions run ephemerally under workflow control."},
-        "ci_use": {"status": "allowed", "conditions": "Public PR jobs use read-only least privilege, no stored secrets, and no restricted TI cache."},
-        "cache": {"status": "conditional", "conditions": "Cache only public redistributable content; later workflow tasks validate scope and poisoning boundaries."},
-        "student_access": {"status": "allowed", "conditions": "Students use repository workflows under the accepted public fork model and GitHub account terms."},
-        "source_redistribution": {"status": "not-applicable", "conditions": "The project references pinned action source rather than redistributing GitHub services."},
-        "binary_redistribution": {"status": "not-applicable", "conditions": "Hosted service binaries are not course artifacts."},
-        "public_container": {"status": "not-applicable", "conditions": "Hosted services are not embedded in the project container."},
-        "course_image": {"status": "not-applicable", "conditions": "Hosted services do not enter the board image."},
-        "release": {"status": "conditional", "conditions": "Release evidence records workflow/action SHAs, permissions, attestations, and applicable action notices."}
+        "download": {
+          "status": "allowed",
+          "conditions": "GitHub fetches pinned public action source by full commit SHA."
+        },
+        "install": {
+          "status": "not-applicable",
+          "conditions": "Hosted services and actions run ephemerally under workflow control."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "Public PR jobs use read-only least privilege, no stored secrets, and no restricted TI cache."
+        },
+        "cache": {
+          "status": "conditional",
+          "conditions": "Cache only public redistributable content; later workflow tasks validate scope and poisoning boundaries."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students use repository workflows under the accepted public fork model and GitHub account terms."
+        },
+        "source_redistribution": {
+          "status": "not-applicable",
+          "conditions": "The project references pinned action source rather than redistributing GitHub services."
+        },
+        "binary_redistribution": {
+          "status": "not-applicable",
+          "conditions": "Hosted service binaries are not course artifacts."
+        },
+        "public_container": {
+          "status": "not-applicable",
+          "conditions": "Hosted services are not embedded in the project container."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "Hosted services do not enter the board image."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Release evidence records workflow/action SHAs, permissions, attestations, and applicable action notices."
+        }
       },
       "handling": {
         "lane": "public-pr",
@@ -1237,7 +1765,9 @@
         "license_acceptance_required": false,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-006"],
+      "blocker_ids": [
+        "LIC-006"
+      ],
       "notes": "The automatically issued read-only fork token is not a stored credential. Any selected non-GitHub action needs its own matrix component before use."
     },
     {

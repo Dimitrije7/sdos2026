@@ -1,0 +1,66 @@
+{
+  "schema": "sdos-dsp-cores/1",
+  "revision": 1,
+  "updated": "2026-10-18",
+  "description": "Stable logical identity of each DSP. Linux enumerates remoteprocN in probe order, so tools resolve a core by its device-tree unit address instead. The C header host/libsdos_dsp generates and the Python board tools both read this file.",
+  "evidence": "release/evidence/task-008/20261018T175900Z-dmesg.txt lists every reserved-memory node and the dma_pool each DSP is assigned. The firmware regions follow TI's PDK memory_map_defines.inc, which swaps the two C66x IPC pools on purpose; TI's pinned echo firmware links inside them. Task 012 confirms every region against the live device tree.",
+  "cores": [
+    {
+      "name": "c66x_0",
+      "label": "C66x_0",
+      "family": "c6000",
+      "device": "4d80800000.dsp",
+      "ti_core": "c66xdsp_1",
+      "kernel_firmware": "j7-c66_0-fw",
+      "ti_echo_input": "ti.ipc-echo-fw-j721e-c66xdsp1",
+      "memory": {
+        "dma_pool": {
+          "base": "0xa7000000",
+          "size": "0x100000"
+        },
+        "firmware": {
+          "base": "0xa6100000",
+          "size": "0xf00000"
+        }
+      }
+    },
+    {
+      "name": "c66x_1",
+      "label": "C66x_1",
+      "family": "c6000",
+      "device": "4d81800000.dsp",
+      "ti_core": "c66xdsp_2",
+      "kernel_firmware": "j7-c66_1-fw",
+      "ti_echo_input": "ti.ipc-echo-fw-j721e-c66xdsp2",
+      "memory": {
+        "dma_pool": {
+          "base": "0xa6000000",
+          "size": "0x100000"
+        },
+        "firmware": {
+          "base": "0xa7100000",
+          "size": "0xf00000"
+        }
+      }
+    },
+    {
+      "name": "c71x_0",
+      "label": "C71x_0",
+      "family": "c7000",
+      "device": "64800000.dsp",
+      "ti_core": "c7x_1",
+      "kernel_firmware": "j7-c71_0-fw",
+      "ti_echo_input": "ti.ipc-echo-fw-j721e-c7x1",
+      "memory": {
+        "dma_pool": {
+          "base": "0xa8000000",
+          "size": "0x100000"
+        },
+        "firmware": {
+          "base": "0xa8100000",
+          "size": "0xf00000"
+        }
+      }
+    }
+  ]
+}

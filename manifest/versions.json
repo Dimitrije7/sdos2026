@@ -2,7 +2,7 @@
   "$schema": "./schemas/versions.schema.json",
   "schema_version": 1,
   "manifest_id": "sdos-platform-versions",
-  "revision": 3,
+  "revision": 4,
   "updated": "2026-10-18",
   "selection_rule": {
     "release_cutoff": "2026-10-04",
@@ -29,7 +29,11 @@
       "ti.c7x-dsplib-11.00.00.01",
       "ti.c7x-fftlib-11.00.00.01",
       "ti.mmalib-11.02.00.11",
-      "freertos.kernel-v10.5.1"
+      "freertos.kernel-v10.5.1",
+      "ti.ipc-echo-fw-j721e-c66xdsp1",
+      "ti.ipc-echo-fw-j721e-c66xdsp2",
+      "ti.ipc-echo-fw-j721e-c7x1",
+      "ti.linux-firmware-license-ti"
     ],
     "C66x compiler": [
       "ti.c6000-cgt-8.3.7"
@@ -495,6 +499,102 @@
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/pdk_jacinto_11_02_01_08/docs/userguide/jacinto/release_notes/release_notes_11_02_01.html",
       "notes": "The PDK release notes name FreeRTOS kernel tag V10.5.1. Task 019 compares the PDK copy with this upstream commit and classifies TI port files separately.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.ipc-echo-fw-j721e-c66xdsp1",
+      "name": "TI IPC echo test firmware for C66x_0",
+      "kind": "file",
+      "version": "REL.PSDK.11.02.01.05",
+      "license_matrix": {
+        "artifact": "ti.linux-firmware"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/TexasInstruments/ti-linux-firmware/e853cc767f4b5431ea10f8f986b455e14a60b282/ti-ipc/j721e/ipc_echo_test_c66xdsp_1_release_strip.xe66",
+        "file_name": "ipc_echo_test_c66xdsp_1_release_strip.xe66",
+        "published": "2026-06-16"
+      },
+      "integrity": {
+        "sha256": "b316626379fe4d3e1ac1a6f8280197d50c3a284aec59868401ffa301eaf0c296",
+        "size": 150300
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/TexasInstruments/ti-linux-firmware/commit/e853cc767f4b5431ea10f8f986b455e14a60b282",
+      "notes": "Unmodified TI echo firmware that Linux loads on C66x_0 in Task 013. WHENCE maps it to LICENSE.ti; the commit 5ee4bc35 message names release tag REL.PSDK.11.02.01.05 and its MD5 matches. Pinned to the newest repository commit on or before the cutoff, read from TI's GitHub mirror because git.ti.com was unreachable.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.ipc-echo-fw-j721e-c66xdsp2",
+      "name": "TI IPC echo test firmware for C66x_1",
+      "kind": "file",
+      "version": "REL.PSDK.11.02.01.05",
+      "license_matrix": {
+        "artifact": "ti.linux-firmware"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/TexasInstruments/ti-linux-firmware/e853cc767f4b5431ea10f8f986b455e14a60b282/ti-ipc/j721e/ipc_echo_test_c66xdsp_2_release_strip.xe66",
+        "file_name": "ipc_echo_test_c66xdsp_2_release_strip.xe66",
+        "published": "2026-06-16"
+      },
+      "integrity": {
+        "sha256": "6c98c01d1f3d35b681c78677523198e286244d00e6ea18456436cae2852e265d",
+        "size": 150300
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/TexasInstruments/ti-linux-firmware/commit/e853cc767f4b5431ea10f8f986b455e14a60b282",
+      "notes": "Unmodified TI echo firmware that Linux loads on C66x_1 in Task 013. WHENCE maps it to LICENSE.ti; the commit 5ee4bc35 message names release tag REL.PSDK.11.02.01.05 and its MD5 matches. Pinned to the newest repository commit on or before the cutoff, read from TI's GitHub mirror because git.ti.com was unreachable.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.ipc-echo-fw-j721e-c7x1",
+      "name": "TI IPC echo test firmware for C71x_0",
+      "kind": "file",
+      "version": "REL.PSDK.11.02.01.05",
+      "license_matrix": {
+        "artifact": "ti.linux-firmware"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/TexasInstruments/ti-linux-firmware/e853cc767f4b5431ea10f8f986b455e14a60b282/ti-ipc/j721e/ipc_echo_test_c7x_1_release_strip.xe71",
+        "file_name": "ipc_echo_test_c7x_1_release_strip.xe71",
+        "published": "2026-06-16"
+      },
+      "integrity": {
+        "sha256": "f929d68d27e34d6924bde7247151feda3636019202b974e323183f48558845bd",
+        "size": 10488888
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/TexasInstruments/ti-linux-firmware/commit/e853cc767f4b5431ea10f8f986b455e14a60b282",
+      "notes": "Unmodified TI echo firmware that Linux loads on C71x_0 in Task 013. WHENCE maps it to LICENSE.ti; the commit 5ee4bc35 message names release tag REL.PSDK.11.02.01.05 and its MD5 matches. Pinned to the newest repository commit on or before the cutoff, read from TI's GitHub mirror because git.ti.com was unreachable.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.linux-firmware-license-ti",
+      "name": "LICENSE.ti from the TI Linux firmware repository",
+      "kind": "file",
+      "version": "e853cc767f4b",
+      "license_matrix": {
+        "artifact": "ti.linux-firmware"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/TexasInstruments/ti-linux-firmware/e853cc767f4b5431ea10f8f986b455e14a60b282/LICENSE.ti",
+        "file_name": "LICENSE.ti",
+        "published": "2026-09-17"
+      },
+      "integrity": {
+        "sha256": "ab20ffbe7bba7e94be246b3417d33a914b3f07c16c47ef5a7f7602349a666a61",
+        "size": 2913
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/TexasInstruments/ti-linux-firmware/commit/e853cc767f4b5431ea10f8f986b455e14a60b282",
+      "notes": "The license WHENCE assigns to the J721E IPC firmware; it ships beside every copy of those blobs.",
       "state": "candidate"
     },
     {
@@ -1458,12 +1558,6 @@
     }
   ],
   "deferred": [
-    {
-      "id": "ti.linux-firmware",
-      "name": "TI Linux firmware repository revision for J721E remote cores",
-      "reason": "git.ti.com timed out or refused connections throughout 2026-10-18, so no commit could be read from the primary source.",
-      "owner": "Task 013"
-    },
     {
       "id": "ti.rpmsg-char-library",
       "name": "ti-rpmsg-char host library full commit",

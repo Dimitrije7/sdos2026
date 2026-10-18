@@ -58,7 +58,9 @@ PYTHON_TEST_MODULES = (
     "ci.test_facade",
     "ci.test_container",
     "ci.test_workflows",
+    "ci.test_firmware_elf",
     "tests.target.test_sdos_board",
+    "tests.target.test_dsp_ipc",
 )
 VALIDATORS = (
     "ci/validate_hardware.py",

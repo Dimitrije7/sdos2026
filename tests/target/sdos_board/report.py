@@ -16,6 +16,8 @@ import subprocess
 from pathlib import Path
 from typing import Any, Callable, Sequence
 
+from .cores import CORES
+
 SCHEMA = "sdos-board-report/1"
 
 # Every command reads state; none writes. The remote shell runs with `set +e`
@@ -76,7 +78,7 @@ REQUIRED_KCONFIG = (
     "CONFIG_FTRACE",
 )
 # DSP cores by their fixed address, never by remoteprocN enumeration.
-DSP_DEVICES = {"C66x_0": "4d80800000.dsp", "C66x_1": "4d81800000.dsp", "C71x_0": "64800000.dsp"}
+DSP_DEVICES = {core.label: core.device for core in CORES.values()}
 MAC = re.compile(r"\b(?:[0-9a-f]{2}:){5}[0-9a-f]{2}\b", re.I)
 MAX_TEMP_MILLI_C = 85000
 

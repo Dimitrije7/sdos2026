@@ -118,6 +118,32 @@ any item fails. MAC addresses are replaced by short hashes. `--raw <file>`
 re-evaluates saved raw text without a board. DSPs are identified by their
 fixed device addresses, never by `remoteprocN` numbers.
 
+Prove TI's IPC echo firmware on each DSP in turn (Task 013):
+
+```sh
+python3 -m tests.target.sdos_board dsp-ipc --key ~/.ssh/sdos-bench_ed25519 --out <dir>
+python3 -m tests.target.sdos_board dsp-ipc --key ~/.ssh/sdos-bench_ed25519 --out <dir> --core c71x_0
+```
+
+For each core it fetches the manifest-pinned firmware, refuses it unless every
+loadable segment lies in that core's carve-out from
+[`manifest/dsp-cores.json`](../manifest/dsp-cores.json), and uploads it to
+`/lib/firmware/sdos/ti-ipc/` with `LICENSE.ti`, checking the SHA-256 on the
+board. On the board it stops the core, loads the firmware, and runs two
+start, echo, and stop cycles; the second cycle proves restart. Each echo round
+sends `ping 1` to `ping 10`, expects `pong 1` to `pong 10`, and sends one
+200-byte message that must come back unchanged. The core is then offline again
+with its original firmware name, also after a failure.
+
+It writes `<core>.json` (schema `sdos-dsp-ipc/1`) with every timed event and
+the verdict, `<core>-kernel.txt` with the kernel log of the run, and
+`<core>-trace.txt` with the firmware trace after each start. The exit status is
+1 when any core fails. The same fit check runs alone, without a board:
+
+```sh
+python3 ci/firmware_elf.py c66x_0 <firmware.elf>
+```
+
 Capture the serial console until the login prompt or a time limit:
 
 ```sh

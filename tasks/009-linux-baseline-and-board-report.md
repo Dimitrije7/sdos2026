@@ -22,6 +22,8 @@ in-progress
      container. For Task 007: capture the USB console read-only.
   4. Ethernet needs a cable to a network; without one the item stays failed
      with that reason. Time cannot synchronize over the USB link alone.
+  5. When 011 and 012 pass, run Task 013's `dsp-ipc` in the same session
+     (see its handoff).
 - Decisions: the maintainer prefers batched board sessions (2026-10-18).
 - Verification, 2026-10-18: `python3 -m unittest tests.target.test_sdos_board`
   passed 38 tests.
