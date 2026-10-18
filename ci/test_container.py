@@ -151,6 +151,20 @@ class FetchInputTests(unittest.TestCase):
             (cache / "x.bin").write_bytes(payload)
             self.assertEqual(container.fetch_input("x", cache, manifest), cache / "x.bin")
 
+    def test_unreachable_download_fails_with_a_clear_message(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "versions.json"
+            manifest.write_text(json.dumps({"inputs": [{
+                "id": "x", "kind": "file",
+                "source": {"url": "https://invalid.example/x.bin", "file_name": "x.bin"},
+                "integrity": {"sha256": "0" * 64},
+            }]}))
+            denied = OSError("HTTP Error 403: Forbidden")
+            with mock.patch("urllib.request.urlopen", side_effect=denied), \
+                    contextlib.redirect_stdout(io.StringIO()):
+                with self.assertRaisesRegex(RuntimeError, "could not download"):
+                    container.fetch_input("x", Path(tmp) / "cache", manifest)
+
 
 if __name__ == "__main__":
     unittest.main()
