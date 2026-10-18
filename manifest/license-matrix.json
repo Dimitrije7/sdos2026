@@ -2,7 +2,7 @@
   "$schema": "./schemas/license-matrix.schema.json",
   "schema_version": "1.0.0",
   "matrix_id": "sdos-third-party-license-policy",
-  "revision": 2,
+  "revision": 3,
   "updated": "2026-10-18",
   "decision_status": "accepted",
   "policy": {
@@ -715,6 +715,13 @@
           "license_url": "https://docs.python.org/3/license.html"
         },
         {
+          "name": "jsonschema",
+          "role": "JSON Schema validation for repository manifests",
+          "expression": "MIT",
+          "source_url": "https://github.com/python-jsonschema/jsonschema",
+          "license_url": "https://github.com/python-jsonschema/jsonschema/blob/main/COPYING"
+        },
+        {
           "name": "Unity and CMock",
           "role": "Embedded C unit tests and mocks",
           "expression": "MIT",
@@ -762,6 +769,13 @@
           "expression": "GPL-3.0-or-later AND MIT",
           "source_url": "https://github.com/DavidAnson/markdownlint-cli2",
           "license_url": "https://github.com/DavidAnson/markdownlint-cli2/blob/main/LICENSE"
+        },
+        {
+          "name": "Node.js runtime",
+          "role": "JavaScript runtime required by markdownlint-cli2",
+          "expression": "MIT AND NOASSERTION",
+          "source_url": "https://github.com/nodejs/node",
+          "license_url": "https://github.com/nodejs/node/blob/main/LICENSE"
         },
         {
           "name": "hadolint and Trivy",
@@ -823,53 +837,85 @@
       "notes": "Composite component rows summarize tools that share handling. Task 017 must split any component whose exact package terms differ from this conclusion."
     },
     {
-      "id": "link-checker.selection",
-      "name": "Documentation link checker",
+      "id": "link-checker.lychee",
+      "name": "lychee documentation link checker",
       "category": "quality-tool",
-      "purpose": "Validate local and external links in project documentation without silently selecting an unreviewed dependency.",
+      "purpose": "Validate local and external links in project documentation; selected by Task 004.",
       "source": {
-        "owner": "To be selected by Task 004",
+        "owner": "lycheeverse contributors",
         "canonical_url": "https://github.com/lycheeverse/lychee",
         "license_urls": [
-          "https://github.com/lycheeverse/lychee/blob/master/LICENSE-MIT"
+          "https://github.com/lycheeverse/lychee/blob/master/LICENSE-MIT",
+          "https://github.com/lycheeverse/lychee/blob/master/LICENSE-APACHE"
         ],
-        "version_rule": "Task 004 selects and pins the implementation, version, source revision, artifact hash, transitive dependencies, and license. The Lychee links are candidate evidence only, not a selection.",
-        "integrity_rule": "Do not download or execute a candidate until Task 004 records its immutable release, hashes, dependencies, and license conclusion."
+        "version_rule": "Use the release pinned in manifest/versions.json; a newer release requires a manifest revision.",
+        "integrity_rule": "Verify the release asset SHA-256 recorded in manifest/versions.json before use."
       },
       "license": {
-        "class": "unresolved",
-        "expression": "NOASSERTION",
-        "conclusion": "The bring-up plan requires link checking but does not name an implementation; no dependency or redistribution conclusion exists until Task 004 selects one.",
+        "class": "open-source",
+        "expression": "MIT OR Apache-2.0",
+        "conclusion": "The repository carries both LICENSE-MIT and LICENSE-APACHE, the conventional Rust dual-license layout; GitHub's automatic detection reports only Apache-2.0, so Task 017 confirms the crate metadata expression. The statically linked Rust crate closure is inventoried by Task 017 before public redistribution.",
         "checked_on": "2026-10-18",
         "obligations": [
-          "select from an official source and record the exact license",
-          "inventory transitive runtime dependencies",
-          "retain all required notices and corresponding source"
+          "retain the chosen license text and copyright notices",
+          "inventory statically linked crate licenses before redistributing the binary"
         ]
       },
       "components": [],
       "operations": {
-        "download": {"status": "unresolved", "conditions": "Task 004 must select the product and version before acquisition."},
-        "install": {"status": "unresolved", "conditions": "Installation waits for a pinned package and dependency license review."},
-        "ci_use": {"status": "unresolved", "conditions": "CI use waits for the selected tool's terms, integrity record, and network behavior review."},
-        "cache": {"status": "prohibited", "conditions": "Do not cache an unselected payload."},
-        "student_access": {"status": "unresolved", "conditions": "Student distribution waits for the selected tool's exact license closure."},
-        "source_redistribution": {"status": "unresolved", "conditions": "No source artifact has been selected."},
-        "binary_redistribution": {"status": "unresolved", "conditions": "No binary artifact has been selected."},
-        "public_container": {"status": "prohibited", "conditions": "Do not add an unselected tool to public OCI layers."},
-        "course_image": {"status": "not-applicable", "conditions": "The host documentation checker is excluded from the board image."},
-        "release": {"status": "unresolved", "conditions": "Release inclusion waits for Task 004 selection and Task 017 package closure."}
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch the pinned release asset and verify its SHA-256."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install the verified binary with its license texts."
+        },
+        "ci_use": {
+          "status": "allowed",
+          "conditions": "May run in secret-free public PR jobs; external link checks run outside the required offline gate."
+        },
+        "cache": {
+          "status": "allowed",
+          "conditions": "Cache only the hash-verified release asset."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may receive the pinned binary with its notices."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Include the license texts."
+        },
+        "binary_redistribution": {
+          "status": "conditional",
+          "conditions": "Publish only after Task 017 inventories the statically linked crate licenses."
+        },
+        "public_container": {
+          "status": "conditional",
+          "conditions": "Allowed after Task 017 closes the container SBOM and notices."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "The documentation checker is excluded from the board image."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Tool bundles require the crate license inventory, hashes, and provenance."
+        }
       },
       "handling": {
-        "lane": "excluded",
+        "lane": "public-pr",
         "cost": "no-cost",
-        "acquisition": "No acquisition until Task 004 selects a candidate.",
+        "acquisition": "Pinned GitHub release asset with SHA-256 from manifest/versions.json.",
         "credentials_required": false,
         "license_acceptance_required": false,
-        "repository_payload": "none"
+        "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-005"],
-      "notes": "A candidate URL is recorded only to make the research reproducible. It does not authorize adding Lychee or any other checker."
+      "blocker_ids": [
+        "LIC-005"
+      ],
+      "notes": "Selected over markdown-link-check and LinkChecker because it is one static binary with an offline local-link mode and checksummed releases."
     },
     {
       "id": "cppcheck.open-source",
@@ -1162,6 +1208,13 @@
           "expression": "NOASSERTION",
           "source_url": "https://github.com/actions",
           "license_url": "https://docs.github.com/en/actions"
+        },
+        {
+          "name": "Docker-maintained workflow actions",
+          "role": "Buildx setup and image build orchestration",
+          "expression": "Apache-2.0",
+          "source_url": "https://github.com/docker/build-push-action",
+          "license_url": "https://github.com/docker/build-push-action/blob/master/LICENSE"
         }
       ],
       "operations": {

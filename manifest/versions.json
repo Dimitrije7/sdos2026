@@ -1,0 +1,1488 @@
+{
+  "$schema": "./schemas/versions.schema.json",
+  "schema_version": 1,
+  "manifest_id": "sdos-platform-versions",
+  "revision": 1,
+  "updated": "2026-10-18",
+  "selection_rule": {
+    "release_cutoff": "2026-10-04",
+    "description": "Each open input uses the highest stable release published on or before the cutoff, two weeks before the manifest date. TI inputs use the versions declared by the selected SDK. A newer pin requires a manifest revision."
+  },
+  "section4": {
+    "Board image": [
+      "beagle.distros-catalog",
+      "beagle.bbai64-debian-13.7-iot-2026-10-09",
+      "beagle.bbai64-iot-2026-10-09-bmap",
+      "beagle.bbai64-iot-2026-10-09-syft-inventory",
+      "beagle.u-boot-beagleboneai64"
+    ],
+    "Linux": [
+      "beagle.linux-image-6.18.55-arm64-k3-r59",
+      "linux.kernel-source-6.18.55-arm64-k3-r59",
+      "beagle.device-trees-v6.18.x"
+    ],
+    "DSP SDK": [
+      "ti.psdk-rtos-j721e-11.02.01.03",
+      "ti.psdk-rtos-j721e-11.02.01.03-prebuilt",
+      "ti.pdk-jacinto-11.02.01.08",
+      "ti.c66x-dsplib-3.4.0.0",
+      "ti.c7x-dsplib-11.00.00.01",
+      "ti.c7x-fftlib-11.00.00.01",
+      "ti.mmalib-11.02.00.11",
+      "freertos.kernel-v10.5.1"
+    ],
+    "C66x compiler": [
+      "ti.c6000-cgt-8.3.7"
+    ],
+    "C71x compiler": [
+      "ti.c7000-cgt-5.0.0.lts"
+    ],
+    "Host build environment": [
+      "ubuntu.jammy-20260924.1",
+      "ubuntu.jammy-apt-snapshot-20261004",
+      "nodejs.v22.23.3",
+      "cppcheck.2.22.0"
+    ],
+    "CI": [
+      "action.actions.checkout.v7.0.1",
+      "action.actions.upload-artifact.v7.0.1",
+      "action.actions.download-artifact.v8.0.1",
+      "action.actions.cache.v6.1.0",
+      "action.docker.setup-buildx-action.v4.4.1",
+      "action.docker.build-push-action.v7.4.0",
+      "action.actions.attest-build-provenance.v4.2.2",
+      "action.github.codeql-action.v4.38.2",
+      "github.runner-ubuntu-24.04"
+    ],
+    "Development UX": [
+      "buildkit.v0.33.1",
+      "dockerfile-frontend.1.27.1"
+    ]
+  },
+  "inputs": [
+    {
+      "id": "beagle.distros-catalog",
+      "name": "BeagleBoard distros catalog (os_list.json)",
+      "kind": "git",
+      "version": "858abd68",
+      "license_matrix": {
+        "artifact": "beagle.debian-image"
+      },
+      "source": {
+        "url": "https://github.com/beagleboard/distros",
+        "ref": "858abd684b985dbde08e45f2a8b35fa468eba7ca",
+        "published": "2026-10-09"
+      },
+      "integrity": {
+        "commit": "858abd684b985dbde08e45f2a8b35fa468eba7ca"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/distros/blob/858abd684b985dbde08e45f2a8b35fa468eba7ca/os_list.json",
+      "notes": "Publishes the image URL, sizes, and both SHA-256 values recorded in the image entry.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+      "name": "BeagleBone AI-64 Debian 13.7 IoT image, 2026-10-09",
+      "kind": "file",
+      "version": "debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb",
+      "license_matrix": {
+        "artifact": "beagle.debian-image"
+      },
+      "source": {
+        "url": "https://files.beagle.cc/file/beagleboard-public-2021/images/bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz",
+        "file_name": "bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz",
+        "published": "2026-10-09"
+      },
+      "integrity": {
+        "sha256": "69796038e452c6c5e006031ecab995a0ec734a866176e37a0de38d43b35380cf",
+        "size": 1126001648,
+        "expanded_sha256": "4b8ca45a631693fc4b45a09d26f1d98fbc378d6de9e2a6c2715364fd0452ea3c",
+        "expanded_size": 10737418240
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/distros/blob/858abd684b985dbde08e45f2a8b35fa468eba7ca/os_list.json",
+      "notes": "Headless IoT variant selected by the plan. Its derived redistribution remains blocked by LIC-003; using it as an input is allowed.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.bbai64-iot-2026-10-09-bmap",
+      "name": "Block map for the pinned IoT image",
+      "kind": "file",
+      "version": "2026-10-09",
+      "license_matrix": {
+        "artifact": "beagle.debian-image"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/beagleboard/distros/42d2a0a0283f033db04bff9ccb8204a57426cdb0/bmap-temp/bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.bmap",
+        "file_name": "bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.bmap",
+        "published": "2026-10-09"
+      },
+      "integrity": {
+        "sha256": "13e239cc46ba1b7c1a6bd4b14e7a8985e73a8d76cfaa2d7a0d8d3ef217debfb4",
+        "size": 6408
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/distros/commit/42d2a0a0283f033db04bff9ccb8204a57426cdb0",
+      "notes": "SHA-256 computed on 2026-10-18 from the commit-pinned URL.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.bbai64-iot-2026-10-09-syft-inventory",
+      "name": "Syft inventory for the pinned IoT image",
+      "kind": "file",
+      "version": "2026-10-09",
+      "license_matrix": {
+        "artifact": "beagle.debian-image"
+      },
+      "source": {
+        "url": "https://raw.githubusercontent.com/beagleboard/sbom-archive/5fda0d5f4ef583f972766a5dbffe399b83207fb0/sbom/bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.syft.spdx.json.xz",
+        "file_name": "bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.syft.spdx.json.xz",
+        "published": "2026-10-09"
+      },
+      "integrity": {
+        "sha256": "b6a79b4951eb0befc1ac78183cb9399d865b66c49566770b04b6fa79f54a1691",
+        "size": 7017620
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/sbom-archive/commit/5fda0d5f4ef583f972766a5dbffe399b83207fb0",
+      "notes": "Syft native JSON despite the .spdx.json suffix. SHA-256 computed on 2026-10-18 from the commit-pinned URL.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.linux-image-6.18.55-arm64-k3-r59",
+      "name": "Linux kernel package in the pinned image",
+      "kind": "contained",
+      "version": "6.18.55-arm64-k3-r59 (package 1trixie)",
+      "license_matrix": {
+        "artifact": "linux.kernel"
+      },
+      "source": {
+        "url": "https://github.com/RobertCNelson/linux-stable-rcn-ee/releases/tag/6.18.55-arm64-k3-r59"
+      },
+      "integrity": {
+        "contained_in": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+        "path": "Debian package linux-image-6.18.55-arm64-k3-r59"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/sbom-archive/commit/5fda0d5f4ef583f972766a5dbffe399b83207fb0",
+      "notes": "Includes the board DTBs under /boot/dtbs/6.18.55-arm64-k3-r59/. Task 009 records the booted kernel, configuration, and DTB hashes before qualification.",
+      "state": "candidate"
+    },
+    {
+      "id": "linux.kernel-source-6.18.55-arm64-k3-r59",
+      "name": "Kernel source for the image kernel",
+      "kind": "git",
+      "version": "6.18.55-arm64-k3-r59",
+      "license_matrix": {
+        "artifact": "linux.kernel"
+      },
+      "source": {
+        "url": "https://github.com/RobertCNelson/linux-stable-rcn-ee",
+        "ref": "refs/tags/6.18.55-arm64-k3-r59",
+        "published": "2026-10-03"
+      },
+      "integrity": {
+        "commit": "dbedc304d62db6f0c4dfde36be783112f61dda6c"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/RobertCNelson/linux-stable-rcn-ee/releases/tag/6.18.55-arm64-k3-r59",
+      "notes": "Annotated tag object 5169ebfdd2f3afdb1bda4a0adc6e5a6acfe6977f. Corresponding-source evidence for Gate 6 must also capture the packaging configuration.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.device-trees-v6.18.x",
+      "name": "BeagleBoard device-tree and overlay sources",
+      "kind": "git",
+      "version": "v6.18.x@2026-10-03",
+      "license_matrix": {
+        "artifact": "linux.kernel"
+      },
+      "source": {
+        "url": "https://github.com/beagleboard/BeagleBoard-DeviceTrees",
+        "ref": "refs/heads/v6.18.x",
+        "published": "2026-10-03"
+      },
+      "integrity": {
+        "commit": "550f7711a4696d5f5e92505289379b754e871313"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/BeagleBoard-DeviceTrees/commit/550f7711a4696d5f5e92505289379b754e871313",
+      "notes": "Branch head on the image date; the image carries a checkout under /opt/source. Task 012 audits k3-j721e-ti-ipc-firmware.dtsi and reserved memory against this revision.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.u-boot-beagleboneai64",
+      "name": "U-Boot package in the pinned image",
+      "kind": "contained",
+      "version": "2026.10.20261005.0-0~trixie+20261007",
+      "license_matrix": {
+        "artifact": "beagle.debian-image"
+      },
+      "source": {
+        "url": "https://github.com/beagleboard/sbom-archive"
+      },
+      "integrity": {
+        "contained_in": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+        "path": "Debian package bb-u-boot-beagleboneai64"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/sbom-archive/commit/5fda0d5f4ef583f972766a5dbffe399b83207fb0",
+      "notes": "Students never modify U-Boot. Its source revision is a Gate 6 corresponding-source item under LIC-003.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.psdk-rtos-j721e-11.02.01.03",
+      "name": "TI Processor SDK RTOS J721E",
+      "kind": "file",
+      "version": "11.02.01.03",
+      "license_matrix": {
+        "artifact": "ti.psdk-rtos-j721e"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/software-development-kit-sdk/MD-bA0wfI4X2g/11.02.01.03/ti-processor-sdk-rtos-j721e-evm-11_02_01_03.tar.gz",
+        "file_name": "ti-processor-sdk-rtos-j721e-evm-11_02_01_03.tar.gz"
+      },
+      "integrity": {
+        "sha256": "8421152eedff7b0bb3a59caf884fd0932b8a9976e394cf8bf73f257dee4e50bc"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E/11.02.01.03",
+      "notes": "SHA-256 published by TI. Not downloaded: acquisition waits for Task 005 to record the exact no-cost terms and for the maintainer's confirmation.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.psdk-rtos-j721e-11.02.01.03-prebuilt",
+      "name": "TI Processor SDK RTOS J721E prebuilt package",
+      "kind": "file",
+      "version": "11.02.01.03",
+      "license_matrix": {
+        "artifact": "ti.psdk-rtos-j721e"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/software-development-kit-sdk/MD-bA0wfI4X2g/11.02.01.03/ti-processor-sdk-rtos-j721e-evm-11_02_01_03-prebuilt.tar.gz",
+        "file_name": "ti-processor-sdk-rtos-j721e-evm-11_02_01_03-prebuilt.tar.gz"
+      },
+      "integrity": {
+        "sha256": "26f00e1ef1a7584ec2ef37cdbbe4d3e8c3d178d681cbb164dd1a833fff8feee4"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E/11.02.01.03",
+      "notes": "Candidate source of TI's prebuilt remote-core reference firmware for the Task 013 IPC proof. Its exact firmware contents are inventoried at acquisition.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.pdk-jacinto-11.02.01.08",
+      "name": "TI Platform Development Kit",
+      "kind": "contained",
+      "version": "11.02.01.08",
+      "license_matrix": {
+        "artifact": "ti.psdk-rtos-j721e",
+        "component": "PDK"
+      },
+      "source": {
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/pdk_jacinto_11_02_01_08/docs/userguide/jacinto/release_notes/release_notes_11_02_01.html"
+      },
+      "integrity": {
+        "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
+        "path": "pdk_jacinto_11_02_01_08/"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+      "notes": "Folder version from the SDK components page link target. Supplies drivers, CSL, IPC, and the bundled FreeRTOS kernel.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.c66x-dsplib-3.4.0.0",
+      "name": "TI C66x DSPLIB",
+      "kind": "contained",
+      "version": "3.4.0.0",
+      "license_matrix": {
+        "artifact": "ti.c66x-dsplib"
+      },
+      "source": {
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html"
+      },
+      "integrity": {
+        "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
+        "path": "dsplib_c66x_3_4_0_0/"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.c7x-dsplib-11.00.00.01",
+      "name": "TI C7x DSPLIB",
+      "kind": "contained",
+      "version": "11.00.00.01",
+      "license_matrix": {
+        "artifact": "ti.c7x-optimized-libraries",
+        "component": "C7x DSPLIB"
+      },
+      "source": {
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html"
+      },
+      "integrity": {
+        "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
+        "path": "dsplib_* folder"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+      "notes": "The components page says 11.00.00.01 while the SDK manifest says 11.02.00. Task 019 records the folder actually present in the hashed archive and revises this entry.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.c7x-fftlib-11.00.00.01",
+      "name": "TI C7x FFTLIB",
+      "kind": "contained",
+      "version": "11.00.00.01",
+      "license_matrix": {
+        "artifact": "ti.c7x-optimized-libraries",
+        "component": "FFTLIB"
+      },
+      "source": {
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html"
+      },
+      "integrity": {
+        "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
+        "path": "fftlib_* folder"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.mmalib-11.02.00.11",
+      "name": "TI MMALIB",
+      "kind": "contained",
+      "version": "11.02.00.11",
+      "license_matrix": {
+        "artifact": "ti.c7x-optimized-libraries",
+        "component": "MMALIB"
+      },
+      "source": {
+        "url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html"
+      },
+      "integrity": {
+        "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
+        "path": "mmalib_* folder"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+      "notes": "The components page says 11.02.00.11 while the SDK manifest says 11.02.01. Task 019 resolves it from the hashed archive.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.c6000-cgt-8.3.7",
+      "name": "TI C6000 Code Generation Tools, Linux installer",
+      "kind": "file",
+      "version": "8.3.7",
+      "license_matrix": {
+        "artifact": "ti.c6000-cgt"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-vqU2jj6ibH/8.3.7/ti_cgt_c6000_8.3.7_linux_installer_x86.bin",
+        "file_name": "ti_cgt_c6000_8.3.7_linux_installer_x86.bin"
+      },
+      "integrity": {
+        "sha256": "2ceade3ab7e908202b76b9db875c1079d1f84ac0c85a34d6e57904fdb286116e"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/C6000-CGT/8.3.7",
+      "notes": "The version declared by PSDK RTOS 11.02.01.03. SHA-256 published by TI.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.c7000-cgt-5.0.0.lts",
+      "name": "TI C7000 Code Generation Tools, Linux installer",
+      "kind": "file",
+      "version": "5.0.0.LTS",
+      "license_matrix": {
+        "artifact": "ti.c7000-cgt"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-707zYe3Rik/5.0.0.LTS/ti_cgt_c7000_5.0.0.LTS_linux-x64_installer.bin",
+        "file_name": "ti_cgt_c7000_5.0.0.LTS_linux-x64_installer.bin"
+      },
+      "integrity": {
+        "sha256": "00679f852732ad23cea97e6fa3648d7c2d9aca26c244451e8b07a91c1d20ee7f"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/C7000-CGT/5.0.0.LTS",
+      "notes": "The version declared by PSDK RTOS 11.02.01.03. SHA-256 published by TI.",
+      "state": "candidate"
+    },
+    {
+      "id": "freertos.kernel-v10.5.1",
+      "name": "FreeRTOS kernel",
+      "kind": "git",
+      "version": "V10.5.1",
+      "license_matrix": {
+        "artifact": "freertos.kernel"
+      },
+      "source": {
+        "url": "https://github.com/FreeRTOS/FreeRTOS-Kernel",
+        "ref": "refs/tags/V10.5.1"
+      },
+      "integrity": {
+        "commit": "def7d2df2b0506d3d249334974f51e427c17a41c"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/pdk_jacinto_11_02_01_08/docs/userguide/jacinto/release_notes/release_notes_11_02_01.html",
+      "notes": "The PDK release notes name FreeRTOS kernel tag V10.5.1. Task 019 compares the PDK copy with this upstream commit and classifies TI port files separately.",
+      "state": "candidate"
+    },
+    {
+      "id": "ubuntu.jammy-20260924.1",
+      "name": "Ubuntu 22.04 base image",
+      "kind": "oci-image",
+      "version": "jammy-20260924.1",
+      "license_matrix": {
+        "artifact": "ubuntu.22.04-oci"
+      },
+      "source": {
+        "url": "https://hub.docker.com/_/ubuntu",
+        "ref": "docker.io/library/ubuntu:jammy-20260924.1",
+        "published": "2026-10-04"
+      },
+      "integrity": {
+        "index_digest": "sha256:5ec03bb3441e8b0bf3b4f9cd4629a1ae763010dc3035bb8da3ae6cf026486401",
+        "platform_digests": {
+          "linux/amd64": "sha256:08ea48a03a3e78ebc7cd526e6a275053223aadd88bfc09cc49b06d5281525fde"
+        }
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://hub.docker.com/_/ubuntu/tags?name=jammy-20260924.1",
+      "notes": "Dockerfiles reference the image by digest; the tag is informational.",
+      "state": "candidate"
+    },
+    {
+      "id": "ubuntu.jammy-apt-snapshot-20261004",
+      "name": "Ubuntu 22.04 package set from the snapshot archive",
+      "kind": "apt-snapshot",
+      "version": "20261004T000000Z",
+      "license_matrix": {
+        "artifact": "ubuntu.22.04-oci"
+      },
+      "source": {
+        "url": "https://snapshot.ubuntu.com/ubuntu/20261004T000000Z/",
+        "published": "2026-10-04"
+      },
+      "integrity": {
+        "snapshot": "20261004T000000Z",
+        "signing_key_fingerprint": "F6ECB3762474EDA9D21B7022871920D1991BC93C",
+        "inrelease_sha256": {
+          "jammy": "c14060cd8c6d625874dfcb9523a35a395bf4865c28b6b6a82569ef326fe92dc6",
+          "jammy-updates": "d73e7fe51eb73e1afab35f6b549f3a6ca20782a4b388e950cc6234b14b6a0920",
+          "jammy-security": "086ac34ac0d1c039aa793c05a05c54084945dde53e5853663f937d5f351ee77e"
+        },
+        "packages": [
+          {
+            "name": "ca-certificates",
+            "version": "20260601~22.04.1",
+            "suite": "jammy-updates",
+            "file_name": "ca-certificates_20260601~22.04.1_all.deb",
+            "sha256": "6e8cdcc8c86103acd4fc14649eac62ff2037108389074a7b167567af33c32245",
+            "matrix_component": null
+          },
+          {
+            "name": "curl",
+            "version": "7.81.0-1ubuntu1.29",
+            "suite": "jammy-updates",
+            "file_name": "curl_7.81.0-1ubuntu1.29_amd64.deb",
+            "sha256": "adbeb46ebd7a849c46898c089e8d3fc0737b1a8456cddb16ea29c4ba4cd6c972",
+            "matrix_component": null
+          },
+          {
+            "name": "git",
+            "version": "1:2.34.1-1ubuntu1.17",
+            "suite": "jammy-updates",
+            "file_name": "git_2.34.1-1ubuntu1.17_amd64.deb",
+            "sha256": "8794fcf2c4606c445df0db3dc963c8fb852772208bfb12727a12717c03767af7",
+            "matrix_component": null
+          },
+          {
+            "name": "make",
+            "version": "4.3-4.1build1",
+            "suite": "jammy",
+            "file_name": "make_4.3-4.1build1_amd64.deb",
+            "sha256": "080b79a1a1623a2e6c6eead37d62b15fdf2c3dbfeafe8ecf5e31c54eb09eadcc",
+            "matrix_component": null
+          },
+          {
+            "name": "cmake",
+            "version": "3.22.1-1ubuntu1.22.04.2",
+            "suite": "jammy-updates",
+            "file_name": "cmake_3.22.1-1ubuntu1.22.04.2_amd64.deb",
+            "sha256": "55a46b2f9bbc8899ae6772f0313ca2dd88801a514feaa488c88094c4fafa83c5",
+            "matrix_component": "CMake and CTest"
+          },
+          {
+            "name": "ninja-build",
+            "version": "1.10.1-1",
+            "suite": "jammy",
+            "file_name": "ninja-build_1.10.1-1_amd64.deb",
+            "sha256": "ca8aae8ac7efad41d1f96a7e227653bd62b24e89cc7ddb18cec262f1869877b2",
+            "matrix_component": "Ninja"
+          },
+          {
+            "name": "gcc-12",
+            "version": "12.3.0-1ubuntu1~22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "gcc-12_12.3.0-1ubuntu1~22.04.3_amd64.deb",
+            "sha256": "f1ce0ee798bd9c3d30c5602962521fc7faf309795fc6596de88df1cfc4732d55",
+            "matrix_component": "GCC, gcov, and GCC sanitizers"
+          },
+          {
+            "name": "g++-12",
+            "version": "12.3.0-1ubuntu1~22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "g++-12_12.3.0-1ubuntu1~22.04.3_amd64.deb",
+            "sha256": "c4123ea47a1d422ec43fb0918f670cfeb7bef1f26e6bf372fe15099fd42bbfcd",
+            "matrix_component": "GCC, gcov, and GCC sanitizers"
+          },
+          {
+            "name": "gcc-12-aarch64-linux-gnu",
+            "version": "12.3.0-1ubuntu1~22.04.3cross1",
+            "suite": "jammy-updates",
+            "file_name": "gcc-12-aarch64-linux-gnu_12.3.0-1ubuntu1~22.04.3cross1_amd64.deb",
+            "sha256": "c0df1df1a850e9bde317656288cc3cb6a7faefa5ada6dd5b282e9b859d9c2a3f",
+            "matrix_component": "GCC, gcov, and GCC sanitizers"
+          },
+          {
+            "name": "g++-12-aarch64-linux-gnu",
+            "version": "12.3.0-1ubuntu1~22.04.3cross1",
+            "suite": "jammy-updates",
+            "file_name": "g++-12-aarch64-linux-gnu_12.3.0-1ubuntu1~22.04.3cross1_amd64.deb",
+            "sha256": "566f7eda8237d919e9d374b20c33f0ada5cc4956beacc501f74c0a9ea98a0371",
+            "matrix_component": "GCC, gcov, and GCC sanitizers"
+          },
+          {
+            "name": "libc6-dev-arm64-cross",
+            "version": "2.35-0ubuntu1cross3",
+            "suite": "jammy",
+            "file_name": "libc6-dev-arm64-cross_2.35-0ubuntu1cross3_all.deb",
+            "sha256": "1c552b83243bc5ac6b1ac01078f2396d0f483e849ec0b577bce28e067f6bd65d",
+            "matrix_component": null
+          },
+          {
+            "name": "clang-15",
+            "version": "1:15.0.7-0ubuntu0.22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "clang-15_15.0.7-0ubuntu0.22.04.3_amd64.deb",
+            "sha256": "2e29983cd32edf0657574f85291a1f236ae8969ee6b5eedc4d1040f7eb2afc33",
+            "matrix_component": "LLVM and Clang tool suite"
+          },
+          {
+            "name": "clang-tidy-15",
+            "version": "1:15.0.7-0ubuntu0.22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "clang-tidy-15_15.0.7-0ubuntu0.22.04.3_amd64.deb",
+            "sha256": "33793d1cd5b61e3b725b4e78d18166e1a1cd6c27a0311a6b9ce25ffed2a98162",
+            "matrix_component": "LLVM and Clang tool suite"
+          },
+          {
+            "name": "clang-format-15",
+            "version": "1:15.0.7-0ubuntu0.22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "clang-format-15_15.0.7-0ubuntu0.22.04.3_amd64.deb",
+            "sha256": "34a160c44bff0f5df0d3b4b0293b50d8b4ce982dfbffc8f09c88c37b329d1f0d",
+            "matrix_component": "LLVM and Clang tool suite"
+          },
+          {
+            "name": "clangd-15",
+            "version": "1:15.0.7-0ubuntu0.22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "clangd-15_15.0.7-0ubuntu0.22.04.3_amd64.deb",
+            "sha256": "b72727baedde8fb4fe53f1a98cdbdd3f370474425f76e3c77c484cb38e70658c",
+            "matrix_component": "LLVM and Clang tool suite"
+          },
+          {
+            "name": "llvm-15",
+            "version": "1:15.0.7-0ubuntu0.22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "llvm-15_15.0.7-0ubuntu0.22.04.3_amd64.deb",
+            "sha256": "dbe4af895b6d422aa5cced39e47c7496e8357ecbac91db8ee53f2d7ad5c98911",
+            "matrix_component": "LLVM and Clang tool suite"
+          },
+          {
+            "name": "libclang-common-15-dev",
+            "version": "1:15.0.7-0ubuntu0.22.04.3",
+            "suite": "jammy-updates",
+            "file_name": "libclang-common-15-dev_15.0.7-0ubuntu0.22.04.3_amd64.deb",
+            "sha256": "4e8bee56deed58a1c3da8354c6cb352b9b82a8bf9cfe44bfae5cc0ba34eade60",
+            "matrix_component": "LLVM and Clang tool suite"
+          },
+          {
+            "name": "python3",
+            "version": "3.10.6-1~22.04.1",
+            "suite": "jammy-updates",
+            "file_name": "python3_3.10.6-1~22.04.1_amd64.deb",
+            "sha256": "43dbcc12d790ed9360be4a1dc690ac0a7464a5e7c3170785886df84811a3f5a5",
+            "matrix_component": "Python"
+          },
+          {
+            "name": "python3-venv",
+            "version": "3.10.6-1~22.04.1",
+            "suite": "jammy-updates",
+            "file_name": "python3-venv_3.10.6-1~22.04.1_amd64.deb",
+            "sha256": "ee8d678c61b0721aff196ab1320e41cf4f5ebe3fcd22363b82e22c733b105866",
+            "matrix_component": "Python"
+          },
+          {
+            "name": "python3-pip",
+            "version": "22.0.2+dfsg-1ubuntu0.7",
+            "suite": "jammy-updates",
+            "file_name": "python3-pip_22.0.2+dfsg-1ubuntu0.7_all.deb",
+            "sha256": "11ba334966c3626e61cffc08c4a3ef76982c5a85fe3bdc920ea0b0be37237102",
+            "matrix_component": "Python"
+          },
+          {
+            "name": "shellcheck",
+            "version": "0.8.0-2",
+            "suite": "jammy",
+            "file_name": "shellcheck_0.8.0-2_amd64.deb",
+            "sha256": "acb4b6114cfca1f392f85ef405c06e8ae716183260e743dae3909798a241c1ee",
+            "matrix_component": "ShellCheck and shfmt"
+          },
+          {
+            "name": "lcov",
+            "version": "1.15-1",
+            "suite": "jammy",
+            "file_name": "lcov_1.15-1_all.deb",
+            "sha256": "3b849430a01b446333706b377b87b688dd1a16d317a140336a0d5322f176665e",
+            "matrix_component": "lcov"
+          },
+          {
+            "name": "device-tree-compiler",
+            "version": "1.6.1-1",
+            "suite": "jammy",
+            "file_name": "device-tree-compiler_1.6.1-1_amd64.deb",
+            "sha256": "57dfb282f956fed9e32b92849acbc00ed08feca868a5d21f95afaa75d254243b",
+            "matrix_component": null
+          },
+          {
+            "name": "xz-utils",
+            "version": "5.2.5-2ubuntu1.1",
+            "suite": "jammy-updates",
+            "file_name": "xz-utils_5.2.5-2ubuntu1.1_amd64.deb",
+            "sha256": "012652d4f76a08bfc6badf6a37c6da4c4e4a9f78b8c1560951750a74d700405c",
+            "matrix_component": null
+          }
+        ]
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://snapshot.ubuntu.com/",
+      "notes": "Explicitly requested packages only; Task 017 installs from this snapshot and records the full dependency closure. InRelease signatures were verified with the Ubuntu archive keyring on 2026-10-18. Clang 15 and GCC 12 are the newest supported compilers in this archive; the aarch64 cross compilers build host code for the board.",
+      "state": "candidate"
+    },
+    {
+      "id": "nodejs.v22.23.3",
+      "name": "Node.js runtime for markdownlint-cli2",
+      "kind": "file",
+      "version": "v22.23.3",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "Node.js runtime"
+      },
+      "source": {
+        "url": "https://nodejs.org/dist/v22.23.3/node-v22.23.3-linux-x64.tar.xz",
+        "file_name": "node-v22.23.3-linux-x64.tar.xz",
+        "published": "2026-09-23"
+      },
+      "integrity": {
+        "sha256": "df450af89261115ef9f9e3830c3eeb2cc9213b63c720b1af623cb5dcbe2e02de"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://nodejs.org/dist/v22.23.3/SHASUMS256.txt",
+      "notes": "Jod LTS line. markdownlint-cli2 0.23.3 requires Node.js 22 or newer, which Ubuntu 22.04 does not package.",
+      "state": "candidate"
+    },
+    {
+      "id": "shfmt.v3.14.1",
+      "name": "shfmt",
+      "kind": "file",
+      "version": "v3.14.1",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "ShellCheck and shfmt"
+      },
+      "source": {
+        "url": "https://github.com/mvdan/sh/releases/download/v3.14.1/shfmt_v3.14.1_linux_amd64",
+        "file_name": "shfmt_v3.14.1_linux_amd64",
+        "published": "2026-09-06"
+      },
+      "integrity": {
+        "sha256": "76e77641faa025814b77f153b29796b8e6fa2fca03e0c76a691608b86c7ea7bf",
+        "size": 3571872
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/mvdan/sh/releases/tag/v3.14.1",
+      "state": "candidate"
+    },
+    {
+      "id": "hadolint.v2.15.1",
+      "name": "hadolint",
+      "kind": "file",
+      "version": "v2.15.1",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "hadolint and Trivy"
+      },
+      "source": {
+        "url": "https://github.com/hadolint/hadolint/releases/download/v2.15.1/hadolint-linux-x86_64",
+        "file_name": "hadolint-linux-x86_64",
+        "published": "2026-07-31"
+      },
+      "integrity": {
+        "sha256": "c7187db94eeeeca956519a6af171adc31453941a1e777961f6e680f697c8c507",
+        "size": 55661096
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/hadolint/hadolint/releases/tag/v2.15.1",
+      "state": "candidate"
+    },
+    {
+      "id": "trivy.v0.75.0",
+      "name": "Trivy",
+      "kind": "file",
+      "version": "v0.75.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "hadolint and Trivy"
+      },
+      "source": {
+        "url": "https://github.com/aquasecurity/trivy/releases/download/v0.75.0/trivy_0.75.0_Linux-64bit.tar.gz",
+        "file_name": "trivy_0.75.0_Linux-64bit.tar.gz",
+        "published": "2026-10-01"
+      },
+      "integrity": {
+        "sha256": "c6e65abddb348e25f10549df887045629cf28cc72453cd1c63acb717316b3f3f",
+        "size": 51704231
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/aquasecurity/trivy/releases/tag/v0.75.0",
+      "state": "candidate",
+      "notes": "The vulnerability database is a separate mutable input; Task 024 defines its update and retention policy."
+    },
+    {
+      "id": "actionlint.v1.7.12",
+      "name": "actionlint",
+      "kind": "file",
+      "version": "v1.7.12",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "actionlint and zizmor"
+      },
+      "source": {
+        "url": "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz",
+        "file_name": "actionlint_1.7.12_linux_amd64.tar.gz",
+        "published": "2026-03-30"
+      },
+      "integrity": {
+        "sha256": "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8",
+        "size": 2353908
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/rhysd/actionlint/releases/tag/v1.7.12",
+      "state": "candidate"
+    },
+    {
+      "id": "gitleaks.v8.30.1",
+      "name": "gitleaks",
+      "kind": "file",
+      "version": "v8.30.1",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "gitleaks"
+      },
+      "source": {
+        "url": "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz",
+        "file_name": "gitleaks_8.30.1_linux_x64.tar.gz",
+        "published": "2026-03-21"
+      },
+      "integrity": {
+        "sha256": "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb",
+        "size": 8230402
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/gitleaks/gitleaks/releases/tag/v8.30.1",
+      "state": "candidate"
+    },
+    {
+      "id": "syft.v1.54.0",
+      "name": "Syft",
+      "kind": "file",
+      "version": "v1.54.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "Syft"
+      },
+      "source": {
+        "url": "https://github.com/anchore/syft/releases/download/v1.54.0/syft_1.54.0_linux_amd64.tar.gz",
+        "file_name": "syft_1.54.0_linux_amd64.tar.gz",
+        "published": "2026-10-01"
+      },
+      "integrity": {
+        "sha256": "54a87372498168b2d033e876fd41fa4e8035b872699e525a57046e1f2f09c860",
+        "size": 29217540
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/anchore/syft/releases/tag/v1.54.0",
+      "state": "candidate"
+    },
+    {
+      "id": "lychee.v0.24.2",
+      "name": "lychee link checker",
+      "kind": "file",
+      "version": "lychee-v0.24.2",
+      "license_matrix": {
+        "artifact": "link-checker.lychee"
+      },
+      "source": {
+        "url": "https://github.com/lycheeverse/lychee/releases/download/lychee-v0.24.2/lychee-x86_64-unknown-linux-gnu.tar.gz",
+        "file_name": "lychee-x86_64-unknown-linux-gnu.tar.gz",
+        "published": "2026-05-01"
+      },
+      "integrity": {
+        "sha256": "1f4e0ef7f6554a6ed33dd7ac144fb2e1bbed98598e7af973042fc5cd43951c9a",
+        "size": 7626970
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/lycheeverse/lychee/releases/tag/lychee-v0.24.2",
+      "state": "candidate",
+      "notes": "Selected by Task 004 as the documentation link checker: one static binary, offline local-link mode, checksummed releases, MIT OR Apache-2.0."
+    },
+    {
+      "id": "cppcheck.2.22.0",
+      "name": "Cppcheck engine and misra.py add-on",
+      "kind": "git",
+      "version": "2.22.0",
+      "license_matrix": {
+        "artifact": "cppcheck.open-source"
+      },
+      "source": {
+        "url": "https://github.com/cppcheck-opensource/cppcheck",
+        "ref": "refs/tags/2.22.0",
+        "published": "2026-09-19"
+      },
+      "integrity": {
+        "commit": "a436ca35ed1887bee789765122b65ed2d7a7e045"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/cppcheck-opensource/cppcheck/releases/tag/2.22.0",
+      "state": "candidate",
+      "notes": "Built from source in Task 017; Ubuntu 22.04 packages only 2.7. Task 024 derives the enforced MISRA-oriented subset from this exact revision."
+    },
+    {
+      "id": "unity.v2.7.0",
+      "name": "Unity",
+      "kind": "git",
+      "version": "v2.7.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "Unity and CMock"
+      },
+      "source": {
+        "url": "https://github.com/ThrowTheSwitch/Unity",
+        "ref": "refs/tags/v2.7.0",
+        "published": "2026-07-16"
+      },
+      "integrity": {
+        "commit": "b6763fbd9cedfacaa89e2ad9fd00d615a234e355"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/ThrowTheSwitch/Unity/releases/tag/v2.7.0",
+      "state": "candidate"
+    },
+    {
+      "id": "cmock.v2.7.0",
+      "name": "CMock",
+      "kind": "git",
+      "version": "v2.7.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "Unity and CMock"
+      },
+      "source": {
+        "url": "https://github.com/ThrowTheSwitch/CMock",
+        "ref": "refs/tags/v2.7.0",
+        "published": "2026-07-16"
+      },
+      "integrity": {
+        "commit": "6ea503340b1d3fdc0f2bcaf69273ba0160ec83af"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/ThrowTheSwitch/CMock/releases/tag/v2.7.0",
+      "state": "candidate",
+      "notes": "Task 023 pins the vendored submodules and Ruby dependencies when it adopts CMock."
+    },
+    {
+      "id": "googletest.v1.18.0",
+      "name": "GoogleTest and GoogleMock",
+      "kind": "git",
+      "version": "v1.18.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "GoogleTest and GoogleMock"
+      },
+      "source": {
+        "url": "https://github.com/google/googletest",
+        "ref": "refs/tags/v1.18.0",
+        "published": "2026-08-10"
+      },
+      "integrity": {
+        "commit": "063de7e9578f82b369302001269680b4b1553359"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/google/googletest/releases/tag/v1.18.0",
+      "state": "candidate"
+    },
+    {
+      "id": "pypi.lizard.1.24.0",
+      "name": "lizard (PyPI)",
+      "kind": "pypi",
+      "version": "1.24.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "lizard"
+      },
+      "source": {
+        "url": "https://files.pythonhosted.org/packages/60/c1/1da7937391a7e67edfb33bb3cd6d3426a7027cf3dd904ecb29c2b4416e78/lizard-1.24.0-py2.py3-none-any.whl",
+        "file_name": "lizard-1.24.0-py2.py3-none-any.whl",
+        "published": "2026-08-19"
+      },
+      "integrity": {
+        "sha256": "a688bc607a891ff4a7836826f25742dc9c1bf648da3075dbd495e199e8848602"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://pypi.org/project/lizard/1.24.0/",
+      "state": "candidate"
+    },
+    {
+      "id": "pypi.cmakelang.0.6.13",
+      "name": "cmakelang (PyPI)",
+      "kind": "pypi",
+      "version": "0.6.13",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "cmake-format"
+      },
+      "source": {
+        "url": "https://files.pythonhosted.org/packages/86/a8/c4676cac062d133c6b909d7def80a3194162597968953a3291b309878721/cmakelang-0.6.13-py3-none-any.whl",
+        "file_name": "cmakelang-0.6.13-py3-none-any.whl",
+        "published": "2020-08-19"
+      },
+      "integrity": {
+        "sha256": "764b9467195c7c36453d60a829f30229720d26c7dffd41cb516b99bd9c7daf4e"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://pypi.org/project/cmakelang/0.6.13/",
+      "state": "candidate",
+      "notes": "The latest cmakelang release dates from 2020. Task 017 confirms it runs on Python 3.10 or replaces it through a matrix revision."
+    },
+    {
+      "id": "pypi.yamllint.1.38.0",
+      "name": "yamllint (PyPI)",
+      "kind": "pypi",
+      "version": "1.38.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "yamllint and markdownlint-cli2"
+      },
+      "source": {
+        "url": "https://files.pythonhosted.org/packages/05/92/aed08e68de6e6a3d7c2328ce7388072cd6affc26e2917197430b646aed02/yamllint-1.38.0-py3-none-any.whl",
+        "file_name": "yamllint-1.38.0-py3-none-any.whl",
+        "published": "2026-01-13"
+      },
+      "integrity": {
+        "sha256": "fc394a5b3be980a4062607b8fdddc0843f4fa394152b6da21722f5d59013c220"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://pypi.org/project/yamllint/1.38.0/",
+      "state": "candidate"
+    },
+    {
+      "id": "pypi.reuse.6.2.0",
+      "name": "reuse (PyPI)",
+      "kind": "pypi",
+      "version": "6.2.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "REUSE and SPDX tooling"
+      },
+      "source": {
+        "url": "https://files.pythonhosted.org/packages/05/35/298d9410b3635107ce586725cdfbca4c219c08d77a3511551f5e479a78db/reuse-6.2.0.tar.gz",
+        "file_name": "reuse-6.2.0.tar.gz",
+        "published": "2025-10-27"
+      },
+      "integrity": {
+        "sha256": "4feae057a2334c9a513e6933cdb9be819d8b822f3b5b435a36138bd218897d23"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://pypi.org/project/reuse/6.2.0/",
+      "state": "candidate",
+      "notes": "Source distribution; no wheel targets Python 3.10 with glibc 2.35. Task 017 locks build and runtime dependencies with hashes."
+    },
+    {
+      "id": "pypi.zizmor.1.30.1",
+      "name": "zizmor (PyPI)",
+      "kind": "pypi",
+      "version": "1.30.1",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "actionlint and zizmor"
+      },
+      "source": {
+        "url": "https://files.pythonhosted.org/packages/63/55/1900b53d34dcebc207cf3ceb7957b3748e8bb40958f062e3853ab72f2395/zizmor-1.30.1-py3-none-manylinux_2_28_x86_64.whl",
+        "file_name": "zizmor-1.30.1-py3-none-manylinux_2_28_x86_64.whl",
+        "published": "2026-09-09"
+      },
+      "integrity": {
+        "sha256": "eee12266b793cb87ad4a7e3af2e72404f8a63e3de5eb099b80bf7b1cfd232a8e"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://pypi.org/project/zizmor/1.30.1/",
+      "state": "candidate"
+    },
+    {
+      "id": "pypi.jsonschema.4.26.0",
+      "name": "jsonschema (PyPI)",
+      "kind": "pypi",
+      "version": "4.26.0",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "jsonschema"
+      },
+      "source": {
+        "url": "https://files.pythonhosted.org/packages/69/90/f63fb5873511e014207a475e2bb4e8b2e570d655b00ac19a9a0ca0a385ee/jsonschema-4.26.0-py3-none-any.whl",
+        "file_name": "jsonschema-4.26.0-py3-none-any.whl",
+        "published": "2026-01-07"
+      },
+      "integrity": {
+        "sha256": "d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://pypi.org/project/jsonschema/4.26.0/",
+      "state": "candidate",
+      "notes": "Required by the repository's manifest validators. Task 017 locks its transitive dependencies with hashes."
+    },
+    {
+      "id": "npm.markdownlint-cli2.0.23.3",
+      "name": "markdownlint-cli2 (npm)",
+      "kind": "npm",
+      "version": "0.23.3",
+      "license_matrix": {
+        "artifact": "oss.build-test-quality-tools",
+        "component": "yamllint and markdownlint-cli2"
+      },
+      "source": {
+        "url": "https://registry.npmjs.org/markdownlint-cli2/-/markdownlint-cli2-0.23.3.tgz",
+        "file_name": "markdownlint-cli2-0.23.3.tgz",
+        "published": "2026-09-20"
+      },
+      "integrity": {
+        "sha512_integrity": "sha512-xAr5o/TGpC3v6lE6cKIW4b5eOFRrRX5u7Vtjae9ix3RALv8nNOd94XMkD/1OXXBtpMcJ4uQGbpSo3hv5UqS4uQ=="
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://www.npmjs.com/package/markdownlint-cli2/v/0.23.3",
+      "notes": "Task 017 commits a package-lock.json with integrity for the transitive closure.",
+      "state": "candidate"
+    },
+    {
+      "id": "buildkit.v0.33.1",
+      "name": "BuildKit builder image",
+      "kind": "oci-image",
+      "version": "v0.33.1",
+      "license_matrix": {
+        "artifact": "docker.oss-engine",
+        "component": "BuildKit"
+      },
+      "source": {
+        "url": "https://github.com/moby/buildkit",
+        "ref": "docker.io/moby/buildkit:v0.33.1",
+        "published": "2026-09-30"
+      },
+      "integrity": {
+        "index_digest": "sha256:cec9f139f45e93c5c69c60f8b07cfad9f43f4ef6b6a6cd917527fea5ff2e3dea",
+        "platform_digests": {
+          "linux/amd64": "sha256:98cc6a3fc46220d00f8224ae483f3274fc874e9be8d7dd1e2e2c5481209228b5"
+        }
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/moby/buildkit/releases/tag/v0.33.1",
+      "notes": "Used as the Buildx docker-container driver image locally and in CI.",
+      "state": "candidate"
+    },
+    {
+      "id": "dockerfile-frontend.1.27.1",
+      "name": "Dockerfile frontend",
+      "kind": "oci-image",
+      "version": "1.27.1",
+      "license_matrix": {
+        "artifact": "docker.oss-engine",
+        "component": "BuildKit"
+      },
+      "source": {
+        "url": "https://hub.docker.com/r/docker/dockerfile",
+        "ref": "docker.io/docker/dockerfile:1.27.1",
+        "published": "2026-09-30"
+      },
+      "integrity": {
+        "index_digest": "sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e",
+        "platform_digests": {
+          "linux/amd64": "sha256:7b32114e84ca21aeb2d6f871a0b62b3a0762193f75d9afd048ee4cbe889f3148"
+        }
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://hub.docker.com/r/docker/dockerfile/tags?name=1.27.1",
+      "notes": "Referenced by digest in each Dockerfile syntax directive.",
+      "state": "candidate"
+    },
+    {
+      "id": "action.actions.checkout.v7.0.1",
+      "name": "actions/checkout",
+      "kind": "github-action",
+      "version": "v7.0.1",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/actions/checkout",
+        "ref": "refs/tags/v7.0.1",
+        "published": "2026-07-20"
+      },
+      "integrity": {
+        "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/checkout/releases/tag/v7.0.1",
+      "state": "candidate"
+    },
+    {
+      "id": "action.actions.upload-artifact.v7.0.1",
+      "name": "actions/upload-artifact",
+      "kind": "github-action",
+      "version": "v7.0.1",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/actions/upload-artifact",
+        "ref": "refs/tags/v7.0.1",
+        "published": "2026-04-10"
+      },
+      "integrity": {
+        "commit": "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/upload-artifact/releases/tag/v7.0.1",
+      "state": "candidate"
+    },
+    {
+      "id": "action.actions.download-artifact.v8.0.1",
+      "name": "actions/download-artifact",
+      "kind": "github-action",
+      "version": "v8.0.1",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/actions/download-artifact",
+        "ref": "refs/tags/v8.0.1",
+        "published": "2026-03-11"
+      },
+      "integrity": {
+        "commit": "3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/download-artifact/releases/tag/v8.0.1",
+      "state": "candidate"
+    },
+    {
+      "id": "action.actions.cache.v6.1.0",
+      "name": "actions/cache",
+      "kind": "github-action",
+      "version": "v6.1.0",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/actions/cache",
+        "ref": "refs/tags/v6.1.0",
+        "published": "2026-06-26"
+      },
+      "integrity": {
+        "commit": "55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/cache/releases/tag/v6.1.0",
+      "state": "candidate"
+    },
+    {
+      "id": "action.docker.setup-buildx-action.v4.4.1",
+      "name": "docker/setup-buildx-action",
+      "kind": "github-action",
+      "version": "v4.4.1",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "Docker-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/docker/setup-buildx-action",
+        "ref": "refs/tags/v4.4.1",
+        "published": "2026-09-16"
+      },
+      "integrity": {
+        "commit": "f87e5991a6d7451dcb8d9637bfbc97413f497069"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/docker/setup-buildx-action/releases/tag/v4.4.1",
+      "state": "candidate"
+    },
+    {
+      "id": "action.docker.build-push-action.v7.4.0",
+      "name": "docker/build-push-action",
+      "kind": "github-action",
+      "version": "v7.4.0",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "Docker-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/docker/build-push-action",
+        "ref": "refs/tags/v7.4.0",
+        "published": "2026-09-15"
+      },
+      "integrity": {
+        "commit": "c3c9e263c25d99ce0380d002d59b67737d91b0dc"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/docker/build-push-action/releases/tag/v7.4.0",
+      "state": "candidate"
+    },
+    {
+      "id": "action.actions.attest-build-provenance.v4.2.2",
+      "name": "actions/attest-build-provenance",
+      "kind": "github-action",
+      "version": "v4.2.2",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/actions/attest-build-provenance",
+        "ref": "refs/tags/v4.2.2",
+        "published": "2026-08-06"
+      },
+      "integrity": {
+        "commit": "4d101475d8b20a2381f78447822ac1eab6504dd8"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/attest-build-provenance/releases/tag/v4.2.2",
+      "state": "candidate"
+    },
+    {
+      "id": "action.github.codeql-action.v4.38.2",
+      "name": "github/codeql-action",
+      "kind": "github-action",
+      "version": "v4.38.2",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub CodeQL Action"
+      },
+      "source": {
+        "url": "https://github.com/github/codeql-action",
+        "ref": "refs/tags/v4.38.2",
+        "published": "2026-09-24"
+      },
+      "integrity": {
+        "commit": "2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/github/codeql-action/releases/tag/v4.38.2",
+      "state": "candidate"
+    },
+    {
+      "id": "github.runner-ubuntu-24.04",
+      "name": "GitHub-hosted runner image",
+      "kind": "runner-label",
+      "version": "ubuntu-24.04",
+      "license_matrix": {
+        "artifact": "github.actions-services"
+      },
+      "source": {
+        "url": "https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md"
+      },
+      "integrity": {
+        "label": "ubuntu-24.04",
+        "image_version_evidence": "Every job records the runner image version from the ImageOS and ImageVersion environment variables."
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/runner-images",
+      "notes": "GitHub updates hosted images weekly. Builds run inside the digest-pinned container, so the runner only supplies Docker and Git.",
+      "state": "candidate"
+    }
+  ],
+  "deferred": [
+    {
+      "id": "ti.linux-firmware",
+      "name": "TI Linux firmware repository revision for J721E remote cores",
+      "reason": "git.ti.com timed out or refused connections throughout 2026-10-18, so no commit could be read from the primary source.",
+      "owner": "Task 013"
+    },
+    {
+      "id": "ti.rpmsg-char-library",
+      "name": "ti-rpmsg-char host library full commit",
+      "reason": "TI's Linux SDK manifest gives only the abbreviated commit 057b1a2492 for 0.6.10, git.ti.com was unreachable, and Task 027 has not decided whether the library is used.",
+      "owner": "Task 027"
+    },
+    {
+      "id": "docker.host-engine",
+      "name": "Minimum Docker Engine, Buildx, and Compose versions for Tier 1 hosts",
+      "reason": "Host prerequisites are qualified on a clean machine rather than downloaded by the build.",
+      "owner": "Task 017"
+    }
+  ]
+}

@@ -146,6 +146,11 @@ The manifest must record exact versions, download URLs, SHA-256 hashes,
 licenses, patches, kernel configuration, DTB hash, and firmware hashes. Do not
 silently follow `latest` after the semester baseline is frozen.
 
+The pinned candidates live in [`manifest/versions.json`](../manifest/versions.json),
+documented in [`docs/version-manifest.md`](version-manifest.md). Kernel
+configuration, DTB, and firmware hashes are added when Tasks 009 and 013
+observe them on a board.
+
 ## 5. Work breakdown and gates
 
 ### Phase 0 — Requirements and lab inventory

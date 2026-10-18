@@ -1,0 +1,242 @@
+{
+  "$schema": "../../../manifest/schemas/versions.schema.json",
+  "schema_version": 1,
+  "manifest_id": "sdos-platform-versions",
+  "revision": 1,
+  "updated": "2026-10-18",
+  "selection_rule": {
+    "release_cutoff": "2026-10-04",
+    "description": "Each open input uses the highest stable release published on or before the cutoff, two weeks before the manifest date. TI inputs use the versions declared by the selected SDK. A newer pin requires a manifest revision."
+  },
+  "section4": {
+    "Board image": [
+      "beagle.bbai64-debian-13.7-iot-2026-10-09"
+    ],
+    "Linux": [
+      "beagle.linux-image-6.18.55-arm64-k3-r59"
+    ],
+    "DSP SDK": [
+      "ti.psdk-rtos-j721e-11.02.01.03"
+    ],
+    "C66x compiler": [
+      "ti.c6000-cgt-8.3.7"
+    ],
+    "C71x compiler": [
+      "ti.c7000-cgt-5.0.0.lts"
+    ],
+    "Host build environment": [
+      "ubuntu.jammy-20260924.1"
+    ],
+    "CI": [
+      "action.actions.checkout.v7.0.1"
+    ],
+    "Development UX": [
+      "buildkit.v0.33.1"
+    ]
+  },
+  "inputs": [
+    {
+      "id": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+      "name": "BeagleBone AI-64 Debian 13.7 IoT image, 2026-10-09",
+      "kind": "file",
+      "version": "debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb",
+      "license_matrix": {
+        "artifact": "beagle.debian-image"
+      },
+      "source": {
+        "url": "https://files.beagle.cc/file/beagleboard-public-2021/images/bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz",
+        "file_name": "bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz",
+        "published": "2026-10-09"
+      },
+      "integrity": {
+        "sha256": "69796038e452c6c5e006031ecab995a0ec734a866176e37a0de38d43b35380cf",
+        "size": 1126001648,
+        "expanded_sha256": "4b8ca45a631693fc4b45a09d26f1d98fbc378d6de9e2a6c2715364fd0452ea3c",
+        "expanded_size": 10737418240
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/distros/blob/858abd684b985dbde08e45f2a8b35fa468eba7ca/os_list.json",
+      "notes": "Headless IoT variant selected by the plan. Its derived redistribution remains blocked by LIC-003; using it as an input is allowed.",
+      "state": "candidate"
+    },
+    {
+      "id": "beagle.linux-image-6.18.55-arm64-k3-r59",
+      "name": "Linux kernel package in the pinned image",
+      "kind": "contained",
+      "version": "6.18.55-arm64-k3-r59 (package 1trixie)",
+      "license_matrix": {
+        "artifact": "linux.kernel"
+      },
+      "source": {
+        "url": "https://github.com/RobertCNelson/linux-stable-rcn-ee/releases/tag/6.18.55-arm64-k3-r59"
+      },
+      "integrity": {
+        "contained_in": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+        "path": "Debian package linux-image-6.18.55-arm64-k3-r59"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/beagleboard/sbom-archive/commit/5fda0d5f4ef583f972766a5dbffe399b83207fb0",
+      "notes": "Includes the board DTBs under /boot/dtbs/6.18.55-arm64-k3-r59/. Task 009 records the booted kernel, configuration, and DTB hashes before qualification.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.psdk-rtos-j721e-11.02.01.03",
+      "name": "TI Processor SDK RTOS J721E",
+      "kind": "file",
+      "version": "11.02.01.03",
+      "license_matrix": {
+        "artifact": "ti.psdk-rtos-j721e"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/software-development-kit-sdk/MD-bA0wfI4X2g/11.02.01.03/ti-processor-sdk-rtos-j721e-evm-11_02_01_03.tar.gz",
+        "file_name": "ti-processor-sdk-rtos-j721e-evm-11_02_01_03.tar.gz"
+      },
+      "integrity": {
+        "sha256": "8421152eedff7b0bb3a59caf884fd0932b8a9976e394cf8bf73f257dee4e50bc"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E/11.02.01.03",
+      "notes": "SHA-256 published by TI. Not downloaded: acquisition waits for Task 005 to record the exact no-cost terms and for the maintainer's confirmation.",
+      "state": "candidate"
+    },
+    {
+      "id": "ti.c6000-cgt-8.3.7",
+      "name": "TI C6000 Code Generation Tools, Linux installer",
+      "kind": "file",
+      "version": "8.3.7",
+      "license_matrix": {
+        "artifact": "ti.c6000-cgt"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-vqU2jj6ibH/8.3.7/ti_cgt_c6000_8.3.7_linux_installer_x86.bin",
+        "file_name": "ti_cgt_c6000_8.3.7_linux_installer_x86.bin"
+      },
+      "integrity": {
+        "sha256": "2ceade3ab7e908202b76b9db875c1079d1f84ac0c85a34d6e57904fdb286116e"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/C6000-CGT/8.3.7",
+      "notes": "The version declared by PSDK RTOS 11.02.01.03. SHA-256 published by TI.",
+      "state": "beta"
+    },
+    {
+      "id": "ti.c7000-cgt-5.0.0.lts",
+      "name": "TI C7000 Code Generation Tools, Linux installer",
+      "kind": "file",
+      "version": "5.0.0.LTS",
+      "license_matrix": {
+        "artifact": "ti.c7000-cgt"
+      },
+      "source": {
+        "url": "https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-707zYe3Rik/5.0.0.LTS/ti_cgt_c7000_5.0.0.LTS_linux-x64_installer.bin",
+        "file_name": "ti_cgt_c7000_5.0.0.LTS_linux-x64_installer.bin"
+      },
+      "integrity": {
+        "sha256": "00679f852732ad23cea97e6fa3648d7c2d9aca26c244451e8b07a91c1d20ee7f"
+      },
+      "acquisition": {
+        "status": "gated",
+        "blocker_ids": [
+          "LIC-001",
+          "LIC-002"
+        ]
+      },
+      "evidence": "https://www.ti.com/tool/download/C7000-CGT/5.0.0.LTS",
+      "notes": "The version declared by PSDK RTOS 11.02.01.03. SHA-256 published by TI.",
+      "state": "candidate"
+    },
+    {
+      "id": "ubuntu.jammy-20260924.1",
+      "name": "Ubuntu 22.04 base image",
+      "kind": "oci-image",
+      "version": "jammy-20260924.1",
+      "license_matrix": {
+        "artifact": "ubuntu.22.04-oci"
+      },
+      "source": {
+        "url": "https://hub.docker.com/_/ubuntu",
+        "ref": "docker.io/library/ubuntu:jammy-20260924.1",
+        "published": "2026-10-04"
+      },
+      "integrity": {
+        "index_digest": "sha256:5ec03bb3441e8b0bf3b4f9cd4629a1ae763010dc3035bb8da3ae6cf026486401",
+        "platform_digests": {
+          "linux/amd64": "sha256:08ea48a03a3e78ebc7cd526e6a275053223aadd88bfc09cc49b06d5281525fde"
+        }
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://hub.docker.com/_/ubuntu/tags?name=jammy-20260924.1",
+      "notes": "Dockerfiles reference the image by digest; the tag is informational.",
+      "state": "candidate"
+    },
+    {
+      "id": "action.actions.checkout.v7.0.1",
+      "name": "actions/checkout",
+      "kind": "github-action",
+      "version": "v7.0.1",
+      "license_matrix": {
+        "artifact": "github.actions-services",
+        "component": "GitHub-maintained workflow actions"
+      },
+      "source": {
+        "url": "https://github.com/actions/checkout",
+        "ref": "refs/tags/v7.0.1",
+        "published": "2026-07-20"
+      },
+      "integrity": {
+        "commit": "3d3c42e5aac5ba805825da76410c181273ba90b1"
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/actions/checkout/releases/tag/v7.0.1",
+      "state": "candidate"
+    },
+    {
+      "id": "buildkit.v0.33.1",
+      "name": "BuildKit builder image",
+      "kind": "oci-image",
+      "version": "v0.33.1",
+      "license_matrix": {
+        "artifact": "docker.oss-engine",
+        "component": "BuildKit"
+      },
+      "source": {
+        "url": "https://github.com/moby/buildkit",
+        "ref": "docker.io/moby/buildkit:v0.33.1",
+        "published": "2026-09-30"
+      },
+      "integrity": {
+        "index_digest": "sha256:cec9f139f45e93c5c69c60f8b07cfad9f43f4ef6b6a6cd917527fea5ff2e3dea",
+        "platform_digests": {
+          "linux/amd64": "sha256:98cc6a3fc46220d00f8224ae483f3274fc874e9be8d7dd1e2e2c5481209228b5"
+        }
+      },
+      "acquisition": {
+        "status": "allowed"
+      },
+      "evidence": "https://github.com/moby/buildkit/releases/tag/v0.33.1",
+      "notes": "Used as the Buildx docker-container driver image locally and in CI.",
+      "state": "candidate"
+    }
+  ],
+  "deferred": []
+}
