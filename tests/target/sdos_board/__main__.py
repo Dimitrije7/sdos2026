@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from . import flash, guards, network, serial_capture
+from . import flash, guards, network, report, serial_capture
 from .discovery import Discovery, FixtureHost, HostView, LiveHost, discover
 
 
@@ -122,6 +122,23 @@ def cmd_flash(args: argparse.Namespace) -> int:
     return 0 if report["result"] == "written-and-verified" else 1
 
 
+def cmd_board_report(args: argparse.Namespace) -> int:
+    if args.raw:
+        text = args.raw.read_text(encoding="utf-8")
+    else:
+        text = report.collect(args.host, args.key)
+    data = report.parse(text)
+    results = report.evaluate(data)
+    if args.out:
+        report.write(data, results, args.out)
+        if not args.raw:
+            (args.out / "board-report.raw.txt").write_text(text, encoding="utf-8")
+            data["identity"]["fdt_copy_sha256"] = report.fetch_fdt(args.host, args.out / "live.dtb", args.key)
+            report.write(data, results, args.out)
+    sys.stdout.write(report.summary(data, results))
+    return 1 if any(r["status"] == "fail" for r in results) else 0
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="python3 -m tests.target.sdos_board", description=__doc__)
     parser.add_argument("--fixture", type=Path, help="read a recorded host listing instead of this machine")
@@ -153,6 +170,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--seconds", type=float)
     sub.add_argument("--until", help="stop after a line matching this regular expression")
     sub.set_defaults(handler=cmd_capture)
+
+    sub = commands.add_parser("board-report", help="read-only board health report over SSH")
+    sub.add_argument("--host", default="192.168.7.2")
+    sub.add_argument("--key", type=Path, help="SSH private key for root on the board")
+    sub.add_argument("--out", type=Path, help="directory for board-report.json, .txt, raw text, and live.dtb")
+    sub.add_argument("--raw", type=Path, help="evaluate a saved raw report instead of connecting")
+    sub.set_defaults(handler=cmd_board_report)
 
     sub = commands.add_parser("flash", help="write a pinned image to an approved card and verify it")
     sub.add_argument("--id", required=True, help="exact /dev/disk/by-id name of the card")

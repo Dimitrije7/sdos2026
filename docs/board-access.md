@@ -105,6 +105,19 @@ python3 -m tests.target.sdos_board ssh-identity --host beaglebone.local
 python3 -m tests.target.sdos_board ssh-identity --host beaglebone.local --expect SHA256:<recorded>
 ```
 
+Report the board's health, read-only, over SSH as root:
+
+```sh
+python3 -m tests.target.sdos_board board-report --key ~/.ssh/sdos-bench_ed25519 --out <dir>
+```
+
+It writes `board-report.json` (schema `sdos-board-report/1`), a text summary,
+the raw collected text, and the live device tree blob `live.dtb`. Each health
+item gets `pass`, `fail`, or `info` with the reason; the exit status is 1 when
+any item fails. MAC addresses are replaced by short hashes. `--raw <file>`
+re-evaluates saved raw text without a board. DSPs are identified by their
+fixed device addresses, never by `remoteprocN` numbers.
+
 Capture the serial console until the login prompt or a time limit:
 
 ```sh

@@ -1,0 +1,72 @@
+@@section dogtag
+BeagleBoard.org Debian Trixie IOT Image 2026-10-09
+@@section os_release
+PRETTY_NAME="Debian GNU/Linux 13 (trixie)"
+@@section uname
+Linux 6.18.55-arm64-k3-r59 #1 SMP PREEMPT_RT Sat Oct  3 20:19:12 UTC 2026 aarch64
+@@section cmdline
+console=ttyS2,115200n8 root=/dev/mmcblk1p3 ro rootwait
+@@section model
+BeagleBoard.org BeagleBone AI-64
+@@section compatible
+beagle,j721e-beagleboneai64
+ti,j721e
+@@section uboot
+2026.10-gb4086bd599be
+@@section packages
+linux-image-6.18.55-arm64-k3-r59 1trixie
+@@section package_list_sha256
+0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f
+@@section fdt_sha256
+7733dcee22f206565f480e015a690d45681d1b4ff77d16ee11850058b03f36ac
+@@section firmware
+@@section remoteproc
+remoteproc0|4d80800000.dsp|offline|j7-c66_0-fw|/sys/devices/platform/bus@100000/4d80800000.dsp
+remoteproc1|4d81800000.dsp|offline|j7-c66_1-fw|/sys/devices/platform/bus@100000/4d81800000.dsp
+remoteproc2|64800000.dsp|offline|j7-c71_0-fw|/sys/devices/platform/bus@100000/64800000.dsp
+remoteproc3|41000000.r5f|attached|unknown|/sys/devices/platform/bus@100000/41000000.r5f
+@@section rpmsg
+@@section kconfig
+CONFIG_REMOTEPROC=y
+CONFIG_TI_K3_DSP_REMOTEPROC=m
+CONFIG_RPMSG=y
+CONFIG_RPMSG_CHAR=m
+CONFIG_RPMSG_VIRTIO=m
+CONFIG_CMA=y
+CONFIG_DMA_CMA=y
+CONFIG_DEBUG_FS=y
+# CONFIG_FTRACE is not set
+@@section meminfo
+MemTotal:        3806208 kB
+CmaTotal:         524288 kB
+@@section reserved_memory
+c66-dma-memory@a6000000|00000000a60000000000000000100000|shared-dma-pool|no-map
+c66-memory@a6100000|00000000a61000000000000000f00000|shared-dma-pool|no-map
+@@section iomem
+00000000-0000ffff : reserved
+@@section mounts
+/ /dev/mmcblk1p3 ext4 rw,relatime
+/boot/firmware /dev/mmcblk1p1 vfat rw,relatime
+@@section df
+@@section lsblk
+@@section debugfs
+/sys/kernel/debug
+@@section time
+NTPSynchronized=no
+Timezone=Etc/UTC
+2026-10-18T17:59:06Z
+@@section thermal
+cpu0-thermal|47500
+gpu-thermal|46000
+@@section hwmon
+@@section journal
+/var/log/journal
+ 0 abc Sun 2026-10-18 17:40:00 UTC Sun 2026-10-18 18:00:00 UTC
+@@section network
+2: eth0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000\    link/ether 1c:ba:8c:a2:ed:6b brd ff:ff:ff:ff:ff:ff
+@@section failed_units
+@@section boot_time
+Startup finished in 4.965s (kernel) + 18.078s (userspace) = 23.044s
+@@section uptime
+1140.50 4400.00
+@@section dmesg_errors

@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import io
 import json
 import lzma
 import os
@@ -14,7 +16,7 @@ import unittest
 from pathlib import Path
 
 from tests.target.sdos_board import __main__ as cli
-from tests.target.sdos_board import flash, guards, network, serial_capture
+from tests.target.sdos_board import flash, guards, network, report, serial_capture
 from tests.target.sdos_board.discovery import FixtureHost, discover, is_placeholder_serial
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -267,6 +269,48 @@ class FlashTests(unittest.TestCase):
         argv = ["--fixture", str(FIXTURES / "bench-ok.json"), "flash", "--id", OK_READER,
                 "--confirm", OK_READER, "--input", "x", "--image", str(self.image)]
         self.assertEqual(cli.main(argv), 3)
+
+
+class BoardReportTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.data = report.parse((FIXTURES / "board-report.raw.txt").read_text())
+        self.results = {r["item"]: r for r in report.evaluate(self.data)}
+
+    def test_dsps_are_found_by_address_not_enumeration(self) -> None:
+        self.assertEqual(self.results["remoteproc C71x_0"]["status"], "pass")
+        self.assertIn("remoteproc2", self.results["remoteproc C71x_0"]["detail"])
+
+    def test_missing_kernel_feature_is_an_explicit_failure(self) -> None:
+        self.assertEqual(self.results["kernel features"]["status"], "fail")
+        self.assertIn("CONFIG_FTRACE", self.results["kernel features"]["detail"])
+
+    def test_reserved_memory_is_decoded(self) -> None:
+        first = self.data["memory"]["reserved"][0]
+        self.assertEqual(first["base"], "0xa6000000")
+        self.assertEqual(first["size"], 0x100000)
+
+    def test_health_items_have_results(self) -> None:
+        self.assertEqual(self.results["storage"]["status"], "pass")
+        self.assertEqual(self.results["time"]["status"], "fail")
+        self.assertEqual(self.results["ethernet"]["status"], "fail")
+        self.assertEqual(self.results["debugfs and tracefs"]["status"], "fail")
+        self.assertEqual(self.results["persistent logs"]["status"], "pass")
+        self.assertEqual(self.results["CMA"]["status"], "pass")
+
+    def test_mac_addresses_are_redacted(self) -> None:
+        text = json.dumps(self.data)
+        self.assertNotIn("1c:ba:8c:a2:ed:6b", text)
+        self.assertIn("mac-", text)
+
+    def test_cli_evaluates_a_saved_report_without_a_board(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                code = cli.main(["board-report", "--raw", str(FIXTURES / "board-report.raw.txt"), "--out", tmp])
+            self.assertEqual(code, 1)  # the fixture has failing items
+            saved = json.loads((Path(tmp) / "board-report.json").read_text())
+            self.assertEqual(saved["schema"], report.SCHEMA)
+            self.assertIn("FAIL  kernel features", out.getvalue())
 
 
 class CliTests(unittest.TestCase):

@@ -2,7 +2,29 @@
 
 ## Status
 
-ready
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-18, claude.
+- State: `board-report` is implemented and tested against a fixture; the
+  board session that runs it is not scheduled yet. The maintainer powers the
+  board only for batched sessions.
+- Done: `tests/target/sdos_board/report.py` and the `board-report` command,
+  with tests in `tests/target/test_sdos_board.py` and the fixture
+  `tests/target/fixtures/board-report.raw.txt`.
+- Next, in one board session:
+  1. Run `board-report` twice and compare; archive both and `live.dtb`.
+  2. Reboot over SSH, time the reconnection, and confirm the previous boot's
+     journal ended with a clean shutdown.
+  3. For Task 011: list remoteproc sysfs links, traces, and any service that
+     claims the DSPs. For Task 012: decompile `live.dtb` with `dtc` in the
+     container. For Task 007: capture the USB console read-only.
+  4. Ethernet needs a cable to a network; without one the item stays failed
+     with that reason. Time cannot synchronize over the USB link alone.
+- Decisions: the maintainer prefers batched board sessions (2026-10-18).
+- Verification, 2026-10-18: `python3 -m unittest tests.target.test_sdos_board`
+  passed 38 tests.
 
 ## Depends on
 
