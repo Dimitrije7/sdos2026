@@ -8,7 +8,7 @@ in-progress
 
 - Updated: 2026-10-18, claude.
 - State: Probes and workflow are written, linted, and committed locally. Not
-  yet run. Running them waits on two maintainer decisions.
+  yet run. Both maintainer decisions arrived on 2026-10-18; the workflow is being run.
 - Done:
   - Pre-run facts in
     [`docs/research/task-005-feasibility.md`](../docs/research/task-005-feasibility.md):
@@ -26,12 +26,15 @@ in-progress
      sections of the research note, then complete the task.
   4. If an install fails, for example the 32-bit C6000 installer needing
      i386 libraries, fix the probe and rerun before concluding.
-- Decisions, asked 2026-10-18 and pending:
-  1. May project automation, including fork pull-request jobs, download and
-     install the pinned TI compilers and SDK under the terms shipped in each
-     package, with the maintainer as the accepting party?
-  2. May the agent push branch `feasibility/task-005`, which publishes the
-     local commits to the public repository, and run the workflow?
+- Decisions, 2026-10-18:
+  1. Asked whether project automation, including fork pull-request jobs, may
+     download and install the pinned TI compilers and SDK under the shipped
+     terms, with the maintainer as accepting party. Answer: "Actually I do not
+     care about forks so do whatever is easiest for you." Applied as: the
+     maintainer accepts the shipped no-cost terms for project automation, and
+     every workflow event runs the same jobs with no fork-specific handling.
+  2. Asked whether the agent may push branch `feasibility/task-005` and run the
+     workflow. Answer: "You may push".
 - Verification, 2026-10-18: ShellCheck v0.10.0, actionlint 1.7.12, and
   zizmor 1.30.1 in auditor mode reported no findings. Bash syntax checks
   passed for every probe.
