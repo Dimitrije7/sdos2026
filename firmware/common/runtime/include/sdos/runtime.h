@@ -63,6 +63,8 @@ size_t sdos_runtime_handle(sdos_runtime *runtime, const uint8_t *request, size_t
 /* Algorithms every course firmware carries. */
 #define SDOS_ALG_COPY 1u     /* output = input */
 #define SDOS_ALG_GAIN_Q15 2u /* params: int16 gain (Q15); samples: int16 */
+#define SDOS_ALG_FIR_Q15 3u  /* params: uint16 taps, then taps int16 Q15 coefficients; samples: int16 */
+#define SDOS_FIR_MAX_TAPS ((SDOS_RUN_PARAMS_MAX - 2u) / 2u)
 
 extern const sdos_algorithm sdos_builtin_algorithms[];
 extern const size_t sdos_builtin_algorithm_count;

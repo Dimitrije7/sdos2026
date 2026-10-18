@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+#include "sdos/fir_q15.h"
+
 static const sdos_algorithm *find_algorithm(const sdos_runtime *runtime, uint32_t id)
 {
     size_t i;
@@ -220,8 +222,43 @@ static sdos_status alg_gain_q15(const sdos_run_args *args, uint32_t *output_leng
     return SDOS_OK;
 }
 
+/* The portable Q15 FIR from algorithms/fir_q15, over the shared region.
+ * Samples are read in place: buffer offsets are aligned to at least the
+ * runtime's buffer_alignment, and every target is little-endian. */
+static sdos_status alg_fir_q15(const sdos_run_args *args, uint32_t *output_length)
+{
+    int16_t h[SDOS_FIR_MAX_TAPS];
+    uint32_t taps;
+    uint32_t i;
+    size_t written;
+    if (args->params_length < 2u) {
+        return SDOS_E_FIELD;
+    }
+    taps = (uint32_t)args->params[0] | ((uint32_t)args->params[1] << 8);
+    if (taps == 0u || taps > SDOS_FIR_MAX_TAPS || args->params_length != 2u + 2u * taps ||
+        (args->input_length & 1u) != 0u || ((uintptr_t)args->input & 1u) != 0u ||
+        ((uintptr_t)args->output & 1u) != 0u) {
+        return SDOS_E_FIELD;
+    }
+    if (args->input_length / 2u < taps) {
+        *output_length = 0u;
+        return SDOS_OK;
+    }
+    if ((args->input_length / 2u - taps + 1u) * 2u > args->output_capacity) {
+        return SDOS_E_DESCRIPTOR;
+    }
+    for (i = 0u; i < taps; i++) {
+        h[i] = sample(args->params + 2u + 2u * i);
+    }
+    written = sdos_fir_q15((const int16_t *)(const void *)args->input, args->input_length / 2u, h, taps,
+                           (int16_t *)(void *)args->output);
+    *output_length = (uint32_t)written * 2u;
+    return SDOS_OK;
+}
+
 const sdos_algorithm sdos_builtin_algorithms[] = {
     {SDOS_ALG_COPY, "copy", alg_copy},
     {SDOS_ALG_GAIN_Q15, "gain_q15", alg_gain_q15},
+    {SDOS_ALG_FIR_Q15, "fir_q15", alg_fir_q15},
 };
 const size_t sdos_builtin_algorithm_count = sizeof sdos_builtin_algorithms / sizeof sdos_builtin_algorithms[0];

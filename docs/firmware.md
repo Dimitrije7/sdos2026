@@ -38,7 +38,7 @@ dspctl echo c66x_0 hello
 | Path | Contents | Shared by |
 |---|---|---|
 | `firmware/common/protocol/` | Message encoding, validation, buffer ownership, CRC-32C | DSPs and Linux |
-| `firmware/common/runtime/` | Request dispatch and the built-in algorithms (`copy`, `gain_q15`) | DSPs and the Linux mock |
+| `firmware/common/runtime/` | Request dispatch and the built-in algorithms (`copy`, `gain_q15`, and `fir_q15` from `algorithms/`) | DSPs and the Linux mock |
 | `firmware/common/platform/` | IPC service, resource table, trace buffer, identity | All six DSP targets |
 | `firmware/c66x/` | C66x cache attributes, cache maintenance, cycle counter | Both C66x cores |
 | `firmware/c71x/` | C71x MMU map, cache maintenance, cycle counter | The C71x core |

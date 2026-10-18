@@ -35,7 +35,7 @@ A DSP is always named by its logical name, never by a `remoteprocN` number:
 | `dspctl recover <dsp>` | Stop it if running or crashed, then start it |
 | `dspctl trace <dsp>` | Print the firmware trace buffer |
 | `dspctl echo <dsp> [text]` | Send text and print the reply |
-| `dspctl run <dsp> <algorithm> <in> <out> [gain]` | Run `copy` or `gain_q15` over a file |
+| `dspctl run <dsp> <algorithm> <in> <out> [gain \| coefficients]` | Run `copy`, `gain_q15`, or `fir_q15` over a file |
 
 Options go before the command: `--backend linux|mock` (default `linux`),
 `--timeout <ms>` (default 2000), `--json`, and `--root <dir>`, which tests use
@@ -78,6 +78,10 @@ hello from linux
 $ dspctl --backend mock run c66x_1 gain_q15 in.bin out.bin 8192
 gain_q15: 4096 bytes in, 4096 bytes out, 0 DSP cycles, checksums verified
 ```
+
+For `fir_q15`, give the Q15 coefficients separated by commas, for example
+`16384,16384` for a two-tap moving average; the output has one sample per
+full window, so 512 input samples through 2 taps give 511.
 
 The gain is a Q15 value: 8192 is 0.25 and 16384 is 0.5. Samples are 16-bit
 little-endian integers; the result is rounded half up and saturated.

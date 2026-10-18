@@ -25,8 +25,9 @@ static const char usage[] =
     "  recover <dsp>                 stop if running or crashed, then start\n"
     "  trace <dsp>                   print the firmware trace buffer\n"
     "  echo <dsp> [text]             send text and print the reply\n"
-    "  run <dsp> <algorithm> <in> <out> [gain]\n"
-    "                                run copy or gain_q15 on file <in>, write <out>\n"
+    "  run <dsp> <algorithm> <in> <out> [gain | coefficients]\n"
+    "                                run copy, gain_q15 (gain), or fir_q15 (comma-separated\n"
+    "                                Q15 coefficients) on file <in>, write <out>\n"
     "\n"
     "<dsp> is c66x_0, c66x_1, or c71x_0. The mock backend runs the DSP runtime on\n"
     "this computer; it needs no board. --json makes list and status print one JSON\n"
@@ -278,7 +279,7 @@ static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
     sdos_buffer in;
     sdos_buffer out;
     sdos_run_result result;
-    uint8_t params[2];
+    static uint8_t params[SDOS_RUN_PARAMS_MAX];
     size_t params_length = 0u;
     uint32_t algorithm;
     long n;
@@ -301,8 +302,31 @@ static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
         params[0] = (uint8_t)((unsigned long)gain & 0xFFu);
         params[1] = (uint8_t)(((unsigned long)gain >> 8) & 0xFFu);
         params_length = 2u;
+    } else if (strcmp(argv[0], "fir_q15") == 0) {
+        char *list = argc > 3 ? argv[3] : NULL;
+        const char *token;
+        size_t taps = 0u;
+        if (list == NULL) {
+            fprintf(stderr, "dspctl: fir_q15 needs comma-separated Q15 coefficients, e.g. 16384,16384\n");
+            return EXIT_USAGE;
+        }
+        for (token = strtok(list, ","); token != NULL; token = strtok(NULL, ",")) {
+            long value = strtol(token, NULL, 0);
+            if (taps >= SDOS_FIR_MAX_TAPS || value < -32768 || value > 32767) {
+                fprintf(stderr, "dspctl: at most %u Q15 coefficients from -32768 to 32767\n",
+                        (unsigned)SDOS_FIR_MAX_TAPS);
+                return EXIT_USAGE;
+            }
+            params[2u + 2u * taps] = (uint8_t)((unsigned long)value & 0xFFu);
+            params[3u + 2u * taps] = (uint8_t)(((unsigned long)value >> 8) & 0xFFu);
+            taps++;
+        }
+        params[0] = (uint8_t)(taps & 0xFFu);
+        params[1] = (uint8_t)(taps >> 8);
+        algorithm = SDOS_ALG_FIR_Q15;
+        params_length = 2u + 2u * taps;
     } else {
-        fprintf(stderr, "dspctl: unknown algorithm '%s'; known: copy, gain_q15\n", argv[0]);
+        fprintf(stderr, "dspctl: unknown algorithm '%s'; known: copy, gain_q15, fir_q15\n", argv[0]);
         return EXIT_USAGE;
     }
     status = sdos_dsp_buffer_acquire(dsp, 0u, half, &in);

@@ -5,7 +5,7 @@ sdos_target_warnings(sdos_protocol)
 
 add_library(sdos_runtime STATIC runtime/src/runtime.c)
 target_include_directories(sdos_runtime PUBLIC runtime/include)
-target_link_libraries(sdos_runtime PUBLIC sdos_protocol)
+target_link_libraries(sdos_runtime PUBLIC sdos_protocol PRIVATE sdos_fir_q15)
 sdos_target_warnings(sdos_runtime)
 
 if(SDOS_PRODUCT STREQUAL "host")

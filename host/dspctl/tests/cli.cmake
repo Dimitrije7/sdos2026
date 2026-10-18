@@ -30,6 +30,13 @@ endif()
 expect("run gain" 0 "gain_q15: 1024 bytes in" ${DSPCTL} --backend mock run c71x_0 gain_q15
        "${WORK}/in.bin" "${WORK}/gain.bin" 16384)
 
+# 512 samples through two taps of 0.5 give 511 outputs (the bit-exact values
+# are checked in test_runtime)
+expect("run fir" 0 "fir_q15: 1024 bytes in, 1022 bytes out" ${DSPCTL} --backend mock run c66x_0 fir_q15
+       "${WORK}/in.bin" "${WORK}/fir.bin" 16384,16384)
+expect("fir needs coefficients" 2 "comma-separated Q15 coefficients" ${DSPCTL} --backend mock run c66x_0 fir_q15
+       "${WORK}/in.bin" "${WORK}/fir.bin")
+
 expect("lost response" 1 "did not answer.*timeout" ${CMAKE_COMMAND} -E env SDOS_MOCK_FAULT=drop
        ${DSPCTL} --backend mock --timeout 50 run c66x_0 copy "${WORK}/in.bin" "${WORK}/x.bin")
 execute_process(COMMAND ${DSPCTL} --backend mock --json list OUTPUT_VARIABLE listed RESULT_VARIABLE code)

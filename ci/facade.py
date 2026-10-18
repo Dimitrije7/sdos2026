@@ -71,15 +71,6 @@ VALIDATORS = (
     "ci/validate_workflows.py",
 )
 DOCKERFILES = ("toolchain/Dockerfile",)
-# Portable C only: code that includes TI's PDK headers is checked by the TI
-# compiler with warnings as errors instead.
-CPPCHECK = [
-    "cppcheck", "--quiet", "--error-exitcode=1", "--inline-suppr", "--std=c11",
-    "--enable=warning,performance,portability", "--suppress=missingIncludeSystem",
-    "-I", "firmware/common/protocol/include", "-I", "firmware/common/runtime/include",
-    "-I", "host/libsdos_dsp/include", "-I", "algorithms/fir_q15/include", "-I", "tests/unit/include",
-    "firmware/common/protocol", "firmware/common/runtime", "host", "algorithms",
-]
 # Course-owned portable C. DSP-only sources need TI headers, which cppcheck
 # cannot read, so they are checked by the TI compiler with warnings as errors.
 CPPCHECK = [
@@ -98,7 +89,7 @@ def lint_steps(root: Path = ROOT) -> list[list[str]]:
     workflows = sorted(str(p.relative_to(root)) for p in (root / ".github" / "workflows").glob("*.yml"))
     steps = [["hadolint", *DOCKERFILES], ["actionlint", *workflows], ["zizmor", "--offline", *workflows],
              ["yamllint", "--strict", ".github", "compose.yaml", ".yamllint.yaml", ".markdownlint-cli2.yaml"],
-             ["markdownlint-cli2", "**/*.md"], CPPCHECK]
+             ["markdownlint-cli2", "**/*.md"]]
     if shell:
         steps.append(["shellcheck", *shell])
     steps.append(CPPCHECK)

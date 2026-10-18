@@ -182,6 +182,34 @@ static void test_gain_q15(void)
              SDOS_E_FIELD);
 }
 
+static void test_fir_q15_moving_average(void)
+{
+    /* Two taps of 0.5: each output is the rounded mean of two inputs. */
+    const int16_t x[] = {100, 300, -500, 701};
+    const int16_t want[] = {200, -100, 101};
+    uint8_t params[2 + 4] = {2, 0, 0x00, 0x40, 0x00, 0x40};
+    sdos_run_result result;
+    int ok = 1;
+    size_t i;
+
+    reset();
+    memcpy(region, x, sizeof x);
+    CHECK_EQ("fir runs", run(SDOS_ALG_FIR_Q15, range(0u, 8u), range(256u, 8u), params, 6u, &result), SDOS_OK);
+    CHECK_EQ("fir writes the valid part", result.output_length, 6);
+    for (i = 0u; i < 3u; i++) {
+        int16_t y;
+        memcpy(&y, region + 256u + 2u * i, 2u);
+        ok = ok && y == want[i];
+    }
+    CHECK("fir output matches the reference", ok);
+    params[0] = 3; /* three taps announced, two given */
+    CHECK_EQ("fir needs one coefficient per tap", run(SDOS_ALG_FIR_Q15, range(0u, 8u), range(256u, 8u), params, 6u,
+                                                      NULL), SDOS_E_FIELD);
+    params[0] = 2;
+    CHECK_EQ("fir output too small", run(SDOS_ALG_FIR_Q15, range(0u, 8u), range(256u, 4u), params, 6u, NULL),
+             SDOS_E_DESCRIPTOR);
+}
+
 static void test_run_refusals(void)
 {
     reset();
@@ -223,6 +251,7 @@ int main(void)
     test_hello_echo_status();
     test_copy_with_checksums_and_cache();
     test_gain_q15();
+    test_fir_q15_moving_average();
     test_run_refusals();
     test_responses_are_never_handled_as_requests();
     return TEST_EXIT();
