@@ -65,6 +65,12 @@ class ContainerTests(unittest.TestCase):
 
 
 
+    def test_bootstrap_untags_only_images_from_earlier_inputs(self) -> None:
+        listed = ["sdos-dev:current", "sdos-dev:dev-aaa", "sdos-dev:dev-ti-bbb", "sdos-dev:dev-ti-ccc", "other:dev-x"]
+        keep = {"sdos-dev:dev-aaa", "sdos-dev:dev-ti-ccc"}
+        self.assertEqual(container.stale_tags(keep, listed), ["sdos-dev:dev-ti-bbb"])
+
+
 class PythonLockTests(unittest.TestCase):
     def test_every_locked_wheel_has_a_hash(self) -> None:
         entries = re.findall(r"^([a-z0-9-]+)==(\S+) \\\n    --hash=sha256:([0-9a-f]{64})$", LOCK.read_text(), re.M)

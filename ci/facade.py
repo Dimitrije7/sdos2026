@@ -198,11 +198,27 @@ def in_container(args: argparse.Namespace, run: Runner) -> int:
             print("checking the TI SDK archive in the input cache (3.7 GB on first use)", flush=True)
             container.fetch_input(container.PSDK_INPUT)
         code = run(container.build_command(ti=ti))
+        if code == 0 and not run.dry_run:
+            _remove_stale_images(run)
         return code or run(container.run_command(tag, _container_args(args), rootless))
     if not run.dry_run and not container.image_present(tag):
-        print(f"the pinned image {tag} is not built; run `make bootstrap` first", file=sys.stderr)
+        if not ti and container.image_present(container.image_tag(ti=True)):
+            print(
+                f"the pinned image {tag} is not built, but the TI image is. This account has not "
+                "accepted TI's terms: run `make bootstrap TI=accept` (it reuses the built image)",
+                file=sys.stderr,
+            )
+        else:
+            print(f"the pinned image {tag} is not built; run `make bootstrap` first", file=sys.stderr)
         return EXIT_FAILED
     return run(container.run_command(tag, _container_args(args), rootless))
+
+
+def _remove_stale_images(run: Runner) -> None:
+    """Untag images built from earlier inputs; both current variants stay."""
+    stale = container.stale_tags({container.image_tag(ti=False), container.image_tag(ti=True)})
+    if stale:
+        run(["docker", "image", "rm", *stale])
 
 
 def cmd_bootstrap(args: argparse.Namespace, run: Runner) -> int:

@@ -28,7 +28,9 @@ is derived from those pins, so a manifest change makes the other commands ask
 for a new `make bootstrap`.
 
 The first bootstrap downloads several hundred megabytes. Later runs reuse
-Docker's cache and take seconds.
+Docker's cache and take seconds. After a successful build, bootstrap untags
+`sdos-dev:dev-*` images built from earlier pins, so only the current open and
+TI images stay on disk.
 
 ### TI DSP compilers
 

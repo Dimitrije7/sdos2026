@@ -228,6 +228,19 @@ def image_present(tag: str) -> bool:
     return result.returncode == 0
 
 
+def stale_tags(keep: set[str], listed: Sequence[str] | None = None) -> list[str]:
+    """Content-addressed tags left behind by earlier inputs, which bootstrap removes."""
+    if listed is None:
+        result = subprocess.run(
+            ["docker", "image", "ls", IMAGE_NAME, "--format", "{{.Repository}}:{{.Tag}}"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        listed = result.stdout.split()
+    return sorted(tag for tag in listed if tag.startswith(f"{IMAGE_NAME}:dev-") and tag not in keep)
+
+
 def _rootless() -> bool:
     result = subprocess.run(
         ["docker", "info", "--format", "{{.SecurityOptions}}"], capture_output=True, text=True, check=False
