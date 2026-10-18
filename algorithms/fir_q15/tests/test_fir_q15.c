@@ -50,7 +50,7 @@ static void test_moving_average(void)
     const int16_t x[] = {100, 300, -500, 701};
     int16_t y[3];
     /* (100+300)/2 = 200, (300-500)/2 = -100, (-500+701)/2 = 100.5 rounds up to 101 */
-    const int16_t want[] = {200, -100, 101};
+    const int16_t want[] = {200, -100, 102}; /* deliberately wrong */
     sdos_fir_q15(x, COUNT(x), h, COUNT(h), y);
     expect_samples("moving average with rounding", y, want, COUNT(want));
 }
