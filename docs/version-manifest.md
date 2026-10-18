@@ -53,9 +53,10 @@ without one.
 | `runner-label` | A versioned label; each job records the hosted image version |
 
 TI publishes SHA-256 values on its download pages, so TI archives are pinned
-without being downloaded. They stay `gated` by license blockers `LIC-001` and
-`LIC-002` until Task 005 records the exact no-cost terms and the maintainer
-confirms them.
+without being downloaded locally. They stay `gated` by license blocker
+`LIC-001` until Task 019 inventories the acquired archives path by path. CI
+jobs already download and verify them under the maintainer's acceptance
+recorded in Task 005.
 
 ## Lifecycle
 

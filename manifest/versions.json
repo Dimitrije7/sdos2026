@@ -2,7 +2,7 @@
   "$schema": "./schemas/versions.schema.json",
   "schema_version": 1,
   "manifest_id": "sdos-platform-versions",
-  "revision": 1,
+  "revision": 2,
   "updated": "2026-10-18",
   "selection_rule": {
     "release_cutoff": "2026-10-04",
@@ -265,8 +265,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E/11.02.01.03",
@@ -291,8 +290,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://www.ti.com/tool/download/PROCESSOR-SDK-RTOS-J721E/11.02.01.03",
@@ -318,8 +316,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
@@ -344,8 +341,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
@@ -370,8 +366,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
@@ -397,8 +392,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
@@ -423,8 +417,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
@@ -449,8 +442,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://www.ti.com/tool/download/C6000-CGT/8.3.7",
@@ -475,8 +467,7 @@
       "acquisition": {
         "status": "gated",
         "blocker_ids": [
-          "LIC-001",
-          "LIC-002"
+          "LIC-001"
         ]
       },
       "evidence": "https://www.ti.com/tool/download/C7000-CGT/5.0.0.LTS",

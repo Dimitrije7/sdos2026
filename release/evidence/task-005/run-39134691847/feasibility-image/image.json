@@ -1,0 +1,58 @@
+{
+  "probe": "image-delta",
+  "manifest_input": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+  "download_and_verify_seconds": 20,
+  "bmap_expand_seconds": 66,
+  "expanded_allocated_bytes": 4903829504,
+  "chroot_package_install_seconds": 0,
+  "probe_package_installed_version": "0.0.1",
+  "disk_available_bytes": {
+    "start": 115556003840,
+    "after_download": 114430021632,
+    "after_expand": 110652243968,
+    "after_install": 110651510784
+  },
+  "static_image_facts": {
+    "os_pretty_name": "Debian GNU/Linux 13 (trixie)",
+    "kernels": [
+      "6.18.55-arm64-k3-r59"
+    ],
+    "partitions": [
+      "loopp1 vfat   BOOT     268435456",
+      "loopp2 swap           4294967296",
+      "loopp3 ext4   rootfs  6172966912"
+    ],
+    "dtbs": [
+      {
+        "path": "bootfs/ti/k3-j721e-beagleboneai64.dtb",
+        "sha256": "7733dcee22f206565f480e015a690d45681d1b4ff77d16ee11850058b03f36ac"
+      },
+      {
+        "path": "bootfs/ti/k3-j721e-sk.dtb",
+        "sha256": "9ac85b379c21e116d16b5b3a7938c808bfc989ce7f946b0235cce67b66d16498"
+      },
+      {
+        "path": "usr/lib/linux-image-6.18.55-arm64-k3-r59/ti/k3-j721e-beagleboneai64.dtb",
+        "sha256": "7733dcee22f206565f480e015a690d45681d1b4ff77d16ee11850058b03f36ac"
+      },
+      {
+        "path": "usr/lib/linux-image-6.18.55-arm64-k3-r59/ti/k3-j721e-sk.dtb",
+        "sha256": "9ac85b379c21e116d16b5b3a7938c808bfc989ce7f946b0235cce67b66d16498"
+      }
+    ],
+    "boot_config_dtb_lines": [
+      "extlinux.conf: fdtdir /",
+      "extlinux.conf: fdtdir /",
+      "extlinux.conf: fdtdir /",
+      "extlinux.conf: fdtdir /"
+    ],
+    "dsp_firmware_files": [],
+    "dtb_dsp_firmware_names": [
+      "firmware-name = \"j7-c66_0-fw\";",
+      "firmware-name = \"j7-c66_1-fw\";",
+      "firmware-name = \"j7-c71_0-fw\";"
+    ]
+  },
+  "evidence_class": "image-static, not booted-board evidence",
+  "runner_image": "ubuntu24-arm64 20261012.149.1"
+}

@@ -1,0 +1,21 @@
+{
+  "probe": "ti-cgt",
+  "family": "c6000",
+  "manifest_input": "ti.c6000-cgt-8.3.7",
+  "version": "8.3.7",
+  "compiler_revision": "8.3.7",
+  "download_bytes": 43481471,
+  "download_seconds": 7,
+  "unattended_install_seconds": 5,
+  "installed_bytes": 348872417,
+  "install_peak_rss_kib": 403856,
+  "compile_seconds": 0,
+  "compile_peak_rss_kib": 17056,
+  "fir_object_bytes": 18516,
+  "disk_available_before_bytes": 92112642048,
+  "disk_available_after_bytes": 91761520640,
+  "license_file_paths": [
+    "./ti-cgt-c6000_8.3.7/C6000CodeGenerationTools_8.3.x_manifest.html"
+  ],
+  "runner_image": "ubuntu24 20261012.334.1"
+}

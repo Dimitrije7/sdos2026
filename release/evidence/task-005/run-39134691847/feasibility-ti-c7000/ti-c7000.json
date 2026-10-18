@@ -1,0 +1,21 @@
+{
+  "probe": "ti-cgt",
+  "family": "c7000",
+  "manifest_input": "ti.c7000-cgt-5.0.0.lts",
+  "version": "5.0.0.LTS",
+  "compiler_revision": "5.0.0",
+  "download_bytes": 45498859,
+  "download_seconds": 1,
+  "unattended_install_seconds": 2,
+  "installed_bytes": 495983819,
+  "install_peak_rss_kib": 648860,
+  "compile_seconds": 0,
+  "compile_peak_rss_kib": 73368,
+  "fir_object_bytes": 8368,
+  "disk_available_before_bytes": 92112687104,
+  "disk_available_after_bytes": 91613941760,
+  "license_file_paths": [
+    "./ti-cgt-c7000_5.0.0.LTS/C7000_Code_Generation_Tools_C7000-CGT-5_manifest.html"
+  ],
+  "runner_image": "ubuntu24 20261012.334.1"
+}

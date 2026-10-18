@@ -29,10 +29,10 @@ charge or open source. Item 10 records that constraint.
    project automation. The project does not publish a TI toolchain container, even where
    one component's license may permit an unmodified TI-device-use copy.
 4. Give untrusted fork jobs no secrets, credentials, accepted-license state, or
-   access to restricted caches. TI builds may run there only if Task 005 proves
-   that the exact pinned packages can be fetched and used directly, unattended,
-   and within their terms. Failure is an architecture blocker because the
-   project has no self-hosted runner fallback.
+   access to restricted caches. TI jobs run on pushes, same-repository pull
+   requests, nightly, and release, and skip fork pull requests. Task 005 proved
+   that the pinned packages download anonymously and install unattended on
+   GitHub-hosted runners.
 5. Let students obtain TI development packages from TI under any presented
    terms. Institutional redistribution is limited to exact components whose
    included license permits it, with all notices and TI-device-use conditions.
@@ -68,16 +68,16 @@ without changing the public repository or student API.
 |---|---|---|
 | Git repository | Project source, recipes, hashes, schemas, open-source code when vendoring is justified, license notices | TI installers/archives, installed TI tools, credentials, accepted-license state, proprietary MISRA text |
 | Public OSS containers | Pinned Ubuntu packages and named open build/test/quality tools after SBOM, notice, source, and scan checks | TI SDK/toolchains, C7x proprietary libraries, MISRA materials |
-| Public fork PR | Read-only source, open tools, public dependencies, mocks, static validation; TI compile only after Task 005 proof | Secrets, restricted cache restores, license acceptance, physical boards |
-| Trusted GitHub lane | Public image inputs, firmware allowlists, release metadata; licensed TI use only after Task 005 and institutional approval | Any payload whose exact terms or access boundary remain unresolved |
+| Public fork PR | Read-only source, open tools, public dependencies, mocks, static validation | TI steps, secrets, restricted cache restores, license acceptance, physical boards |
+| Trusted GitHub lane | Fresh per-job TI downloads verified by SHA-256, firmware builds, public image inputs, firmware allowlists, release metadata | Any payload whose exact terms or access boundary remain unresolved |
 | Institution-controlled layer | Exact TI archives and installed trees when approved, hashed, access-controlled, and manifest-complete | Public or student-wide access beyond the applicable terms |
 | Course image/release | Project outputs and exact third-party components with license mapping, notices, source duties, SBOM, hashes, and provenance | Toolchain installers, development SDK archives, unknown-license files |
 
 GitHub Actions cache is not automatically private enough for a restricted
 payload. A public-repository workflow can execute contributor-controlled code,
 and cache contents restored into that job can be copied. The matrix therefore
-keeps TI caches unresolved until Task 005 demonstrates the exact fork boundary
-and the institution approves the license use.
+prohibits TI payloads in caches, artifacts, and logs. Task 019 may propose
+caching an audited BSD-only subset through a matrix revision.
 
 ## Artifact conclusions
 
@@ -151,8 +151,7 @@ Consequences:
 
 - There is no institutional license owner. Each person accepts no-cost vendor
   terms for their own downloads. Project automation uses a no-cost proprietary
-  input only after the maintainer confirms its exact recorded terms; Task 005
-  prepares that confirmation for the TI packages.
+  input only after the maintainer confirms its exact recorded terms.
 - "Free" means free of charge. The TI C6000 and C7000 compilers are no-cost but
   proprietary. They remain admitted as the plan's firmware toolchain for all
   three DSPs.
@@ -161,5 +160,8 @@ Consequences:
 - Tier 2 Windows support requires no-cost Docker Desktop eligibility or the
   open Docker Engine inside WSL2, tracked by `LIC-008`.
 
-Task 005 separately owns the measured TI GitHub-hosted feasibility proof;
-accepting this policy does not waive that gate.
+On 2026-10-18, for Task 005, the maintainer accepted the terms shipped with
+the pinned TI compilers and SDK for project automation, and said fork pull
+requests do not matter. Two GitHub-hosted runs proved unattended use, so
+blocker `LIC-002` is closed in matrix revision 4. The evidence is in
+[`docs/research/task-005-feasibility.md`](research/task-005-feasibility.md).

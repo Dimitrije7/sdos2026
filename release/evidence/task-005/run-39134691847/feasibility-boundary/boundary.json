@@ -1,0 +1,9 @@
+{
+  "probe": "token-boundary",
+  "event_name": "push",
+  "from_fork": false,
+  "tag_write_http_status": 403,
+  "token_write_refused": true,
+  "oidc_token_available": false,
+  "runner_image": "ubuntu24 20261012.334.1"
+}

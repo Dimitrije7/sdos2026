@@ -2,42 +2,8 @@
 
 ## Status
 
-in-progress
+done
 
-## Handoff
-
-- Updated: 2026-10-18, claude.
-- State: Probes and workflow are written, linted, and committed locally. Not
-  yet run. Both maintainer decisions arrived on 2026-10-18; the workflow is being run.
-- Done:
-  - Pre-run facts in
-    [`docs/research/task-005-feasibility.md`](../docs/research/task-005-feasibility.md):
-    anonymous TI downloads, runner limits, image sizes, and zero repository
-    secrets with a read-only default token.
-  - [`.github/workflows/feasibility.yml`](../.github/workflows/feasibility.yml),
-    four probes under [`ci/feasibility/`](../ci/feasibility/), and
-    [`ci/manifest_pin.py`](../ci/manifest_pin.py).
-- Next:
-  1. Record the maintainer's answers to the decisions below.
-  2. If allowed: push branch `feasibility/task-005` without touching `main`,
-     watch the run with `gh run watch`, and download the four JSON artifacts.
-  3. Archive the run URL, job timings, and summaries under
-     `release/evidence/task-005/`. Fill the Measurements and Recommendation
-     sections of the research note, then complete the task.
-  4. If an install fails, for example the 32-bit C6000 installer needing
-     i386 libraries, fix the probe and rerun before concluding.
-- Decisions, 2026-10-18:
-  1. Asked whether project automation, including fork pull-request jobs, may
-     download and install the pinned TI compilers and SDK under the shipped
-     terms, with the maintainer as accepting party. Answer: "Actually I do not
-     care about forks so do whatever is easiest for you." Applied as: the
-     maintainer accepts the shipped no-cost terms for project automation, and
-     every workflow event runs the same jobs with no fork-specific handling.
-  2. Asked whether the agent may push branch `feasibility/task-005` and run the
-     workflow. Answer: "You may push".
-- Verification, 2026-10-18: ShellCheck v0.10.0, actionlint 1.7.12, and
-  zizmor 1.30.1 in auditor mode reported no findings. Bash syntax checks
-  passed for every probe.
 ## Depends on
 
 003 and 004.
@@ -81,3 +47,32 @@ self-hosted runner is outside scope and requires a new architecture decision.
 
 Archive workflow URLs/log summaries, timings, storage peaks, and tool versions;
 ensure no sensitive value appears in logs or artifacts.
+
+## Completion evidence
+
+- [`docs/research/task-005-feasibility.md`](../docs/research/task-005-feasibility.md)
+  records the pre-run facts, the measurements from two GitHub-hosted runs, and
+  the CI budget and placement recommendation.
+- Run summaries are archived in
+  [`release/evidence/task-005/`](../release/evidence/task-005/) for runs
+  [39133768293](https://github.com/Dimitrije7/sdos2026/actions/runs/39133768293)
+  and [39134691847](https://github.com/Dimitrije7/sdos2026/actions/runs/39134691847).
+  They contain no TI payload, license text, or secret.
+- Both TI compiler families downloaded anonymously, installed unattended, and
+  compiled a Q15 FIR kernel. The SDK subset streamed and verified, and the
+  arm64 image-delta install succeeded. The workflow token was refused write
+  access, and no OIDC token was offered.
+- License matrix revision 4 closes `LIC-002`. TI CI use is allowed on trusted
+  lanes, fork pull requests skip TI steps, and TI caching is prohibited.
+- Decisions, 2026-10-18:
+  1. Asked whether project automation, including fork pull-request jobs, may
+     download and install the pinned TI compilers and SDK under the shipped
+     terms, with the maintainer as accepting party. Answer: "Actually I do not
+     care about forks so do whatever is easiest for you." Applied as: the
+     maintainer accepts the shipped no-cost terms for project automation, and
+     every workflow event runs the same jobs with no fork-specific handling.
+  2. Asked whether the agent may push branch `feasibility/task-005` and run the
+     workflow. Answer: "You may push".
+- Verification, 2026-10-18: `python3 ci/validate_licenses.py`,
+  `python3 ci/validate_versions.py`, and `python3 -m unittest discover -s ci -p
+  'test_*.py'` passed after the matrix and manifest revisions.

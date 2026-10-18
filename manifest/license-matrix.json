@@ -2,7 +2,7 @@
   "$schema": "./schemas/license-matrix.schema.json",
   "schema_version": "1.0.0",
   "matrix_id": "sdos-third-party-license-policy",
-  "revision": 3,
+  "revision": 4,
   "updated": "2026-10-18",
   "decision_status": "accepted",
   "policy": {
@@ -67,8 +67,8 @@
       "operations": {
         "download": {"status": "conditional", "conditions": "Fetch only the pinned upstream archive after the maintainer's acceptance of the exact no-cost terms is recorded."},
         "install": {"status": "conditional", "conditions": "Install only from the verified archive in an authorized environment and retain the installed manifest."},
-        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove authorized unattended use on GitHub-hosted runners without secrets or acceptance in fork jobs."},
-        "cache": {"status": "unresolved", "conditions": "No GitHub or institutional cache until the exact archive terms, access boundary, and fork isolation are approved."},
+        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
+        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
         "student_access": {"status": "conditional", "conditions": "Students use TI's own distribution and accept presented terms, or receive only exact components whose included license permits project redistribution."},
         "source_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted source path under its exact included license with notices and TI-device restrictions where applicable."},
         "binary_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted binary whose exact included license permits it, normally unmodified and for TI-device use, with the license and notices."},
@@ -77,14 +77,14 @@
         "release": {"status": "conditional", "conditions": "Release only cleared outputs and components covered by the post-link inventory, notice bundle, and maintainer approval."}
       },
       "handling": {
-        "lane": "institution-controlled",
+        "lane": "trusted-github",
         "cost": "no-cost",
-        "acquisition": "Checksummed upstream download or approved private cache after the exact package terms are recorded.",
+        "acquisition": "Fresh per-job download from TI's pinned URL with SHA-256 verification; no credentials.",
         "credentials_required": false,
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "blocker_ids": ["LIC-001", "LIC-007"],
       "notes": "The whole archive remains default-deny. A permissive PDK headline does not relicense TI firmware, optimized libraries, compiler payloads, or third-party exceptions."
     },
     {
@@ -125,7 +125,7 @@
       "operations": {
         "download": {"status": "conditional", "conditions": "Download only if the Gate 2 fallback is selected and the exact release manifest is available."},
         "install": {"status": "conditional", "conditions": "Install only in an isolated evaluation environment with the exact manifest preserved."},
-        "ci_use": {"status": "unresolved", "conditions": "A selected fallback needs the same Task 005 unattended-use and resource proof as the RTOS SDK."},
+        "ci_use": {"status": "unresolved", "conditions": "A selected fallback needs its own pinned acquisition and resource proof like the Task 005 runs for the RTOS SDK."},
         "cache": {"status": "unresolved", "conditions": "Caching awaits exact package terms and a source/notice retention design."},
         "student_access": {"status": "conditional", "conditions": "Students receive only a fully cleared image or use TI's upstream distribution under its terms."},
         "source_redistribution": {"status": "conditional", "conditions": "Redistribute source per each component license and keep the exact build recipes and patches."},
@@ -142,7 +142,7 @@
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-002", "LIC-003"],
+      "blocker_ids": ["LIC-001", "LIC-003"],
       "notes": "TI's GPLv3 development-image warning is not a substitute for a file-level distribution analysis."
     },
     {
@@ -190,8 +190,8 @@
       "operations": {
         "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
         "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded maintainer acceptance."},
-        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove fork-safe unattended use and historical-version availability on GitHub-hosted runners."},
-        "cache": {"status": "unresolved", "conditions": "No GitHub cache or private mirror until exact terms and access controls are approved."},
+        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
+        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
         "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."},
         "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
         "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes the compiler installer and installed compiler binaries from releases and shared toolchain images."},
@@ -200,14 +200,14 @@
         "release": {"status": "conditional", "conditions": "Firmware output may ship only after its linked runtime objects are classified in the post-link inventory."}
       },
       "handling": {
-        "lane": "institution-controlled",
+        "lane": "trusted-github",
         "cost": "no-cost",
-        "acquisition": "Checksummed upstream download on an authorized ephemeral runner or approved access-controlled cache.",
+        "acquisition": "Fresh per-job download from TI's pinned URL with SHA-256 verification; no credentials.",
         "credentials_required": false,
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "blocker_ids": ["LIC-001", "LIC-007"],
       "notes": "Task 004 must use the SDK-declared compiler rather than silently upgrading to the newest standalone C6000 release."
     },
     {
@@ -255,8 +255,8 @@
       "operations": {
         "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
         "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded maintainer acceptance."},
-        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove fork-safe unattended use and historical-version availability on GitHub-hosted runners."},
-        "cache": {"status": "unresolved", "conditions": "No GitHub cache or private mirror until exact terms and access controls are approved."},
+        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
+        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
         "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."},
         "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
         "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes installer and installed compiler binaries from releases and shared toolchain images."},
@@ -265,14 +265,14 @@
         "release": {"status": "conditional", "conditions": "Firmware output may ship only after linked runtime objects are classified in the post-link inventory."}
       },
       "handling": {
-        "lane": "institution-controlled",
+        "lane": "trusted-github",
         "cost": "no-cost",
-        "acquisition": "Checksummed upstream download on an authorized ephemeral runner or approved access-controlled cache.",
+        "acquisition": "Fresh per-job download from TI's pinned URL with SHA-256 verification; no credentials.",
         "credentials_required": false,
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "blocker_ids": ["LIC-001", "LIC-007"],
       "notes": "The current standalone compiler manifest confirms the mixed model; Task 004 must archive the manifest shipped with the SDK-declared version."
     },
     {
@@ -377,8 +377,8 @@
       "operations": {
         "download": {"status": "conditional", "conditions": "Fetch only exact pinned packages after maintainer acceptance and license capture."},
         "install": {"status": "conditional", "conditions": "Install only in the authorized TI layer and retain each library manifest."},
-        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove public-fork execution does not expose restricted payloads or acceptance state."},
-        "cache": {"status": "unresolved", "conditions": "Cache only if exact terms and access boundaries are approved by the maintainer."},
+        "ci_use": {"status": "allowed", "conditions": "Every job downloads the pinned archive from TI, verifies its SHA-256, and installs unattended under the maintainer's 2026-10-18 acceptance; proven by Task 005 runs 39133768293 and 39134691847. Jobs from fork pull requests skip TI steps."},
+        "cache": {"status": "prohibited", "conditions": "No TI payload enters an Actions cache, artifact, or log. Task 019 may propose caching an audited BSD-only subset through a matrix revision."},
         "student_access": {"status": "conditional", "conditions": "Students obtain the package from TI or receive only a cleared TI-device-use subset with its full license."},
         "source_redistribution": {"status": "conditional", "conditions": "Redistribute only supplied source and derivatives for TI-device use with the full license and notices."},
         "binary_redistribution": {"status": "conditional", "conditions": "Redistribute supplied objects unmodified for TI-device use with the full license and notices."},
@@ -387,14 +387,14 @@
         "release": {"status": "conditional", "conditions": "Release only a file-level-cleared TI-device-use bundle approved by the maintainer."}
       },
       "handling": {
-        "lane": "institution-controlled",
+        "lane": "trusted-github",
         "cost": "no-cost",
-        "acquisition": "Checksummed TI download or approved access-controlled cache.",
+        "acquisition": "Fresh per-job download from TI's pinned URL with SHA-256 verification; no credentials.",
         "credentials_required": false,
         "license_acceptance_required": true,
         "repository_payload": "recipe-only"
       },
-      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "blocker_ids": ["LIC-001", "LIC-007"],
       "notes": "The component page and aggregate manifest can disagree on displayed library versions; the acquired package and hashes decide."
     },
     {
@@ -1408,13 +1408,6 @@
       "description": "The exact selected PSDK, compiler, and optimized-library archives must be acquired without accepting terms in this repository and their shipped manifests must be reconciled path by path.",
       "owner": "Task 004 for the record; Task 005 for the maintainer's confirmation of exact no-cost terms",
       "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, and included license texts, then record the maintainer's acceptance of the exact no-cost terms and approval of the classified acquisition and redistribution uses.",
-      "gate": "Gate 0"
-    },
-    {
-      "id": "LIC-002",
-      "description": "Official documentation does not prove that the historical TI compiler pair and PSDK can be acquired and used unattended on GitHub-hosted runners without credentials, implicit per-job acceptance, or restricted-cache exposure to fork code.",
-      "owner": "Task 005",
-      "unblock_condition": "Produce redacted GitHub-hosted logs for both compiler families showing authorized non-interactive acquisition/use, no secrets or accepted-license state in fork jobs, measured resource use, and the approved cache policy.",
       "gate": "Gate 0"
     },
     {
