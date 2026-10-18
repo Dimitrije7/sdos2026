@@ -2,7 +2,25 @@
 
 ## Status
 
-ready
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-18, claude.
+- State: The Gate 0 record is prepared with a conditional-go recommendation
+  and waits for the maintainer's decision.
+- Done: [`release/evidence/gate-0/gate-0-record.md`](../release/evidence/gate-0/gate-0-record.md)
+  holds the evidence index, the observed bench, conditions G0-1 to G0-5,
+  alternatives, and baseline hashes at commit `802293b`.
+- Next:
+  1. Record the maintainer's answer verbatim in the gate record and here.
+  2. If accepted: move `LIC-001`'s gate as in G0-4, set Task 008 to `ready`,
+     and complete this task.
+  3. If any baseline file changes before the decision, recompute its hash in
+     the record.
+- Decisions: pending. Asked 2026-10-18 whether to accept conditional go with
+  conditions G0-1 to G0-5.
+- Verification: the baseline hashes were computed at commit `802293b`.
 
 ## Depends on
 
