@@ -1,0 +1,1 @@
+refused: mmc-SD32G_<redacted> is not a safe write target: partitions are mounted at /run/media/dimitrije/BOOT

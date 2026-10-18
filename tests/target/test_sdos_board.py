@@ -60,7 +60,7 @@ class DiscoveryTests(unittest.TestCase):
         result = discover(FixtureHost({}))
         codes = {item.code: item for item in result.diagnostics}
         self.assertIn("no-uart", codes)
-        self.assertIn("Connect", codes["no-reader"].action)
+        self.assertIn("microSD card", codes["no-reader"].action)
 
 
 class GuardTests(unittest.TestCase):
@@ -104,6 +104,51 @@ class GuardTests(unittest.TestCase):
             with self.subTest(identity=identity):
                 with self.assertRaisesRegex(guards.BoardAccessError, reason):
                     guards.check_write_target(result, identity)
+
+
+class SdSlotTests(unittest.TestCase):
+    CARD = "mmc-SC32G_0x1a2b3c4d"
+
+    def test_card_in_builtin_slot_is_a_reader_and_emmc_is_not(self) -> None:
+        result = bench("bench-sd-slot.json")
+        self.assertEqual([(r.by_id, r.transport) for r in result.readers], [(self.CARD, "mmc")])
+
+    def test_mounted_old_image_is_refused(self) -> None:
+        with self.assertRaisesRegex(guards.BoardAccessError, "mounted at /media/maintainer/rootfs"):
+            guards.check_write_target(bench("bench-sd-slot.json"), self.CARD)
+
+    def test_approval_record_lists_content_a_write_would_erase(self) -> None:
+        data = json.loads((FIXTURES / "bench-sd-slot.json").read_text())
+        data["lsblk"]["blockdevices"][1]["children"][1]["mountpoints"] = [None]
+        record = guards.check_write_target(discover(FixtureHost(data)), self.CARD)
+        self.assertEqual(
+            record["existing_content_erased_by_a_write"],
+            ["mmcblk0p1 vfat label=BOOT 134217728 bytes", "mmcblk0p2 ext4 label=rootfs 31779717120 bytes"],
+        )
+
+    def test_board_usb_c_console_is_a_uart_with_the_board_serial(self) -> None:
+        uart = guards.select_uart(
+            bench("bench-sd-slot.json"), "usb-BeagleBoard.org_BeagleBone_AI-64_1234BBAI6400017-if02"
+        )
+        self.assertEqual((uart.device, uart.unique_serial), ("/dev/ttyACM0", True))
+
+    def test_board_gadget_storage_is_never_a_reader(self) -> None:
+        data = json.loads((FIXTURES / "bench-sd-slot.json").read_text())
+        data["disk_by_id"]["usb-Linux_File-Stor_Gadget_1234BBBK5678-0:0"] = "/dev/sda"
+        data["lsblk"]["blockdevices"].append(
+            {"name": "sda", "path": "/dev/sda", "type": "disk", "tran": "usb", "rm": True,
+             "hotplug": True, "size": 18874368, "model": "File-Stor Gadget",
+             "serial": "1234BBBK5678", "vendor": "Linux", "mountpoints": [None]}
+        )
+        result = discover(FixtureHost(data))
+        self.assertNotIn("/dev/sda", {reader.device for reader in result.readers})
+        self.assertIn("board-gadget-storage", {item.code for item in result.diagnostics})
+
+    def test_beagle_default_gadget_serial_is_a_placeholder(self) -> None:
+        self.assertTrue(is_placeholder_serial("1234BBBK5678"))
+
+    def test_zero_card_serial_is_a_placeholder(self) -> None:
+        self.assertTrue(is_placeholder_serial("0x00000000"))
 
 
 class NetworkTests(unittest.TestCase):

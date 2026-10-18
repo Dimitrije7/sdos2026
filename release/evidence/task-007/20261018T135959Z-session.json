@@ -1,0 +1,26 @@
+{
+  "task": "007",
+  "recorded_utc": "20261018T135959Z",
+  "evidence_class": "connected-hardware, read-only",
+  "workstation": {
+    "os": "Linux-7.0.0-28-generic-x86_64-with-glibc2.43",
+    "python": "3.14.4"
+  },
+  "bench": "Board USB-C to the PC's USB-A port (power and USB gadget data); microSD card in the PC's built-in Realtek SD slot; no USB-UART adapter; no Ethernet.",
+  "commands": [
+    "python3 -m tests.target.sdos_board --redact discover --host 192.168.7.2 --host 192.168.6.2",
+    "python3 -m tests.target.sdos_board ssh-identity --host 192.168.7.2 --expect <ED25519 fingerprint>",
+    "python3 -m tests.target.sdos_board check-write-target --id <card by-id>"
+  ],
+  "results": {
+    "uart": "Board USB gadget console found by by-id; its serial 1234BBBK5678 is the shared Beagle default, flagged as non-unique.",
+    "board_storage": "The board's File-Stor gadget drive was excluded from readers after this session found it listed as one.",
+    "card": "SD card found by its mmc by-id with three partitions of an older image; write target refused because BOOT is auto-mounted.",
+    "network": "SSH reachable over USB at 192.168.7.2 and 192.168.6.2 with identical host keys; no login was attempted.",
+    "serial_capture": "Not run: the workstation account is not in the dialout group."
+  },
+  "not_proven": [
+    "board EEPROM identity (Task 009)",
+    "serial capture on hardware"
+  ]
+}

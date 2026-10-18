@@ -1,0 +1,95 @@
+{
+  "uarts": [
+    {
+      "by_id": "usb-BeagleBoard.org_BeagleBone_redacted-ac7621664e76-if04",
+      "device": "/dev/ttyACM0",
+      "vendor_id": "1d6b",
+      "product_id": "0104",
+      "serial": "redacted-ac7621664e76",
+      "manufacturer": "BeagleBoard.org",
+      "product": "BeagleBone",
+      "unique_serial": false
+    }
+  ],
+  "readers": [
+    {
+      "by_id": "mmc-SD32G_redacted-33a424e43dbd",
+      "device": "/dev/mmcblk0",
+      "model": "",
+      "vendor": "",
+      "serial": "redacted-33a424e43dbd",
+      "size_bytes": 31293702144,
+      "removable": true,
+      "transport": "mmc",
+      "mountpoints": [
+        "/run/media/dimitrije/BOOT"
+      ],
+      "unique_serial": true,
+      "partitions": [
+        "mmcblk0p1 vfat label=BOOT 314572800 bytes",
+        "mmcblk0p2 ext3 1258291200 bytes",
+        "mmcblk0p3 no-filesystem 10485760 bytes"
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "severity": "warning",
+      "code": "uart-placeholder-serial",
+      "subject": "usb-BeagleBoard.org_BeagleBone_redacted-ac7621664e76-if04",
+      "message": "This adapter reports no unique USB serial, so its by-id name is shared by every identical adapter.",
+      "action": "Keep only one adapter of this model connected, or use an adapter with a factory serial such as the FTDI TTL-232R-3V3."
+    },
+    {
+      "severity": "warning",
+      "code": "board-gadget-storage",
+      "subject": "/dev/sda",
+      "message": "This USB disk is storage exported by a connected board's USB gadget, not a card reader.",
+      "action": "None; it is never a reader or write target."
+    }
+  ],
+  "network": [
+    {
+      "host": "192.168.7.2",
+      "addresses": [
+        "192.168.7.2"
+      ],
+      "ssh_reachable": true,
+      "host_keys": [
+        {
+          "key_type": "ECDSA",
+          "fingerprint": "SHA256:dRRpPvLL2KGTNmOQRt9WsGT+i5cDI/buUTOiIc6SbAg"
+        },
+        {
+          "key_type": "ED25519",
+          "fingerprint": "SHA256:x254XBjD+Cyh0FyEpjVlIn2ivgFOZJ0k1PbeAza3mus"
+        },
+        {
+          "key_type": "RSA",
+          "fingerprint": "SHA256:RZSS5Y2H2NLRJdFLzczSXPh4rDk9ewRgDfk0GxF/OPg"
+        }
+      ]
+    },
+    {
+      "host": "192.168.6.2",
+      "addresses": [
+        "192.168.6.2"
+      ],
+      "ssh_reachable": true,
+      "host_keys": [
+        {
+          "key_type": "ECDSA",
+          "fingerprint": "SHA256:dRRpPvLL2KGTNmOQRt9WsGT+i5cDI/buUTOiIc6SbAg"
+        },
+        {
+          "key_type": "ED25519",
+          "fingerprint": "SHA256:x254XBjD+Cyh0FyEpjVlIn2ivgFOZJ0k1PbeAza3mus"
+        },
+        {
+          "key_type": "RSA",
+          "fingerprint": "SHA256:RZSS5Y2H2NLRJdFLzczSXPh4rDk9ewRgDfk0GxF/OPg"
+        }
+      ]
+    }
+  ]
+}

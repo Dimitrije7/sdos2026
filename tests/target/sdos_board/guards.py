@@ -78,8 +78,8 @@ def check_write_target(discovery: Discovery, identity: str) -> dict[str, Any]:
     refusals = []
     if not reader.unique_serial:
         refusals.append("the reader has no unique serial")
-    if reader.transport != "usb" or not reader.removable:
-        refusals.append("the device is not a removable USB disk")
+    if reader.transport not in {"usb", "mmc"} or not reader.removable:
+        refusals.append("the device is not a removable USB disk or SD card")
     if reader.size_bytes == 0:
         refusals.append("no medium is inserted")
     elif reader.size_bytes < MIN_CARD_BYTES:
@@ -89,6 +89,7 @@ def check_write_target(discovery: Discovery, identity: str) -> dict[str, Any]:
     if refusals:
         raise BoardAccessError(f"{reader.by_id} is not a safe write target: " + "; ".join(refusals))
     record = asdict(reader)
+    record["existing_content_erased_by_a_write"] = list(reader.partitions) or ["no partitions"]
     record["approval_required"] = (
         "Explicit maintainer approval naming this by_id, model, serial, and size "
         "is required before any write."

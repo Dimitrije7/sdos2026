@@ -7,34 +7,34 @@ in-progress
 ## Handoff
 
 - Updated: 2026-10-18, claude.
-- State: Implementation and mocked verification are complete and committed.
-  The task waits at its hardware-ready checkpoint for the final read-only
-  discovery proof.
+- State: Read-only discovery ran against the connected board. Serial capture on
+  hardware remains, and it needs the workstation account in `dialout`.
 - Done:
-  - [`tests/target/sdos_board/`](../tests/target/sdos_board/): discovery,
-    exact-identity guards that never write, SSH host-key identity,
-    receive-only serial capture, and a CLI.
-  - [`tests/target/test_sdos_board.py`](../tests/target/test_sdos_board.py)
-    with fixtures for a healthy and a hazardous bench.
-  - [`docs/board-access.md`](../docs/board-access.md).
+  - Code, tests, and [`docs/board-access.md`](../docs/board-access.md).
+  - Bench as connected by the maintainer: board USB-C to the PC's USB-A port,
+    with the board booted from its factory eMMC image dated 2022; microSD card
+    in the PC's built-in SD slot, holding an older image; no USB-UART adapter
+    and no Ethernet.
+  - The live run found two defects, now fixed and tested. The board's gadget
+    drive was listed as a reader. The shared gadget serial `1234BBBK5678` was
+    treated as unique. Built-in SD slots are now supported, and approval
+    records list the partitions a write would erase.
+  - Evidence: [`release/evidence/task-007/`](../release/evidence/task-007/)
+    holds the redacted discovery, the SSH host-key check, and the refused write
+    target, because the card's BOOT partition was auto-mounted.
 - Next:
-  1. Hardware-ready: ask the maintainer to connect the board with power, the
-     USB-UART adapter on its debug header, Ethernet on the PC's network, and
-     the microSD reader with a card.
-     The workstation account is not in the `dialout` group, so the UART cannot
-     be opened yet. Adding it with `usermod` changes system privileges and
-     needs a fresh login; ask the maintainer before doing it.
-  2. Run `discover --host <board>`, a short `capture`, `ssh-identity`, and
-     `check-write-target`, all read-only. Store redacted outputs under
-     `release/evidence/task-007/`.
-  3. Record the observed UART and reader as inventory assets, then complete
-     the task.
-- Decisions: none.
-- Verification, 2026-10-18:
-  - `python3 -m unittest tests.target.test_sdos_board` passed 19 tests on
-    Python 3.14 and on Python 3.10 in `python:3.10-slim`.
-  - A live discovery on this workstation found no UART or reader and excluded
-    the system NVMe disk.
+  1. After the maintainer adds the account to `dialout` and logs in again, run
+     `capture --uart usb-BeagleBoard.org_BeagleBone_1234BBBK5678-if04 --seconds
+     20` read-only and archive a redacted log.
+  2. Complete the task: record the console, card, and board host keys as
+     inventory observations.
+- Decisions, 2026-10-18: the maintainer said they have one USB-A and one USB-C
+  port, no Ethernet cable from PC to board, and can insert the SD card into the
+  PC directly. They then reported "board is connected via USB C to USB A of
+  this PC". The SD card already holds an older Linux image.
+- Verification, 2026-10-18: `python3 -m unittest tests.target.test_sdos_board`
+  passed 26 tests. Live discovery and `ssh-identity` exited 0;
+  `check-write-target` refused the mounted card as designed.
 ## Depends on
 
 004.

@@ -1,7 +1,7 @@
 # Safe connected-board access
 
-Status: implemented and tested against mocked benches; connected-hardware proof
-pending  
+Status: implemented; mocked suite and a read-only connected-board discovery
+passed on 2026-10-18  
 Task: [007 — Build safe connected-board access](../tasks/007-safe-board-access.md)  
 Code: [`tests/target/sdos_board/`](../tests/target/sdos_board/)
 
@@ -27,6 +27,32 @@ board state call its guards first and then request the maintainer's approval.
   returns the record that the approval request must quote.
 - **Capture is receive-only.** The UART is opened read-only, so capture cannot
   type into the board's console.
+
+## Supported bench connections
+
+The board's USB-C port carries both power and USB gadget functions. With the
+board's USB-C connected to the development PC, the stock image provides:
+
+| Function | Host side | Use |
+|---|---|---|
+| Virtual Ethernet | `192.168.7.2` (RNDIS) and `192.168.6.2` (NCM) | SSH and file transfer; no Ethernet cable is needed |
+| Serial console | `/dev/ttyACM0` with a `usb-BeagleBoard.org_*` by-id name | Linux console after boot; U-Boot output needs the UART header |
+| Mass storage | A small `Linux File-Stor Gadget` disk | Never a reader; discovery excludes it |
+
+The gadget's USB serial `1234BBBK5678` is a fixed default shared by every
+board. It identifies the connection, not the board, so discovery flags it as
+non-unique. The SSH host keys, and later the EEPROM identity, identify the board.
+
+A microSD card can sit in a USB reader or in a built-in SD slot. A built-in slot
+appears as `/dev/mmcblk*` with an `mmc-<name>_<card serial>` by-id link; that
+serial belongs to the card, so the identity follows the card. Internal eMMC,
+which the kernel reports as type `MMC`, is excluded.
+
+Power over USB-C needs a supply above 5 V/3 A. A PC port, and any
+USB-A-to-USB-C cable, may not provide that. BeagleBoard's quick start says that
+with a USB-A-to-C cable the board needs power from its DC barrel jack. The
+reference bench therefore uses a 5 V, 4 A center-positive barrel supply, with
+the USB-C cable carrying data only.
 
 ## Prerequisites
 
@@ -101,7 +127,8 @@ output to a file.
 | `no-uart` | No USB serial adapter is connected | Connect the 3.3 V adapter to the PC and the board's debug UART header |
 | `uart-without-stable-identity` | Two identical adapters without serials | Disconnect all but one, or use an adapter with a factory serial |
 | `uart-placeholder-serial` | The adapter has no unique serial | Keep only one such adapter connected |
-| `no-reader` | No removable USB disk is connected | Connect the reader with a card inserted |
+| `no-reader` | No removable USB disk or SD card is present | Insert the card into the built-in slot or a USB reader |
+| `board-gadget-storage` | A board's exported USB drive is connected | None; it is excluded automatically |
 | `reader-without-by-id` | udev created no `usb-*` link | Reconnect the reader directly to the PC, not through a hub |
 | `reader-placeholder-serial` | The reader fails the identity check | Use a reader with a unique serial before any flashing |
 | `partitions are mounted` | The desktop auto-mounted the card | The flashing task unmounts only after approval of that exact target |

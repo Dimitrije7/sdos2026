@@ -1,0 +1,147 @@
+{
+  "description": "Synthetic maintainer bench: the board's USB-C gadget console, a microSD card holding an old Linux image in the laptop's built-in slot with one partition auto-mounted, internal eMMC storage, and the system NVMe disk.",
+  "serial_by_id": {
+    "usb-BeagleBoard.org_BeagleBone_AI-64_1234BBAI6400017-if02": "/dev/ttyACM0"
+  },
+  "usb_serial_devices": {
+    "/dev/ttyACM0": {
+      "idVendor": "1d6b",
+      "idProduct": "0104",
+      "serial": "1234BBAI6400017",
+      "manufacturer": "BeagleBoard.org",
+      "product": "BeagleBone AI-64"
+    }
+  },
+  "disk_by_id": {
+    "mmc-SC32G_0x1a2b3c4d": "/dev/mmcblk0",
+    "mmc-SC32G_0x1a2b3c4d-part1": "/dev/mmcblk0p1",
+    "mmc-SC32G_0x1a2b3c4d-part2": "/dev/mmcblk0p2",
+    "mmc-DG4016_0x0badc0de": "/dev/mmcblk1",
+    "nvme-Example_NVMe_S6EXAMPLE0001": "/dev/nvme0n1"
+  },
+  "mmc_types": {
+    "mmcblk0": "SD",
+    "mmcblk1": "MMC"
+  },
+  "lsblk": {
+    "blockdevices": [
+      {
+        "name": "nvme0n1",
+        "path": "/dev/nvme0n1",
+        "type": "disk",
+        "tran": "nvme",
+        "rm": false,
+        "hotplug": false,
+        "size": 1024209543168,
+        "model": "Example NVMe",
+        "serial": "S6EXAMPLE0001",
+        "vendor": null,
+        "mountpoints": [
+          null
+        ],
+        "children": [
+          {
+            "name": "nvme0n1p1",
+            "path": "/dev/nvme0n1p1",
+            "type": "part",
+            "tran": "nvme",
+            "rm": false,
+            "hotplug": false,
+            "size": 1073741824,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/boot/efi"
+            ]
+          },
+          {
+            "name": "nvme0n1p2",
+            "path": "/dev/nvme0n1p2",
+            "type": "part",
+            "tran": "nvme",
+            "rm": false,
+            "hotplug": false,
+            "size": 1023134236672,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "mmcblk0",
+        "path": "/dev/mmcblk0",
+        "type": "disk",
+        "tran": null,
+        "rm": false,
+        "hotplug": false,
+        "size": 31914983424,
+        "model": null,
+        "serial": "0x1a2b3c4d",
+        "vendor": null,
+        "mountpoints": [
+          null
+        ],
+        "fstype": null,
+        "label": null,
+        "children": [
+          {
+            "name": "mmcblk0p1",
+            "path": "/dev/mmcblk0p1",
+            "type": "part",
+            "tran": null,
+            "rm": false,
+            "hotplug": false,
+            "size": 134217728,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              null
+            ],
+            "fstype": "vfat",
+            "label": "BOOT"
+          },
+          {
+            "name": "mmcblk0p2",
+            "path": "/dev/mmcblk0p2",
+            "type": "part",
+            "tran": null,
+            "rm": false,
+            "hotplug": false,
+            "size": 31779717120,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/media/maintainer/rootfs"
+            ],
+            "fstype": "ext4",
+            "label": "rootfs"
+          }
+        ]
+      },
+      {
+        "name": "mmcblk1",
+        "path": "/dev/mmcblk1",
+        "type": "disk",
+        "tran": null,
+        "rm": false,
+        "hotplug": false,
+        "size": 15758000128,
+        "model": null,
+        "serial": "0x0badc0de",
+        "vendor": null,
+        "mountpoints": [
+          null
+        ],
+        "fstype": null,
+        "label": null
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "host": "192.168.7.2",
+  "addresses": [
+    "192.168.7.2"
+  ],
+  "ssh_reachable": true,
+  "host_keys": [
+    {
+      "key_type": "ECDSA",
+      "fingerprint": "SHA256:dRRpPvLL2KGTNmOQRt9WsGT+i5cDI/buUTOiIc6SbAg"
+    },
+    {
+      "key_type": "ED25519",
+      "fingerprint": "SHA256:x254XBjD+Cyh0FyEpjVlIn2ivgFOZJ0k1PbeAza3mus"
+    },
+    {
+      "key_type": "RSA",
+      "fingerprint": "SHA256:RZSS5Y2H2NLRJdFLzczSXPh4rDk9ewRgDfk0GxF/OPg"
+    }
+  ],
+  "problems": []
+}

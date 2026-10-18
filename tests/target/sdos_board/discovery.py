@@ -28,6 +28,7 @@ PLACEHOLDER_SERIALS = {
     "generic",
     "none",
     "serial",
+    "1234bbbk5678",  # fixed default of BeagleBoard USB gadget scripts, shared by every board
 }
 
 
@@ -36,6 +37,8 @@ def is_placeholder_serial(serial: str | None) -> bool:
     if serial is None:
         return True
     value = serial.strip().lower()
+    if value.startswith("0x"):
+        value = value[2:]
     if value in PLACEHOLDER_SERIALS or len(value) < 4:
         return True
     return len(set(value)) == 1
@@ -74,6 +77,7 @@ class Reader:
     transport: str
     mountpoints: tuple[str, ...]
     unique_serial: bool
+    partitions: tuple[str, ...] = ()
 
 
 @dataclass
@@ -103,6 +107,9 @@ class HostView(Protocol):
     def disk_links(self) -> dict[str, str]:
         """Map /dev/disk/by-id link names to the device they resolve to."""
 
+    def mmc_types(self) -> dict[str, str]:
+        """Map mmcblk device names to their card type: SD, MMC, or SDIO."""
+
 
 class FixtureHost:
     """A recorded host listing, used by tests and dry runs."""
@@ -126,6 +133,9 @@ class FixtureHost:
 
     def disk_links(self) -> dict[str, str]:
         return dict(self._data.get("disk_by_id", {}))
+
+    def mmc_types(self) -> dict[str, str]:
+        return dict(self._data.get("mmc_types", {}))
 
 
 def _links(directory: Path) -> dict[str, str]:
@@ -166,7 +176,7 @@ class LiveHost:
         return devices
 
     def block_devices(self) -> list[dict[str, Any]]:
-        columns = "NAME,PATH,TYPE,TRAN,RM,HOTPLUG,SIZE,MODEL,SERIAL,VENDOR,MOUNTPOINTS"
+        columns = "NAME,PATH,TYPE,TRAN,RM,HOTPLUG,SIZE,MODEL,SERIAL,VENDOR,MOUNTPOINTS,FSTYPE,LABEL"
         result = subprocess.run(
             ["lsblk", "--json", "--bytes", "--output", columns],
             capture_output=True,
@@ -177,6 +187,12 @@ class LiveHost:
 
     def disk_links(self) -> dict[str, str]:
         return _links(Path("/dev/disk/by-id"))
+
+    def mmc_types(self) -> dict[str, str]:
+        return {
+            block.name: _read(block / "device" / "type")
+            for block in sorted(Path("/sys/block").glob("mmcblk*"))
+        }
 
 
 def _flag(value: Any) -> bool:
@@ -189,6 +205,25 @@ def _mountpoints(device: dict[str, Any]) -> tuple[str, ...]:
     for child in device.get("children") or []:
         points.extend(_mountpoints(child))
     return tuple(points)
+
+
+def _is_gadget_storage(device: dict[str, Any]) -> bool:
+    """Linux USB mass-storage gadgets, such as a Beagle board's exported drive."""
+    model = (device.get("model") or "").lower()
+    vendor = (device.get("vendor") or "").strip().lower()
+    return "file-stor gadget" in model or "mass storage gadget" in model or vendor == "linux"
+
+
+def _partitions(device: dict[str, Any]) -> tuple[str, ...]:
+    """Describe existing partitions so an approval shows what a write erases."""
+    described = []
+    for child in device.get("children") or []:
+        fields = [child.get("name") or "?", child.get("fstype") or "no-filesystem"]
+        if child.get("label"):
+            fields.append(f"label={child['label']}")
+        fields.append(f"{int(child.get('size') or 0)} bytes")
+        described.append(" ".join(fields))
+    return tuple(described)
 
 
 def discover_uarts(host: HostView, result: Discovery) -> None:
@@ -246,13 +281,31 @@ def discover_readers(host: HostView, result: Discovery) -> None:
             continue
         by_device.setdefault(device, []).append(link)
 
+    mmc_types = host.mmc_types()
     for device in host.block_devices():
         if device.get("type") != "disk":
             continue
         mountpoints = _mountpoints(device)
         removable = _flag(device.get("rm")) or _flag(device.get("hotplug"))
         transport = device.get("tran") or ""
-        if transport != "usb" or not removable:
+        if transport == "usb" and _is_gadget_storage(device):
+            result.diagnostics.append(
+                Diagnostic(
+                    "warning",
+                    "board-gadget-storage",
+                    device["path"],
+                    "This USB disk is storage exported by a connected board's USB "
+                    "gadget, not a card reader.",
+                    "None; it is never a reader or write target.",
+                )
+            )
+            continue
+        if transport == "usb" and removable:
+            prefix = "usb-"
+        elif mmc_types.get(device.get("name", "")) == "SD":
+            # A card in a built-in slot; eMMC reports type MMC and is excluded.
+            transport, removable, prefix = "mmc", True, "mmc-"
+        else:
             continue
         if SYSTEM_MOUNTPOINTS.intersection(mountpoints):
             result.diagnostics.append(
@@ -260,13 +313,13 @@ def discover_readers(host: HostView, result: Discovery) -> None:
                     "warning",
                     "reader-hosts-system-mount",
                     device["path"],
-                    "A removable USB disk backs a system mount and is never a target.",
+                    "A removable disk backs a system mount and is never a target.",
                     "None; it is excluded from reader selection.",
                 )
             )
             continue
         links = sorted(by_device.get(device["path"], []))
-        usb_links = [link for link in links if link.startswith("usb-")]
+        usb_links = [link for link in links if link.startswith(prefix)]
         serial = (device.get("serial") or "").strip()
         unique = not is_placeholder_serial(serial)
         if not usb_links:
@@ -275,9 +328,9 @@ def discover_readers(host: HostView, result: Discovery) -> None:
                     "error",
                     "reader-without-by-id",
                     device["path"],
-                    "A removable USB disk has no /dev/disk/by-id usb-* link.",
-                    "Reconnect the reader directly to the workstation and rerun "
-                    "discovery; do not select it by /dev/sdX.",
+                    f"A removable disk has no /dev/disk/by-id {prefix}* link.",
+                    "Reconnect the reader or card directly to the workstation and "
+                    "rerun discovery; do not select it by its /dev name.",
                 )
             )
             continue
@@ -293,6 +346,7 @@ def discover_readers(host: HostView, result: Discovery) -> None:
                 transport=transport,
                 mountpoints=mountpoints,
                 unique_serial=unique,
+                partitions=_partitions(device),
             )
         )
         if not unique:
@@ -301,10 +355,10 @@ def discover_readers(host: HostView, result: Discovery) -> None:
                     "error",
                     "reader-placeholder-serial",
                     usb_links[0],
-                    "The reader reports a placeholder serial, so it fails the BOM "
-                    "stable-identity acceptance check.",
-                    "Use a reader that exposes a unique serial before any automated "
-                    "flashing.",
+                    "The reader or card reports a placeholder serial, so it fails "
+                    "the BOM stable-identity acceptance check.",
+                    "Use a reader or card that exposes a unique serial before any "
+                    "automated flashing.",
                 )
             )
 
@@ -330,8 +384,8 @@ def discover(host: HostView) -> Discovery:
                 "warning",
                 "no-reader",
                 "/dev/disk/by-id",
-                "No removable USB reader is connected.",
-                "Connect the microSD reader with a card inserted.",
+                "No removable USB reader or SD card is connected.",
+                "Insert the microSD card into the built-in slot or a USB reader.",
             )
         )
     return result
