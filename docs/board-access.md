@@ -144,6 +144,20 @@ the verdict, `<core>-kernel.txt` with the kernel log of the run, and
 python3 ci/firmware_elf.py c66x_0 <firmware.elf>
 ```
 
+Run the course firmware on every core in both runtimes (Task 021):
+
+```sh
+make build PRESET=board-host,firmware
+python3 -m tests.target.sdos_board course-smoke --key ~/.ssh/sdos-bench_ed25519 --out <dir>
+```
+
+It refuses to start unless every firmware file fits its core. It uploads
+`dspctl` and the six release firmware files to `/tmp/sdos-smoke/`, checking
+each SHA-256 on the board. Then, for each core and runtime, it runs `dspctl`
+stop, load, start, status, echo, trace, and stop, and restores the core's
+original firmware name. It writes `<core>-<runtime>.json` with each step's
+output and exit status, and prints one pass or FAIL line per run.
+
 Capture the serial console until the login prompt or a time limit:
 
 ```sh

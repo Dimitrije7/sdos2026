@@ -2,7 +2,21 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: `dspctl` implements list, status, load, start, stop, recover, trace,
+  echo, and run over `libsdos_dsp`; it is tested against the mock and has not
+  run on the board.
+- Done: `host/dspctl/dspctl.c`, CLI contract test `host/dspctl/tests/cli.cmake`
+  (CTest `dspctl_mock_cli`), user guide `docs/dspctl.md`. The AArch64 binary
+  builds in `aarch64-gcc-*`.
+- Next: machine-readable output (`--json`), support bundle, board command
+  matrix, and packaging for the image.
+- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
+- Verification, 2026-10-19: `dspctl_mock_cli` passed.
 
 ## Depends on
 

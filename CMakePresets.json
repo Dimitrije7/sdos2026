@@ -109,6 +109,18 @@
       ]
     },
     {
+      "name": "host-gcc-sanitize",
+      "displayName": "PC host tools and tests, GCC, debug with AddressSanitizer and UndefinedBehaviorSanitizer",
+      "inherits": [
+        "base",
+        "gcc",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_SANITIZE": "ON"
+      }
+    },
+    {
       "name": "aarch64-gcc-debug",
       "displayName": "Board Linux programs for Cortex-A72, GCC, debug",
       "inherits": [
@@ -301,6 +313,10 @@
       "configurePreset": "host-clang-release"
     },
     {
+      "name": "host-gcc-sanitize",
+      "configurePreset": "host-gcc-sanitize"
+    },
+    {
       "name": "aarch64-gcc-debug",
       "configurePreset": "aarch64-gcc-debug"
     },
@@ -391,6 +407,16 @@
     {
       "name": "host-clang-release",
       "configurePreset": "host-clang-release",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "host-gcc-sanitize",
+      "configurePreset": "host-gcc-sanitize",
       "output": {
         "outputOnFailure": true
       },

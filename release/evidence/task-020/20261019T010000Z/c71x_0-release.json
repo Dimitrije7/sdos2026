@@ -1,0 +1,84 @@
+{
+  "schema": "sdos-ti-reference/1",
+  "preset": "ti-reference-c71x_0-release",
+  "core": "c71x_0",
+  "ti_core": "c7x_1",
+  "profile": "release",
+  "example": "ipc_echo_test_freertos",
+  "inputs": {
+    "psdk_archive_sha256": "8421152eedff7b0bb3a59caf884fd0932b8a9976e394cf8bf73f257dee4e50bc",
+    "compiler_installer_sha256": "00679f852732ad23cea97e6fa3648d7c2d9aca26c244451e8b07a91c1d20ee7f",
+    "pdk": "pdk_jacinto_11_02_01_08",
+    "container_image": "sdos-dev:dev-ti-a7e82554a3c5"
+  },
+  "command": [
+    "env",
+    "SDK_INSTALL_PATH=/opt/ti/psdk/ti-processor-sdk-rtos-j721e-evm-11_02_01_03",
+    "PDK_INSTALL_PATH=/opt/ti/psdk/ti-processor-sdk-rtos-j721e-evm-11_02_01_03/pdk_jacinto_11_02_01_08/packages",
+    "TOOLS_INSTALL_PATH=/opt/ti/psdk",
+    "C6X_GEN_INSTALL_PATH=/opt/ti/install-c6000/ti-cgt-c6000_8.3.7",
+    "C7X_GEN_INSTALL_PATH=/opt/ti/install-c7000/ti-cgt-c7000_5.0.0.LTS",
+    "TOOLCHAIN_PATH_GCC_ARCH64=build/ti-reference-c71x_0-release/shim",
+    "make",
+    "-s",
+    "-C",
+    "/opt/ti/psdk/ti-processor-sdk-rtos-j721e-evm-11_02_01_03/pdk_jacinto_11_02_01_08/packages/ti/build",
+    "ipc_echo_test_freertos",
+    "BOARD=j721e_evm",
+    "CORE=c7x_1",
+    "BUILD_PROFILE=release",
+    "DEST_ROOT=build/ti-reference-c71x_0-release/pdk",
+    "ipc_echo_test_freertos_SBL_APPIMAGEGEN=no"
+  ],
+  "outputs": {
+    "ipc_echo_test_freertos_c7x_1_release.xe71": {
+      "sha256": "710219907358239f50c1b79a33f148807a8763875b64a45986ce4ee4b653f711",
+      "size": 10955544
+    },
+    "ipc_echo_test_freertos_c7x_1_release.xe71.map": {
+      "sha256": "5e411d816a9470770bbea70a936637f67ac9b8f5eb6c9f405fb9e496dae6689d",
+      "size": 797685
+    },
+    "ipc_echo_test_freertos_c7x_1_release_strip.xe71": {
+      "sha256": "8321bc7bc11b9c617cd7e8b638da9dc8402530341d401a5e326f5e95028ba467",
+      "size": 10488888
+    }
+  },
+  "fit": {
+    "ok": true,
+    "problems": [],
+    "resources": [
+      {
+        "type": "vdev",
+        "id": 7,
+        "features": 1,
+        "config_len": 0,
+        "status": 0,
+        "vrings": [
+          {
+            "address": 4294967295,
+            "align": 4096,
+            "num": 256,
+            "notify": 1
+          },
+          {
+            "address": 4294967295,
+            "align": 4096,
+            "num": 256,
+            "notify": 2
+          }
+        ]
+      },
+      {
+        "type": "vendor-0x10002"
+      }
+    ]
+  },
+  "prebuilt_comparison": {
+    "input": "ti.ipc-echo-fw-j721e-c7x1",
+    "note": "TI built the prebuilt blob from REL.PSDK.11.02.01.05; this tree is PDK 11.02.01.08",
+    "resource_table_equal": true,
+    "segment_addresses_equal": true,
+    "segment_differences": []
+  }
+}

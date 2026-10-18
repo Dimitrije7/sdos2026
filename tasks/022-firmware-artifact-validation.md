@@ -2,7 +2,21 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: the ELF and resource-table validator exists and gates every firmware
+  build; budgets, symbols, map checks, and JSON/JUnit reports are left.
+- Done: `ci/firmware_elf.py` (machine, segment placement against
+  `manifest/dsp-cores.json`, RPMsg vdev, trace, TI 64-bit trace entry) with
+  synthetic negative fixtures in `ci/test_firmware_elf.py`; the same check in C
+  guards `dspctl load` (`host/libsdos_dsp/src/elf_check.c`).
+- Next: identity symbol and linker-map checks, memory and stack budgets per
+  target, machine-readable reports, `make package`.
+- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
+- Verification, 2026-10-19: `python3 -m unittest ci.test_firmware_elf` passed.
 
 ## Depends on
 

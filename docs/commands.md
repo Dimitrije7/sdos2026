@@ -70,12 +70,12 @@ not.
 |---|---|---|
 | `make bootstrap` | Builds the pinned container and lists the tool versions inside it | Yes |
 | `make configure PRESET=<p>` | Runs CMake for one preset or group | Yes |
-| `make build PRESET=<p>` | Configures and builds | Yes; firmware presets need Task 019 |
+| `make build PRESET=<p>` | Configures and builds | Yes; firmware presets need `TI=accept` at bootstrap |
 | `make test PRESET=<p>` | Builds and runs unit tests on the PC | Host presets only; on-target tests arrive in Task 033 |
-| `make quality` | Manifest and workflow validators, hadolint, actionlint, zizmor, ShellCheck, Python tests, every host preset with tests, and every firmware preset when TI is installed, all with warnings as errors | Yes; grows with Tasks 018 and 024 |
+| `make quality` | Manifest and workflow validators, hadolint, actionlint, zizmor, ShellCheck, Python tests, every host preset with tests, and, when TI is installed, every firmware preset and the three release TI references, all with warnings as errors | Yes; grows with Task 024 |
 | `make clean` | Deletes `build/` | Yes |
 | `make package` | Packages firmware and host artifacts | Task 022 |
-| `make image` | Builds the course Linux image | Task 035 |
+| `make image` | Builds `dspctl` and the firmware, then the course SD image from the pinned BeagleBoard image; see [`image.md`](image.md) | Yes; the from-source kernel variant is still Task 035 |
 | `make deploy BOARD=<name>` | Installs a build on a board | Task 030 |
 | `make target-smoke BOARD=<name>` | Runs smoke tests on a board | Task 038 |
 | `make help` | Lists commands and presets | Yes |
@@ -87,19 +87,28 @@ comma-separated list.
 
 | Group | Presets | Product |
 |---|---|---|
-| `host` | `host-{gcc,clang}-{debug,release}` | Libraries and unit tests for the PC |
+| `host` | `host-{gcc,clang}-{debug,release}`, `host-gcc-sanitize` | Libraries and unit tests for the PC; the last one with AddressSanitizer and UndefinedBehaviorSanitizer |
 | `board-host` | `aarch64-gcc-{debug,release}` | Linux programs for the board's Cortex-A72 cores |
-| `firmware` | `{c66x_0,c66x_1,c71x_0}-{freertos,baremetal}-{debug,release}` | DSP builds with the TI C6000 or C7000 compiler |
-| `all` | All 18 | |
+| `firmware` | `{c66x_0,c66x_1,c71x_0}-{freertos,baremetal}-{debug,release}` | Course firmware for each DSP, built with the TI C6000 or C7000 compiler |
+| `ti-reference` | `ti-reference-{c66x_0,c66x_1,c71x_0}-{debug,release}` | TI's IPC echo firmware rebuilt from the pinned PDK |
+| `all` | All 25 | |
 
 Each preset builds into `build/<preset>/` and writes `compile_commands.json`
 there for editors.
 
-The firmware presets currently compile the portable algorithms with the TI
-compiler. Firmware images with a resource table, linker command file, and
-FreeRTOS or bare-metal runtime are added by Tasks 020 and 021. Without the TI
-layer, configuring a firmware preset stops with a message naming the missing
-compiler. A compiler whose version differs from the manifest is rejected.
+A firmware preset produces `build/<preset>/firmware/sdos-<core>-<runtime>.xe66`
+(`.xe71` for the C71x) and its map file. Every build checks the result with
+[`ci/firmware_elf.py`](../ci/firmware_elf.py) and fails when a segment leaves
+the core's carve-out or the resource table is missing; see
+[`firmware.md`](firmware.md). Without the TI layer, configuring a firmware
+preset stops with a message naming the missing compiler. A compiler whose
+version differs from the manifest is rejected.
+
+A `ti-reference` preset runs TI's own PDK make for the `ipc_echo_test_freertos`
+example and writes `build/<preset>/build-manifest.json` with input and output
+hashes, the fit check, and, for release builds, a comparison with TI's
+prebuilt blob. `make quality` builds the three release references; the debug
+ones recompile the whole PDK, because TI ships release libraries only.
 
 Each build tree holds `sdos-build-info.json`, recording the product, core,
 runtime, compiler and version, the TI installer and SDK archive SHA-256, and

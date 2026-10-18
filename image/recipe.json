@@ -1,0 +1,23 @@
+{
+  "schema": "sdos-image-recipe/1",
+  "name": "sdos-course-bbai64",
+  "version": "0.1.0",
+  "base": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+  "root_partition": 3,
+  "kernel": "beagleboard-package",
+  "source_date_epoch": 1792281600,
+  "notes": "Changes to the pinned BeagleBoard image. Every entry is owned by root and gets the fixed timestamp. Accounts, services, and credentials are Task 036.",
+  "entries": [
+    {"type": "dir", "path": "/usr/share/sdos", "mode": "0755"},
+    {"type": "file", "path": "/etc/sdos-release", "source": "generated:release", "mode": "0644"},
+    {"type": "file", "path": "/usr/local/bin/dspctl", "source": "build:aarch64-gcc-release/host/dspctl", "mode": "0755"},
+    {"type": "dir", "path": "/usr/lib/firmware/sdos", "mode": "0755"},
+    {"type": "file", "path": "/usr/lib/firmware/sdos/c66x_0-freertos.xe66", "source": "build:c66x_0-freertos-release/firmware/sdos-c66x_0-freertos.xe66", "mode": "0644", "optional": true},
+    {"type": "file", "path": "/usr/lib/firmware/sdos/c66x_1-freertos.xe66", "source": "build:c66x_1-freertos-release/firmware/sdos-c66x_1-freertos.xe66", "mode": "0644", "optional": true},
+    {"type": "file", "path": "/usr/lib/firmware/sdos/c71x_0-freertos.xe71", "source": "build:c71x_0-freertos-release/firmware/sdos-c71x_0-freertos.xe71", "mode": "0644", "optional": true},
+    {"type": "file", "path": "/usr/lib/firmware/sdos/c66x_0-baremetal.xe66", "source": "build:c66x_0-baremetal-release/firmware/sdos-c66x_0-baremetal.xe66", "mode": "0644", "optional": true},
+    {"type": "file", "path": "/usr/lib/firmware/sdos/c66x_1-baremetal.xe66", "source": "build:c66x_1-baremetal-release/firmware/sdos-c66x_1-baremetal.xe66", "mode": "0644", "optional": true},
+    {"type": "file", "path": "/usr/lib/firmware/sdos/c71x_0-baremetal.xe71", "source": "build:c71x_0-baremetal-release/firmware/sdos-c71x_0-baremetal.xe71", "mode": "0644", "optional": true},
+    {"type": "file", "path": "/usr/share/sdos/README", "source": "repo:image/files/README", "mode": "0644"}
+  ]
+}

@@ -2,7 +2,21 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: the common DSP runtime handles every 1.0 message and validates
+  descriptors, overlap, checksums, and busy state; there is no shared region on
+  the board yet.
+- Done: `firmware/common/runtime/` with cache hooks around RUN, cycle
+  measurement, and per-instance scratch; built for all 12 firmware targets and
+  tested on the PC (`test_runtime`, and the fuzz test in `test_protocol`).
+- Next: the shared region and guard bands after the Task 027 decision; board
+  integrity matrices.
+- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
+- Verification, 2026-10-19: `test_runtime` passed in four host configurations.
 
 ## Depends on
 

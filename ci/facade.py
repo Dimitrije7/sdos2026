@@ -25,9 +25,10 @@ from pathlib import Path
 from typing import Sequence
 
 try:
-    from ci import container
+    from ci import container, ti_reference
 except ImportError:  # run as a script: ci/ is on sys.path, the repository root is not
     import container  # type: ignore[no-redef]
+    import ti_reference  # type: ignore[no-redef]
 
 ROOT = Path(__file__).resolve().parents[1]
 EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_REFUSED, EXIT_NOT_YET = 0, 1, 2, 3, 4
@@ -36,7 +37,6 @@ EXIT_OK, EXIT_FAILED, EXIT_USAGE, EXIT_REFUSED, EXIT_NOT_YET = 0, 1, 2, 3, 4
 # later task. They fail explicitly instead of pretending to work.
 NOT_YET = {
     "package": "Task 022 packages validated firmware and host artifacts",
-    "image": "Task 035 builds the course Linux image",
     "deploy": "Task 030 deploys to a board through dspctl",
     "target-smoke": "Task 038 runs on-board smoke tests",
 }
@@ -59,8 +59,10 @@ PYTHON_TEST_MODULES = (
     "ci.test_container",
     "ci.test_workflows",
     "ci.test_firmware_elf",
+    "ci.test_image",
     "tests.target.test_sdos_board",
     "tests.target.test_dsp_ipc",
+    "tests.target.test_course_smoke",
 )
 VALIDATORS = (
     "ci/validate_hardware.py",
@@ -90,7 +92,8 @@ class NotYet(Exception):
 
 def presets(root: Path = ROOT) -> list[str]:
     data = json.loads((root / "CMakePresets.json").read_text(encoding="utf-8"))
-    return [item["name"] for item in data["configurePresets"] if not item.get("hidden")]
+    cmake = [item["name"] for item in data["configurePresets"] if not item.get("hidden")]
+    return cmake + ti_reference.presets()
 
 
 def groups(names: Sequence[str]) -> dict[str, list[str]]:
@@ -98,6 +101,7 @@ def groups(names: Sequence[str]) -> dict[str, list[str]]:
         "host": [n for n in names if n.startswith("host-")],
         "board-host": [n for n in names if n.startswith("aarch64-")],
         "firmware": [n for n in names if re.match(r"c66x_|c71x_", n)],
+        "ti-reference": [n for n in names if n.startswith(ti_reference.PREFIX)],
         "all": list(names),
     }
 
@@ -147,7 +151,8 @@ def _at_least(found: str, wanted: str) -> bool:
     return parts(found) >= parts(wanted)
 
 
-IN_CONTAINER_COMMANDS = ("bootstrap", "configure", "build", "test", "quality")
+IN_CONTAINER_COMMANDS = ("bootstrap", "configure", "build", "test", "quality", "image")
+IMAGE_RECIPE = ROOT / "image" / "recipe.json"
 
 
 def _ti_notice() -> str:
@@ -203,6 +208,10 @@ def in_container(args: argparse.Namespace, run: Runner) -> int:
         if code == 0 and not run.dry_run:
             _remove_stale_images(run)
         return code or run(container.run_command(tag, _container_args(args), rootless))
+    if args.command == "image" and not run.dry_run:
+        base = json.loads(IMAGE_RECIPE.read_text(encoding="utf-8"))["base"]
+        print(f"checking the base image {base} in the input cache (1.1 GB on first use)", flush=True)
+        container.fetch_input(base)
     if not run.dry_run and not container.image_present(tag):
         if not ti and container.image_present(container.image_tag(ti=True)):
             print(
@@ -256,6 +265,8 @@ def _configure(preset: str, run: Runner, werror: bool) -> int:
 
 
 def _build(preset: str, run: Runner, werror: bool) -> int:
+    if preset.startswith(ti_reference.PREFIX):
+        return ti_reference.build(preset, run, run.dry_run)
     return _configure(preset, run, werror) or run(["cmake", "--build", "--preset", preset])
 
 
@@ -268,7 +279,8 @@ def _for_each(selection: list[str], step) -> int:
 
 
 def cmd_configure(args: argparse.Namespace, run: Runner) -> int:
-    return _for_each(args.selection, lambda p: _configure(p, run, args.werror))
+    cmake = [p for p in args.selection if not p.startswith(ti_reference.PREFIX)]
+    return _for_each(cmake, lambda p: _configure(p, run, args.werror))
 
 
 def cmd_build(args: argparse.Namespace, run: Runner) -> int:
@@ -309,6 +321,21 @@ def cmd_quality(args: argparse.Namespace, run: Runner) -> int:
     return EXIT_OK
 
 
+def cmd_image(args: argparse.Namespace, run: Runner) -> int:
+    """Build what the recipe installs, then the image from the pinned base."""
+    needed = ["aarch64-gcc-release"]
+    if _ti_installed():
+        needed += [p for p in presets() if re.match(r"c(66|71)x_\d-(freertos|baremetal)-release$", p)]
+    else:
+        print("image: TI tools are not installed, so the image carries no DSP firmware", file=sys.stderr)
+    if _for_each(needed, lambda p: _build(p, run, True)) != 0:
+        return EXIT_FAILED
+    recipe = json.loads(IMAGE_RECIPE.read_text(encoding="utf-8"))
+    item = {i["id"]: i for i in json.loads(container.MANIFEST.read_text(encoding="utf-8"))["inputs"]}[recipe["base"]]
+    base = Path(os.environ.get("SDOS_INPUT_CACHE", str(container.INPUT_CACHE))) / item["source"]["file_name"]
+    return run([sys.executable, "image/build.py", "--base", str(base), "--out", "build/image"])
+
+
 def cmd_clean(args: argparse.Namespace, run: Runner) -> int:
     print("+ remove build/", flush=True)
     if not run.dry_run:
@@ -329,6 +356,7 @@ HANDLERS = {
     "test": cmd_test,
     "quality": cmd_quality,
     "clean": cmd_clean,
+    "image": cmd_image,
     **{name: cmd_not_yet for name in NOT_YET},
 }
 
@@ -353,7 +381,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if args.command in ("configure", "build", "test", "quality"):
             selection = args.preset
             if args.command == "quality":
-                selection = "host,firmware" if _ti_installed() else "host"
+                # Release TI references only: TI ships release libraries, so a debug
+                # reference recompiles the whole PDK; `make build PRESET=ti-reference` covers it.
+                selection = "host,firmware," + ",".join(
+                    p for p in ti_reference.presets() if p.endswith("-release")
+                ) if _ti_installed() else "host"
             args.selection = expand(selection, presets())
         run = Runner(args.dry_run)
         if args.command in IN_CONTAINER_COMMANDS and not _native():

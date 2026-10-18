@@ -1,0 +1,18 @@
+SDOS course image
+
+This BeagleBone AI-64 image is the pinned BeagleBoard Debian image plus the
+course additions listed in /etc/sdos-release and the image manifest:
+
+  /usr/local/bin/dspctl          control the DSPs (dspctl --help)
+  /usr/lib/firmware/sdos/        course firmware for each DSP and runtime
+
+Example, as root:
+
+  dspctl list
+  dspctl stop c66x_0
+  dspctl load c66x_0 /usr/lib/firmware/sdos/c66x_0-freertos.xe66
+  dspctl start c66x_0
+  dspctl echo c66x_0 hello
+
+Source, documentation, and the recipe that built this image:
+https://github.com/Dimitrije7/sdos2026

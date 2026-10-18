@@ -261,6 +261,8 @@ def run_command(tag: str, argv: Sequence[str], rootless: bool | None = None) -> 
     if not (_rootless() if rootless is None else rootless):
         command += ["--user", f"{os.getuid()}:{os.getgid()}", "--env", "HOME=/tmp"]
     command += ["--env", f"SDOS_IMAGE={tag}"]
+    if INPUT_CACHE.is_dir():  # pinned downloads, read-only, for comparisons inside the build
+        command += ["--volume", f"{INPUT_CACHE}:/inputs:ro", "--env", "SDOS_INPUT_CACHE=/inputs"]
     for variable in ("CI",):
         if variable in os.environ:
             command += ["--env", variable]

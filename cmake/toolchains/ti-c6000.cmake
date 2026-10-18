@@ -19,6 +19,7 @@ set(CMAKE_AR "${_root}/bin/ar6x")
 # Target flags match the compile proven by Task 005.
 set(CMAKE_C_FLAGS_INIT "-mv6600 --abi=eabi --c99 -I${_root}/include")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+set(SDOS_TI_ROOT "${_root}" CACHE INTERNAL "TI compiler install directory")
 set(SDOS_PRODUCT firmware CACHE STRING "" FORCE)
 # The container records the SHA-256 of the verified installer next to the install.
 if(EXISTS "${_root}.installer.sha256")

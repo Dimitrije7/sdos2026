@@ -30,6 +30,7 @@ PT_LOAD = 1
 
 # include/linux/remoteproc.h
 RSC_CARVEOUT, RSC_DEVMEM, RSC_TRACE, RSC_VDEV = 0, 1, 2, 3
+RSC_TRACE64 = 0x10002  # TI's version-1 trace entry with a 64-bit address, used on C7x
 VIRTIO_ID_RPMSG = 7
 
 
@@ -99,6 +100,11 @@ def resource_table(blob: bytes) -> list[dict[str, Any]]:
             address, length, _reserved = _unpack("<III", blob, body)
             name = blob[body + 12 : body + 44].split(b"\0", 1)[0].decode("ascii", errors="replace")
             entries.append({"type": "trace", "address": address, "length": length, "name": name})
+        elif kind == RSC_TRACE64:
+            (address,) = _unpack("<Q", blob, offset + 8)  # 8-byte aligned after the type
+            (length,) = _unpack("<I", blob, offset + 16)
+            name = blob[offset + 24 : offset + 56].split(b"\0", 1)[0].decode("ascii", errors="replace")
+            entries.append({"type": "trace", "address": address, "length": length, "name": name, "format": "ti-64"})
         elif kind == RSC_VDEV:
             vid, _nid, features, _gfeatures, config_len, status, rings = _unpack("<IIIIIBB", blob, body)
             vrings = []

@@ -8,6 +8,7 @@ set_property(CACHE SDOS_CORE PROPERTY STRINGS none c66x_0 c66x_1 c71x_0)
 set(SDOS_RTOS "none" CACHE STRING "Firmware runtime: freertos or baremetal")
 set_property(CACHE SDOS_RTOS PROPERTY STRINGS none freertos baremetal)
 option(SDOS_WERROR "Treat compiler warnings as errors" OFF)
+option(SDOS_SANITIZE "Build host code with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
 
 if(NOT SDOS_PRODUCT MATCHES "^(host|board-host|firmware)$")
   message(FATAL_ERROR "SDOS_PRODUCT=${SDOS_PRODUCT} is not one of host, board-host, firmware")
@@ -28,6 +29,18 @@ if(SDOS_PRODUCT STREQUAL "firmware")
   endif()
 elseif(NOT SDOS_CORE STREQUAL "none" OR NOT SDOS_RTOS STREQUAL "none")
   message(FATAL_ERROR "SDOS_CORE and SDOS_RTOS apply only to SDOS_PRODUCT=firmware")
+endif()
+
+if(SDOS_SANITIZE)
+  if(NOT SDOS_PRODUCT STREQUAL "host")
+    message(FATAL_ERROR "SDOS_SANITIZE applies to host presets only")
+  endif()
+  # Any finding fails the test: no recovery, no leaks hidden. The preset uses
+  # GCC: Clang 15's AddressSanitizer runtime crashes at startup in about one
+  # run in three on kernels with 32-bit mmap randomization, even for an empty
+  # program; GCC 12's does not.
+  add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
+  add_link_options(-fsanitize=address,undefined)
 endif()
 
 if(SDOS_PRODUCT STREQUAL "firmware")

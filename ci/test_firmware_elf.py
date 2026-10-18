@@ -11,12 +11,15 @@ from pathlib import Path
 from ci import firmware_elf
 
 
-def resource_table(trace: bool = True, rings: int = 2) -> bytes:
+def resource_table(trace: bool = True, rings: int = 2, trace64: bool = False) -> bytes:
     entries = []
     vdev = struct.pack("<IIIIIIBBxx", firmware_elf.RSC_VDEV, 7, 0, 1, 0, 0, 0, rings)
     vdev += b"".join(struct.pack("<IIIII", 0xFFFFFFFF, 4096, 256, n + 1, 0) for n in range(rings))
     entries.append(vdev)
-    if trace:
+    if trace and trace64:  # TI's C7x layout: the 64-bit address is 8-byte aligned after the type
+        entries.append(struct.pack("<IIQII", firmware_elf.RSC_TRACE64, 0, 0xA8C10000, 0x10000, 0)
+                       + b"trace:c7x".ljust(32, b"\0"))
+    elif trace:
         entries.append(struct.pack("<IIII", firmware_elf.RSC_TRACE, 0xA6580000, 0x1000, 0) + b"trace:dsp".ljust(32, b"\0"))
     header_size = 16 + 4 * len(entries)
     offsets, body = [], b""
@@ -75,6 +78,13 @@ class FirmwareElfTests(unittest.TestCase):
         self.assertEqual(no_trace.problems, ["resource table has no trace buffer"])
         one_ring = self.check("c66x_0", elf32(140, [(0xA6100000, 0x100)], resource_table(rings=1)))
         self.assertIn("two vrings", one_ring.problems[0])
+
+    def test_ti_64_bit_trace_entry_counts_as_a_trace(self) -> None:
+        report = self.check("c71x_0", elf32(145, [(0xA8100000, 0x100)], resource_table(trace64=True)), True)
+        self.assertEqual(report.problems, [])
+        trace = report.resources[1]
+        self.assertEqual((trace["type"], trace["address"], trace["length"], trace["format"]),
+                         ("trace", 0xA8C10000, 0x10000, "ti-64"))
 
     def test_non_elf_and_truncated_files_raise(self) -> None:
         with self.assertRaises(firmware_elf.ElfError):

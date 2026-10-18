@@ -2,7 +2,26 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: protocol 1.0 is specified, implemented, and tested on the PC. The
+  maintainer decision is pending, and the board data path is open until Task
+  012's memory audit.
+- Done: `docs/protocol.md` (wire format, status codes, compatibility,
+  ownership table, cache duties, restart and stale-message rules, options);
+  `firmware/common/protocol/` with golden, rejection, ownership-table, CRC,
+  and 200,000-case fuzz tests (`test_protocol`).
+- Next:
+  1. Present the recommendation in `docs/protocol.md` ("Decision needed") to
+     the maintainer: accept 1.0 over upstream rpmsg_char.
+  2. After Task 012, recommend the shared-region mechanism (likely option A,
+     a dedicated carve-out with a small driver) and record the decision.
+- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them. The recommendation is written; nothing is accepted.
+- Verification, 2026-10-19: `make test PRESET=host` passed the protocol and
+  runtime tests on gcc and clang, debug and release.
 
 ## Depends on
 

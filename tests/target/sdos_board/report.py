@@ -71,6 +71,7 @@ REQUIRED_KCONFIG = (
     "CONFIG_TI_K3_DSP_REMOTEPROC",
     "CONFIG_RPMSG",
     "CONFIG_RPMSG_CHAR",
+    "CONFIG_RPMSG_CTRL",  # /dev/rpmsg_ctrlN, which libsdos_dsp uses to create endpoints
     "CONFIG_RPMSG_VIRTIO",
     "CONFIG_CMA",
     "CONFIG_DMA_CMA",

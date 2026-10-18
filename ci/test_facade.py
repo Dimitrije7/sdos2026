@@ -23,7 +23,8 @@ class SelectionTests(unittest.TestCase):
     def test_matrix_covers_every_required_variant(self) -> None:
         names = facade.presets()
         found = facade.groups(names)
-        self.assertEqual(len(found["host"]), 4)  # GCC and Clang, debug and release
+        self.assertEqual(len(found["host"]), 5)  # GCC and Clang, debug and release, and sanitizers
+        self.assertEqual(len(found["ti-reference"]), 6)
         self.assertEqual(len(found["board-host"]), 2)
         self.assertEqual(len(found["firmware"]), 12)  # 3 cores x 2 runtimes x 2 builds
         for core in ("c66x_0", "c66x_1", "c71x_0"):
@@ -35,7 +36,7 @@ class SelectionTests(unittest.TestCase):
         names = facade.presets()
         self.assertEqual(
             facade.expand("host-gcc-debug,host", names),
-            ["host-gcc-debug", "host-gcc-release", "host-clang-debug", "host-clang-release"],
+            ["host-gcc-debug", "host-gcc-release", "host-clang-debug", "host-clang-release", "host-gcc-sanitize"],
         )
 
     def test_unknown_preset_is_a_usage_error(self) -> None:
@@ -56,7 +57,7 @@ class CommandTests(unittest.TestCase):
     def test_quality_uses_werror_on_every_host_preset(self, _ti: mock.Mock) -> None:
         code, text = run("quality", "--dry-run")
         self.assertEqual(code, facade.EXIT_OK)
-        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 4)
+        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 5)  # gcc and clang, debug and release, and sanitizers
         self.assertIn("ci/validate_versions.py", text)
         self.assertIn("+ hadolint toolchain/Dockerfile", text)
         self.assertIn("+ shellcheck ci/feasibility/", text)
@@ -65,8 +66,27 @@ class CommandTests(unittest.TestCase):
     def test_quality_builds_every_firmware_preset_when_ti_is_installed(self, _ti: mock.Mock) -> None:
         code, text = run("quality", "--dry-run")
         self.assertEqual(code, facade.EXIT_OK)
-        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 16)
-        self.assertEqual(text.count("+ ctest"), 4)  # DSP code is not run on the PC
+        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 17)
+        self.assertEqual(text.count("+ ctest"), 5)  # DSP code is not run on the PC
+        self.assertEqual(text.count("ipc_echo_test_freertos BOARD=j721e_evm"), 3)  # TI references, release only
+        self.assertNotIn("BUILD_PROFILE=debug", text)
+
+    def test_ti_reference_presets_are_a_group(self) -> None:
+        code, text = run("build", "--preset", "ti-reference", "--dry-run")
+        self.assertEqual(code, facade.EXIT_OK)
+        for core in ("c66xdsp_1", "c66xdsp_2", "c7x_1"):
+            self.assertEqual(text.count(f"CORE={core} "), 2, core)
+        self.assertEqual(text.count("_SBL_APPIMAGEGEN=no"), 6)
+
+    @mock.patch.object(facade, "_ti_installed", return_value=True)
+    def test_image_builds_its_inputs_then_the_image(self, _ti: mock.Mock) -> None:
+        with mock.patch.object(facade, "_native", return_value=True):
+            code, text = run("image", "--dry-run")
+        self.assertEqual(code, facade.EXIT_OK)
+        self.assertIn("+ cmake --build --preset aarch64-gcc-release", text)
+        self.assertEqual(text.count("-release -DSDOS_WERROR=ON"), 7)  # dspctl and six firmware builds
+        self.assertIn("image/build.py --base", text)
+        self.assertIn("bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz", text)
 
     def test_tests_on_a_dsp_preset_are_not_available_yet(self) -> None:
         code, text = run("test", "--preset", "c71x_0-freertos-debug", "--dry-run")
@@ -74,7 +94,7 @@ class CommandTests(unittest.TestCase):
         self.assertIn("Task 033", text)
 
     def test_future_commands_fail_explicitly(self) -> None:
-        for command, task in (("image", "Task 035"), ("package", "Task 022")):
+        for command, task in (("package", "Task 022"),):
             code, text = run(command)
             self.assertEqual(code, facade.EXIT_NOT_YET, command)
             self.assertIn(task, text)

@@ -2,7 +2,34 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: TI's Linux echo firmware rebuilds from the pinned PDK for all three
+  DSPs, through the facade; the per-core board smoke test is left.
+- Done:
+  - `ci/ti_reference.py` and presets `ti-reference-<core>-<debug|release>`
+    (group `ti-reference`) run TI's PDK make for `ipc_echo_test_freertos`
+    (examples/linux, `-DA72_LINUX_OS`). TI's boot-image step needs `mono` and
+    is off; its objcopy check uses the container's AArch64 binutils.
+  - Each build writes `build/<preset>/build-manifest.json`: input hashes, the
+    exact command, ELF and map hashes, the fit check, and for release a
+    comparison with TI's pinned prebuilt blob.
+  - Result: all six fit their carve-outs. Release resource tables equal TI's
+    prebuilt ones on all three cores; the C71x segment layout is identical,
+    and four C66x data segments moved, consistent with PDK 11.02.01.08 against
+    TI's 11.02.01.05 build.
+  - `make quality` builds the three release references (debug ones rebuild
+    the whole PDK from source).
+- Next:
+  1. Record the reproducibility check (two clean builds) in this file.
+  2. In a board session after Task 013: load each rebuilt release ELF with
+     `dsp-ipc` (extend it to take a local file) and compare with TI's blob.
+- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
+- Verification, 2026-10-19: `make build PRESET=ti-reference` built all six;
+  `python3 -m unittest ci.test_facade` passed.
 
 ## Depends on
 

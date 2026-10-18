@@ -35,6 +35,14 @@ in-progress
      report and whether the kernel binds `rpmsg_chrdev` or only `rpmsg-raw`;
      record the finding before changing anything.
   3. Run it a second time to show the transitions are repeatable.
+  4. Known risk: TI's echo firmware waits until every remote core in its list
+     is ready, including R5F cores that may run no firmware on this board
+     (`Ipc_isRemoteReady` loop in TI's ipc_testsetup.c). If no `rpmsg_ctrl`
+     appears and the trace stops at that wait, record it, then run the course
+     firmware (Task 021), which talks only to the A72: copy
+     `build/aarch64-gcc-release/host/dspctl` and
+     `build/<core>-freertos-release/firmware/*.xe6*` to the board and use
+     `dspctl load|start|echo|status|stop`.
 - Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do
   everything except board tests, also postpone any decision making from my
   side". The board-free preparation therefore ran before 011 and 012 were

@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from . import dsp_ipc, flash, guards, network, report, serial_capture
+from . import course_smoke, dsp_ipc, flash, guards, network, report, serial_capture
 from .discovery import Discovery, FixtureHost, HostView, LiveHost, discover
 
 
@@ -166,6 +166,20 @@ def cmd_dsp_ipc(args: argparse.Namespace) -> int:
     return 1 if failed else 0
 
 
+def cmd_course_smoke(args: argparse.Namespace) -> int:
+    try:
+        selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
+        results = course_smoke.run(args.host, args.key, args.out, selected)
+    except (ValueError, RuntimeError) as exc:
+        print(f"course-smoke: {exc}", file=sys.stderr)
+        return 1
+    for result in results:
+        failing = [name for name, ok in result["checks"].items() if not ok]
+        print(f"{result['core']:8} {result['runtime']:10} {'pass' if result['passed'] else 'FAIL'}"
+              + (f"  failed: {', '.join(failing)}" if failing else ""))
+    return 0 if all(r["passed"] for r in results) else 1
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="python3 -m tests.target.sdos_board", description=__doc__)
     parser.add_argument("--fixture", type=Path, help="read a recorded host listing instead of this machine")
@@ -213,6 +227,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--count", type=int, default=10, help="ping messages per cycle")
     sub.add_argument("--cycles", type=int, default=2, help="start/echo/stop cycles; 2 proves restart")
     sub.set_defaults(handler=cmd_dsp_ipc)
+
+    sub = commands.add_parser("course-smoke", help="Task 021: course firmware on every core and runtime via dspctl")
+    sub.add_argument("--host", default="192.168.7.2")
+    sub.add_argument("--key", type=Path, help="SSH private key for root on the board")
+    sub.add_argument("--core", action="append", help="c66x_0, c66x_1, or c71x_0; repeat; default all")
+    sub.add_argument("--out", type=Path, required=True, help="directory for per-core, per-runtime results")
+    sub.set_defaults(handler=cmd_course_smoke)
 
     sub = commands.add_parser("flash", help="write a pinned image to an approved card and verify it")
     sub.add_argument("--id", required=True, help="exact /dev/disk/by-id name of the card")
