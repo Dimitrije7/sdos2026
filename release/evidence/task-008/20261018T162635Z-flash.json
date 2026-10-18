@@ -1,0 +1,39 @@
+{
+  "target": {
+    "by_id": "mmc-SD32G_redacted-33a424e43dbd",
+    "device": "/dev/mmcblk0",
+    "model": "",
+    "vendor": "",
+    "serial": "redacted-33a424e43dbd",
+    "size_bytes": 31293702144,
+    "removable": true,
+    "transport": "mmc",
+    "mountpoints": [],
+    "unique_serial": true,
+    "partitions": [
+      "mmcblk0p1 vfat label=BOOT 314572800 bytes",
+      "mmcblk0p2 ext3 1258291200 bytes",
+      "mmcblk0p3 no-filesystem 10485760 bytes"
+    ],
+    "existing_content_erased_by_a_write": [
+      "mmcblk0p1 vfat label=BOOT 314572800 bytes",
+      "mmcblk0p2 ext3 1258291200 bytes",
+      "mmcblk0p3 no-filesystem 10485760 bytes"
+    ],
+    "approval_required": "Explicit maintainer approval naming this by_id, model, serial, and size is required before any write."
+  },
+  "input": {
+    "id": "beagle.bbai64-debian-13.7-iot-2026-10-09",
+    "file_name": "bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz",
+    "sha256": "69796038e452c6c5e006031ecab995a0ec734a866176e37a0de38d43b35380cf",
+    "size": 1126001648,
+    "expanded_sha256": "4b8ca45a631693fc4b45a09d26f1d98fbc378d6de9e2a6c2715364fd0452ea3c",
+    "expanded_size": 10737418240
+  },
+  "result": "written-and-verified",
+  "bytes_written": 10737418240,
+  "written_sha256": "4b8ca45a631693fc4b45a09d26f1d98fbc378d6de9e2a6c2715364fd0452ea3c",
+  "readback_sha256": "4b8ca45a631693fc4b45a09d26f1d98fbc378d6de9e2a6c2715364fd0452ea3c",
+  "write_seconds": 592.6,
+  "readback_seconds": 128.1
+}
