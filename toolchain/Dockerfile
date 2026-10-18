@@ -11,6 +11,8 @@
 # lets the bare base image fetch ca-certificates before it can verify TLS peers.
 
 ARG BASE_IMAGE
+# oss-base, or ti-toolchain once the user has accepted TI's terms.
+ARG TOOLCHAIN_BASE=oss-base
 
 FROM ${BASE_IMAGE} AS oss-base
 ARG APT_SNAPSHOT
@@ -77,11 +79,41 @@ RUN npm ci --prefix /opt/sdos-node --ignore-scripts --no-audit --no-fund \
 ENV SDOS_IN_CONTAINER=1
 WORKDIR /work
 
+# TI C6000 and C7000 compilers. This layer exists only in local images and
+# trusted CI jobs: the license matrix prohibits publishing it, and the facade
+# builds it only after `make bootstrap TI=accept`. TI_TOOLS holds
+# "family|url|sha256"; each installer is checked before it runs.
+FROM oss-base AS ti-toolchain
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+ARG TI_TOOLS
+RUN : "${TI_TOOLS:?}"; \
+    mkdir -p /opt/ti; \
+    for entry in ${TI_TOOLS}; do \
+      family=${entry%%|*}; rest=${entry#*|}; url=${rest%%|*}; sha=${rest#*|}; \
+      curl --fail --silent --show-error --location --retry 3 --output "/tmp/$family.bin" "$url"; \
+      echo "$sha  /tmp/$family.bin" | sha256sum --check --strict; \
+      chmod +x "/tmp/$family.bin"; \
+      if ! "/tmp/$family.bin" --mode unattended --prefix "/opt/ti/install-$family" > "/tmp/$family.log" 2>&1; then \
+        tail -n 20 "/tmp/$family.log" >&2; exit 1; \
+      fi; \
+      digit=${family#c}; digit=${digit%000}; \
+      compiler=$(find "/opt/ti/install-$family" -type f -perm -u+x -name "cl${digit}x" | head -n 1); \
+      test -n "$compiler"; \
+      ln -s "$(dirname "$(dirname "$compiler")")" "/opt/ti/$family"; \
+      echo "$sha" > "/opt/ti/$family.installer.sha256"; \
+      rm -f "/tmp/$family.bin" "/tmp/$family.log"; \
+    done; \
+    /opt/ti/c6000/bin/cl6x --compiler_revision; \
+    /opt/ti/c7000/bin/cl7x --compiler_revision
+ENV SDOS_TI_C6000_ROOT=/opt/ti/c6000 SDOS_TI_C7000_ROOT=/opt/ti/c7000
+
 # Non-interactive builds and checks; CI and `make` commands run here.
-FROM oss-base AS ci
+# hadolint ignore=DL3006
+FROM ${TOOLCHAIN_BASE} AS ci
 
 # Interactive development: the same tools, used by .devcontainer.
-FROM oss-base AS dev
+# hadolint ignore=DL3006
+FROM ${TOOLCHAIN_BASE} AS dev
 
 # Documentation checks.
 FROM oss-base AS docs

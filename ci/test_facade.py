@@ -52,13 +52,21 @@ class CommandTests(unittest.TestCase):
         self.assertIn("+ cmake --preset host-clang-release -DSDOS_WERROR=OFF", text)
         self.assertIn("+ cmake --build --preset host-clang-release", text)
 
-    def test_quality_uses_werror_on_every_host_preset(self) -> None:
+    @mock.patch.object(facade, "_ti_installed", return_value=False)
+    def test_quality_uses_werror_on_every_host_preset(self, _ti: mock.Mock) -> None:
         code, text = run("quality", "--dry-run")
         self.assertEqual(code, facade.EXIT_OK)
         self.assertEqual(text.count("-DSDOS_WERROR=ON"), 4)
         self.assertIn("ci/validate_versions.py", text)
         self.assertIn("+ hadolint toolchain/Dockerfile", text)
         self.assertIn("+ shellcheck ci/feasibility/", text)
+
+    @mock.patch.object(facade, "_ti_installed", return_value=True)
+    def test_quality_builds_every_firmware_preset_when_ti_is_installed(self, _ti: mock.Mock) -> None:
+        code, text = run("quality", "--dry-run")
+        self.assertEqual(code, facade.EXIT_OK)
+        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 16)
+        self.assertEqual(text.count("+ ctest"), 4)  # DSP code is not run on the PC
 
     def test_tests_on_a_dsp_preset_are_not_available_yet(self) -> None:
         code, text = run("test", "--preset", "c71x_0-freertos-debug", "--dry-run")

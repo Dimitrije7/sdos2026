@@ -110,5 +110,28 @@ class LintFixtureTests(unittest.TestCase):
         self.assertIn("DL3008", result.stdout)  # unpinned apt package
 
 
+class TiTermsTests(unittest.TestCase):
+    def test_ti_layer_is_built_only_after_acceptance(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"SDOS_TI_TERMS": ""}):
+            record = Path(tmp) / "accepted.json"
+            self.assertFalse(container.ti_accepted(record=record))
+            self.assertNotIn("TI_TOOLS", container.build_args())
+            container.record_ti_acceptance(record=record)
+            self.assertTrue(container.ti_accepted(record=record))
+            args = container.build_args(ti=True)
+            self.assertEqual(args["TOOLCHAIN_BASE"], "ti-toolchain")
+            self.assertIn("c6000|https://dr-download.ti.com/", args["TI_TOOLS"])
+
+    def test_acceptance_of_other_installers_does_not_count(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"SDOS_TI_TERMS": ""}):
+            record = Path(tmp) / "accepted.json"
+            record.write_text(json.dumps({"installer_sha256": ["0" * 64]}))
+            self.assertFalse(container.ti_accepted(record=record))
+
+    def test_ti_and_open_images_have_different_tags(self) -> None:
+        self.assertNotEqual(container.image_tag(ti=True), container.image_tag(ti=False))
+        self.assertIn(":dev-ti-", container.image_tag(ti=True))
+
+
 if __name__ == "__main__":
     unittest.main()

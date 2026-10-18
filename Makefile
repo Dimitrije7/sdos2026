@@ -4,10 +4,12 @@
 #   make build PRESET=host            build a preset or group (host, board-host, firmware, all)
 #   make test                         build and run unit tests on the PC
 #   make quality                      every check a pull request runs
+#   make bootstrap TI=accept          also install TI's DSP compilers after accepting their terms
 #   make help                         list commands and presets
 
 PRESET ?= host-gcc-debug
 BOARD ?=
+TI ?=
 PYTHON ?= python3
 FACADE = $(PYTHON) ci/facade.py
 
@@ -16,8 +18,8 @@ COMMANDS = bootstrap configure build test quality package image clean deploy tar
 .PHONY: help $(COMMANDS)
 
 help:
-	@sed -n '1,9p' Makefile
+	@sed -n '1,10p' Makefile
 	@$(PYTHON) -c 'import json; d=json.load(open("CMakePresets.json")); print("Presets:", *[p["name"] for p in d["configurePresets"] if not p.get("hidden")], sep="\n  ")'
 
 $(COMMANDS):
-	@$(FACADE) $@ --preset "$(PRESET)" --board "$(BOARD)"
+	@$(FACADE) $@ --preset "$(PRESET)" --board "$(BOARD)" --ti "$(TI)"

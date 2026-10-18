@@ -30,5 +30,29 @@ elseif(NOT SDOS_CORE STREQUAL "none" OR NOT SDOS_RTOS STREQUAL "none")
   message(FATAL_ERROR "SDOS_CORE and SDOS_RTOS apply only to SDOS_PRODUCT=firmware")
 endif()
 
+if(SDOS_PRODUCT STREQUAL "firmware")
+  # A TI release such as 5.0.0.LTS reports its numeric part as the compiler version.
+  string(REGEX MATCH "^[0-9]+\\.[0-9]+\\.[0-9]+" _expected "${SDOS_TI_EXPECTED_VERSION}")
+  if(NOT CMAKE_C_COMPILER_VERSION VERSION_EQUAL _expected)
+    message(FATAL_ERROR "TI compiler ${CMAKE_C_COMPILER} is version ${CMAKE_C_COMPILER_VERSION}; "
+                        "the manifest pins ${SDOS_TI_EXPECTED_VERSION}. Run `make bootstrap`.")
+  endif()
+endif()
+
+# Record what built this tree, so every artifact traces to manifest pins.
+file(WRITE "${CMAKE_BINARY_DIR}/sdos-build-info.json"
+"{
+  \"product\": \"${SDOS_PRODUCT}\",
+  \"core\": \"${SDOS_CORE}\",
+  \"rtos\": \"${SDOS_RTOS}\",
+  \"build_type\": \"${CMAKE_BUILD_TYPE}\",
+  \"compiler_id\": \"${CMAKE_C_COMPILER_ID}\",
+  \"compiler_version\": \"${CMAKE_C_COMPILER_VERSION}\",
+  \"compiler\": \"${CMAKE_C_COMPILER}\",
+  \"ti_installer_sha256\": \"${SDOS_TI_INSTALLER_SHA256}\",
+  \"container_image\": \"$ENV{SDOS_IMAGE}\"
+}
+")
+
 message(STATUS "SDOS product=${SDOS_PRODUCT} core=${SDOS_CORE} rtos=${SDOS_RTOS} "
                "build=${CMAKE_BUILD_TYPE} compiler=${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")

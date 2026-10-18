@@ -1,7 +1,7 @@
 # Build and test commands
 
-Status: Task 016 command facade with the Task 017 container; host presets
-verified, firmware presets wait for the TI layer in Task 019  
+Status: host, board-host, and firmware presets verified on 2026-10-18; the TI
+SDK libraries for firmware images arrive with the rest of Task 019  
 Code: [`Makefile`](../Makefile), [`ci/facade.py`](../ci/facade.py),
 [`ci/container.py`](../ci/container.py),
 [`toolchain/Dockerfile`](../toolchain/Dockerfile),
@@ -30,6 +30,29 @@ for a new `make bootstrap`.
 The first bootstrap downloads several hundred megabytes. Later runs reuse
 Docker's cache and take seconds.
 
+### TI DSP compilers
+
+The firmware presets need TI's C6000 8.3.7 and C7000 5.0.0.LTS compilers. They
+are free of charge but proprietary, and the project may not redistribute them,
+so each machine downloads them from TI. `make bootstrap` prints the TI pages
+that present the terms. After reading them:
+
+```sh
+make bootstrap TI=accept
+```
+
+This records your acceptance of exactly the pinned installers in
+`~/.config/sdos/ti-terms-accepted.json`, downloads both installers from TI,
+checks their SHA-256 against the manifest, and installs them unattended in an
+extra image layer, about 200 MB more. Later bootstraps reuse the record. The
+layer stays on your machine: never push an `sdos-dev:*-ti-*` image to a
+registry. A pin change makes the record stale, so you accept the new
+installers again.
+
+Trusted CI jobs set `SDOS_TI_TERMS=accept`, under the maintainer's acceptance
+for project automation recorded in Task 005. Jobs for fork pull requests do
+not.
+
 ## Commands
 
 | Command | What it does | Available |
@@ -38,7 +61,7 @@ Docker's cache and take seconds.
 | `make configure PRESET=<p>` | Runs CMake for one preset or group | Yes |
 | `make build PRESET=<p>` | Configures and builds | Yes; firmware presets need Task 019 |
 | `make test PRESET=<p>` | Builds and runs unit tests on the PC | Host presets only; on-target tests arrive in Task 033 |
-| `make quality` | Manifest validators, hadolint, ShellCheck, Python tests, and every host preset with warnings as errors | Yes; grows with Tasks 018 and 024 |
+| `make quality` | Manifest validators, hadolint, ShellCheck, Python tests, every host preset with tests, and every firmware preset when TI is installed, all with warnings as errors | Yes; grows with Tasks 018 and 024 |
 | `make clean` | Deletes `build/` | Yes |
 | `make package` | Packages firmware and host artifacts | Task 022 |
 | `make image` | Builds the course Linux image | Task 035 |
@@ -63,9 +86,12 @@ there for editors.
 
 The firmware presets currently compile the portable algorithms with the TI
 compiler. Firmware images with a resource table, linker command file, and
-FreeRTOS or bare-metal runtime are added by Tasks 020 and 021. Until Task 019
-installs the TI compilers, configuring a firmware preset stops with a message
-naming the missing compiler.
+FreeRTOS or bare-metal runtime are added by Tasks 020 and 021. Without the TI
+layer, configuring a firmware preset stops with a message naming the missing
+compiler. A compiler whose version differs from the manifest is rejected.
+
+Each build tree holds `sdos-build-info.json`, recording the product, core,
+runtime, compiler and version, the TI installer SHA-256, and the image tag.
 
 ## Exit status
 

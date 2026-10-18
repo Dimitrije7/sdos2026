@@ -141,12 +141,30 @@ def _at_least(found: str, wanted: str) -> bool:
 IN_CONTAINER_COMMANDS = ("bootstrap", "configure", "build", "test", "quality")
 
 
+def _ti_notice() -> str:
+    lines = [
+        "The DSP firmware presets need TI's C6000 and C7000 compilers. They are free of",
+        "charge but proprietary: TI's terms are shown on these pages and in the manifest",
+        "file each installer installs. The project cannot redistribute them, so your",
+        "machine downloads them from TI once you accept the terms:",
+    ]
+    lines += [f"  {item['id']}: {item['terms_page']}" for item in container.ti_terms()]
+    lines.append("To accept and add them: make bootstrap TI=accept")
+    lines.append("Building without them now; host and board-host presets work.")
+    return "\n".join(lines)
+
+
+TI_NOTICE = _ti_notice()
+
+
 def _native() -> bool:
     return os.environ.get("SDOS_IN_CONTAINER") == "1" or os.environ.get("SDOS_NATIVE") == "1"
 
 
 def _container_args(args: argparse.Namespace) -> list[str]:
     forwarded = [args.command, "--preset", args.preset]
+    if getattr(args, "ti", ""):
+        forwarded += ["--ti", args.ti]
     if args.werror:
         forwarded.append("--werror")
     return ["python3", "ci/facade.py", *forwarded]
@@ -154,7 +172,10 @@ def _container_args(args: argparse.Namespace) -> list[str]:
 
 def in_container(args: argparse.Namespace, run: Runner) -> int:
     """Build the image for bootstrap, or rerun this command inside it."""
-    tag = container.image_tag()
+    if args.command == "bootstrap" and args.ti == "accept" and not run.dry_run:
+        print(f"recorded TI terms acceptance in {container.record_ti_acceptance()}")
+    ti = args.ti == "accept" or container.ti_accepted()
+    tag = container.image_tag(ti=ti)
     rootless = True if run.dry_run else None  # a dry run does not query Docker
     if not run.dry_run and not container.docker_available():
         print(
@@ -164,7 +185,9 @@ def in_container(args: argparse.Namespace, run: Runner) -> int:
         )
         return EXIT_FAILED
     if args.command == "bootstrap":
-        code = run(container.build_command())
+        if not ti:
+            print(TI_NOTICE, file=sys.stderr)
+        code = run(container.build_command(ti=ti))
         return code or run(container.run_command(tag, _container_args(args), rootless))
     if not run.dry_run and not container.image_present(tag):
         print(f"the pinned image {tag} is not built; run `make bootstrap` first", file=sys.stderr)
@@ -193,7 +216,10 @@ def cmd_bootstrap(args: argparse.Namespace, run: Runner) -> int:
             file=sys.stderr,
         )
         return EXIT_FAILED
-    print("bootstrap: host and board-host presets can build")
+    if _ti_installed():
+        print("bootstrap: host, board-host, and firmware presets can build")
+    else:
+        print("bootstrap: host and board-host presets can build")
     return EXIT_OK
 
 
@@ -234,13 +260,21 @@ def cmd_test(args: argparse.Namespace, run: Runner) -> int:
     )
 
 
+def _ti_installed() -> bool:
+    return all(Path(os.environ.get(v, "/nonexistent"), "bin", c).exists() for v, c in TI_ROOTS)
+
+
 def cmd_quality(args: argparse.Namespace, run: Runner) -> int:
     steps = [[sys.executable, path] for path in VALIDATORS] + lint_steps()
     steps.append([sys.executable, "-m", "unittest", *PYTHON_TEST_MODULES])
     failed = [" ".join(step[1:]) for step in steps if run(step) != 0]
     args.werror = True
-    if cmd_test(args, run) != 0:
-        failed.append("C build and tests")
+    host = [p for p in args.selection if p.startswith("host-")]
+    firmware = [p for p in args.selection if not p.startswith("host-")]
+    if _for_each(host, lambda p: _build(p, run, True) or run(["ctest", "--preset", p])) != 0:
+        failed.append("host build and tests")
+    if _for_each(firmware, lambda p: _build(p, run, True)) != 0:
+        failed.append("firmware build")
     if failed:
         print("quality failed: " + "; ".join(failed), file=sys.stderr)
         return EXIT_FAILED
@@ -278,6 +312,7 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
     parser.add_argument("--board", default="", help="board name for deploy and target-smoke")
     parser.add_argument("--dry-run", action="store_true", help="print commands without running them")
     parser.add_argument("--werror", action="store_true", help="treat compiler warnings as errors")
+    parser.add_argument("--ti", default="", choices=["", "accept"], help="accept TI's compiler terms")
     return parser.parse_args(argv)
 
 
@@ -288,7 +323,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         return EXIT_USAGE if exc.code else EXIT_OK
     try:
         if args.command in ("configure", "build", "test", "quality"):
-            selection = "host" if args.command == "quality" else args.preset
+            selection = args.preset
+            if args.command == "quality":
+                selection = "host,firmware" if _ti_installed() else "host"
             args.selection = expand(selection, presets())
         run = Runner(args.dry_run)
         if args.command in IN_CONTAINER_COMMANDS and not _native():

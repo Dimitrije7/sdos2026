@@ -4,12 +4,12 @@
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR c6000)
 set(SDOS_TI_FAMILY c6000 CACHE INTERNAL "")
-set(SDOS_TI_C6000_VERSION "8.3.7")
+set(SDOS_TI_EXPECTED_VERSION "8.3.7" CACHE STRING "TI compiler version pinned by the manifest")
 
 set(_root "$ENV{SDOS_TI_C6000_ROOT}")
 if(NOT _root OR NOT EXISTS "${_root}/bin/cl6x")
   message(FATAL_ERROR
-    "TI C6000 compiler 8.3.7 not found: set SDOS_TI_C6000_ROOT to its install "
+    "TI C6000 compiler ${SDOS_TI_EXPECTED_VERSION} not found: set SDOS_TI_C6000_ROOT to its install "
     "directory. The TI toolchain layer that installs it is Task 019; until then "
     "firmware presets cannot be configured.")
 endif()
@@ -20,3 +20,8 @@ set(CMAKE_AR "${_root}/bin/ar6x")
 set(CMAKE_C_FLAGS_INIT "-mv6600 --abi=eabi --c99 -I${_root}/include")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(SDOS_PRODUCT firmware CACHE STRING "" FORCE)
+# The container records the SHA-256 of the verified installer next to the install.
+if(EXISTS "${_root}.installer.sha256")
+  file(READ "${_root}.installer.sha256" _sha)
+  string(STRIP "${_sha}" SDOS_TI_INSTALLER_SHA256)
+endif()
