@@ -1,0 +1,103 @@
+{
+  "description": "Synthetic healthy bench: one FTDI adapter with a factory serial, one reader with a unique serial and an unmounted 32 GB card, and the system NVMe disk.",
+  "serial_by_id": {
+    "usb-FTDI_TTL232R-3V3_FT8ABCDE-if00-port0": "/dev/ttyUSB0"
+  },
+  "usb_serial_devices": {
+    "/dev/ttyUSB0": {
+      "idVendor": "0403",
+      "idProduct": "6001",
+      "serial": "FT8ABCDE",
+      "manufacturer": "FTDI",
+      "product": "TTL232R-3V3"
+    }
+  },
+  "disk_by_id": {
+    "usb-Generic_MicroSD_Reader_200605992601B6A2-0:0": "/dev/sdb",
+    "usb-Generic_MicroSD_Reader_200605992601B6A2-0:0-part1": "/dev/sdb1",
+    "nvme-Example_NVMe_S6EXAMPLE0001": "/dev/nvme0n1"
+  },
+  "lsblk": {
+    "blockdevices": [
+      {
+        "name": "nvme0n1",
+        "path": "/dev/nvme0n1",
+        "type": "disk",
+        "tran": "nvme",
+        "rm": false,
+        "hotplug": false,
+        "size": 1024209543168,
+        "model": "Example NVMe",
+        "serial": "S6EXAMPLE0001",
+        "vendor": null,
+        "mountpoints": [
+          null
+        ],
+        "children": [
+          {
+            "name": "nvme0n1p1",
+            "path": "/dev/nvme0n1p1",
+            "type": "part",
+            "tran": "nvme",
+            "rm": false,
+            "hotplug": false,
+            "size": 1073741824,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/boot/efi"
+            ]
+          },
+          {
+            "name": "nvme0n1p2",
+            "path": "/dev/nvme0n1p2",
+            "type": "part",
+            "tran": "nvme",
+            "rm": false,
+            "hotplug": false,
+            "size": 1023134236672,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sdb",
+        "path": "/dev/sdb",
+        "type": "disk",
+        "tran": "usb",
+        "rm": true,
+        "hotplug": true,
+        "size": 31914983424,
+        "model": "MicroSD Reader",
+        "serial": "200605992601B6A2",
+        "vendor": "Generic",
+        "mountpoints": [
+          null
+        ],
+        "children": [
+          {
+            "name": "sdb1",
+            "path": "/dev/sdb1",
+            "type": "part",
+            "tran": null,
+            "rm": true,
+            "hotplug": true,
+            "size": 31913934848,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              null
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,190 @@
+{
+  "description": "Synthetic hazardous bench: two serial-less CH340 adapters where udev links only one, a reader with a placeholder serial, a reader whose card is mounted, a small card, an empty reader, and a USB disk that hosts the root filesystem.",
+  "serial_by_id": {
+    "usb-1a86_USB_Serial-if00-port0": "/dev/ttyUSB1"
+  },
+  "usb_serial_devices": {
+    "/dev/ttyUSB0": {
+      "idVendor": "1a86",
+      "idProduct": "7523",
+      "serial": "",
+      "manufacturer": "",
+      "product": "USB Serial"
+    },
+    "/dev/ttyUSB1": {
+      "idVendor": "1a86",
+      "idProduct": "7523",
+      "serial": "",
+      "manufacturer": "",
+      "product": "USB Serial"
+    }
+  },
+  "disk_by_id": {
+    "usb-Generic_STORAGE_DEVICE_000000000000-0:0": "/dev/sdb",
+    "usb-Acme_Reader_ACME1234567-0:0": "/dev/sdc",
+    "usb-Acme_Reader_ACME1234567-0:0-part1": "/dev/sdc1",
+    "usb-Acme_Reader_ACME7654321-0:0": "/dev/sdd",
+    "usb-Acme_Reader_ACME5550001-0:0": "/dev/sde",
+    "usb-Samsung_Flash_Drive_0374120090008421-0:0": "/dev/sdf"
+  },
+  "lsblk": {
+    "blockdevices": [
+      {
+        "name": "nvme0n1",
+        "path": "/dev/nvme0n1",
+        "type": "disk",
+        "tran": "nvme",
+        "rm": false,
+        "hotplug": false,
+        "size": 1024209543168,
+        "model": "Example NVMe",
+        "serial": "S6EXAMPLE0001",
+        "vendor": null,
+        "mountpoints": [
+          null
+        ],
+        "children": [
+          {
+            "name": "nvme0n1p1",
+            "path": "/dev/nvme0n1p1",
+            "type": "part",
+            "tran": "nvme",
+            "rm": false,
+            "hotplug": false,
+            "size": 1073741824,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/boot/efi"
+            ]
+          },
+          {
+            "name": "nvme0n1p2",
+            "path": "/dev/nvme0n1p2",
+            "type": "part",
+            "tran": "nvme",
+            "rm": false,
+            "hotplug": false,
+            "size": 1023134236672,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sdb",
+        "path": "/dev/sdb",
+        "type": "disk",
+        "tran": "usb",
+        "rm": "1",
+        "hotplug": "1",
+        "size": 63864569856,
+        "model": "STORAGE DEVICE",
+        "serial": "000000000000",
+        "vendor": "Generic",
+        "mountpoints": [
+          null
+        ]
+      },
+      {
+        "name": "sdc",
+        "path": "/dev/sdc",
+        "type": "disk",
+        "tran": "usb",
+        "rm": true,
+        "hotplug": true,
+        "size": 31914983424,
+        "model": "Reader",
+        "serial": "ACME1234567",
+        "vendor": "Acme",
+        "mountpoints": [
+          null
+        ],
+        "children": [
+          {
+            "name": "sdc1",
+            "path": "/dev/sdc1",
+            "type": "part",
+            "tran": null,
+            "rm": true,
+            "hotplug": true,
+            "size": 31913934848,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/media/student/BOOT"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "sdd",
+        "path": "/dev/sdd",
+        "type": "disk",
+        "tran": "usb",
+        "rm": true,
+        "hotplug": true,
+        "size": 15931539456,
+        "model": "Reader",
+        "serial": "ACME7654321",
+        "vendor": "Acme",
+        "mountpoints": [
+          null
+        ]
+      },
+      {
+        "name": "sde",
+        "path": "/dev/sde",
+        "type": "disk",
+        "tran": "usb",
+        "rm": true,
+        "hotplug": true,
+        "size": 0,
+        "model": "Reader",
+        "serial": "ACME5550001",
+        "vendor": "Acme",
+        "mountpoints": [
+          null
+        ]
+      },
+      {
+        "name": "sdf",
+        "path": "/dev/sdf",
+        "type": "disk",
+        "tran": "usb",
+        "rm": false,
+        "hotplug": true,
+        "size": 128043712512,
+        "model": "Flash Drive",
+        "serial": "0374120090008421",
+        "vendor": "Samsung",
+        "mountpoints": [
+          null
+        ],
+        "children": [
+          {
+            "name": "sdf1",
+            "path": "/dev/sdf1",
+            "type": "part",
+            "tran": null,
+            "rm": false,
+            "hotplug": true,
+            "size": 128042663936,
+            "model": null,
+            "serial": null,
+            "vendor": null,
+            "mountpoints": [
+              "/"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

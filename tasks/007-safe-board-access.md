@@ -2,8 +2,36 @@
 
 ## Status
 
-ready
+in-progress
 
+## Handoff
+
+- Updated: 2026-10-18, claude.
+- State: Implementation and mocked verification are complete and committed.
+  The task waits at its hardware-ready checkpoint for the final read-only
+  discovery proof.
+- Done:
+  - [`tests/target/sdos_board/`](../tests/target/sdos_board/): discovery,
+    exact-identity guards that never write, SSH host-key identity,
+    receive-only serial capture, and a CLI.
+  - [`tests/target/test_sdos_board.py`](../tests/target/test_sdos_board.py)
+    with fixtures for a healthy and a hazardous bench.
+  - [`docs/board-access.md`](../docs/board-access.md).
+- Next:
+  1. Hardware-ready: ask the maintainer to connect the board with power, the
+     USB-UART adapter on its debug header, Ethernet on the PC's network, and
+     the microSD reader with a card.
+  2. Run `discover --host <board>`, a short `capture`, `ssh-identity`, and
+     `check-write-target`, all read-only. Store redacted outputs under
+     `release/evidence/task-007/`.
+  3. Record the observed UART and reader as inventory assets, then complete
+     the task.
+- Decisions: none.
+- Verification, 2026-10-18:
+  - `python3 -m unittest tests.target.test_sdos_board` passed 19 tests on
+    Python 3.14 and on Python 3.10 in `python:3.10-slim`.
+  - A live discovery on this workstation found no UART or reader and excluded
+    the system NVMe disk.
 ## Depends on
 
 004.
