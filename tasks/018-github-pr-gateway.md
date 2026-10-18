@@ -27,8 +27,13 @@ in-progress
      `ci-gate` fails; close it.
   3. Apply the approved branch protection with `gh api`, export the settings
      to `release/evidence/task-018/`, and complete the task.
-- Decisions: pending. Asked 2026-10-18 for approval to push and for the
-  branch-protection policy.
+- Decisions, 2026-10-18: asked "May I push local main (23 commits ...) to
+  github.com/Dimitrije7/sdos2026?", the maintainer chose "Yes, push
+  (Recommended)". Asked "How strictly should main be protected?", the
+  maintainer chose "Admins may bypass": pull requests must pass an up-to-date
+  `ci-gate`, force pushes and deletion are blocked, no approval is required,
+  and the maintainer and agents acting as the maintainer may still push
+  directly to `main`.
 - Verification, 2026-10-18: `make quality` passed in the TI image with 97
   Python tests, four validators, hadolint, actionlint, zizmor ("No findings"),
   ShellCheck, 4 host presets, and 12 firmware presets.
