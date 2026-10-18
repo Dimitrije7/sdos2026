@@ -22,6 +22,13 @@ MANIFEST = ROOT / "manifest" / "versions.json"
 BASE_INPUT = "ubuntu.jammy-20260924.1"
 APT_INPUT = "ubuntu.jammy-apt-snapshot-20261004"
 FRONTEND_INPUT = "dockerfile-frontend.1.27.1"
+# Container name for each single-file tool input, in install order.
+FILE_TOOLS = {
+    "hadolint": "hadolint.v2.15.1",
+    "syft": "syft.v1.54.0",
+    "trivy": "trivy.v0.75.0",
+    "node": "nodejs.v22.23.3",
+}
 IMAGE_NAME = "sdos-dev"
 CURRENT_TAG = f"{IMAGE_NAME}:current"  # what .devcontainer opens; moved by each bootstrap
 
@@ -49,6 +56,10 @@ def build_args(manifest: Path = MANIFEST) -> dict[str, str]:
         "APT_INRELEASE_SHA256": " ".join(f"{s}={h}" for s, h in sorted(apt["inrelease_sha256"].items())),
         "APT_PACKAGES": " ".join(f"{p['name']}={p['version']}" for p in packages),
         "APT_DEB_SHA256": " ".join(f"{apt_cache_name(p)}={p['sha256']}" for p in packages),
+        "FILE_TOOLS": " ".join(
+            f"{name}|{inputs[i]['source']['url']}|{inputs[i]['integrity']['sha256']}"
+            for name, i in FILE_TOOLS.items()
+        ),
     }
 
 

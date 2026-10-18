@@ -22,6 +22,8 @@ ENV DEBIAN_FRONTEND=noninteractive LANG=C.UTF-8 LC_ALL=C.UTF-8
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 # The cache mount keeps downloaded .deb files between local rebuilds; they are
 # rechecked against the manifest every time and never enter the image.
+# APT_PACKAGES pins every package as name=version, which hadolint cannot see.
+# hadolint ignore=DL3008
 RUN --mount=type=cache,target=/var/cache/apt/archives,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean; \
     : "${APT_SNAPSHOT:?}" "${APT_INRELEASE_SHA256:?}" "${APT_PACKAGES:?}" "${APT_DEB_SHA256:?}"; \
@@ -35,21 +37,43 @@ RUN --mount=type=cache,target=/var/cache/apt/archives,sharing=locked \
     for pair in ${APT_INRELEASE_SHA256}; do \
       echo "${pair#*=}  /var/lib/apt/lists/snapshot.ubuntu.com_ubuntu_${APT_SNAPSHOT}_dists_${pair%%=*}_InRelease"; \
     done | sha256sum --check --strict; \
-    apt-get -o Acquire::https::Verify-Peer=false install --download-only --yes ${APT_PACKAGES}; \
+    apt-get -o Acquire::https::Verify-Peer=false install --no-install-recommends --download-only --yes ${APT_PACKAGES}; \
     for pair in ${APT_DEB_SHA256}; do \
       echo "${pair#*=}  /var/cache/apt/archives/${pair%%=*}"; \
     done | sha256sum --check --strict; \
-    apt-get install --yes ${APT_PACKAGES}; \
+    apt-get install --no-install-recommends --yes ${APT_PACKAGES}; \
     dpkg-query --show --showformat '${Package}=${Version}\n' | sort > /usr/share/sdos-packages.txt; \
     rm -rf /var/lib/apt/lists/*
 # Python tools, every wheel checked against the lock file's SHA-256.
 COPY python-tools.lock /usr/share/sdos-python-tools.lock
+# Unversioned names are added for tools that Ubuntu installs with a version suffix.
 RUN python3 -m pip install --no-cache-dir --require-hashes --no-deps --only-binary=:all: \
-      -r /usr/share/sdos-python-tools.lock
-# Unversioned names for tools that Ubuntu installs with a version suffix.
-RUN for tool in clang clang-format clang-tidy clangd; do \
+      -r /usr/share/sdos-python-tools.lock; \
+    for tool in clang clang-format clang-tidy clangd; do \
       ln -sf "/usr/bin/${tool}-15" "/usr/local/bin/${tool}"; \
     done
+# Single-file tools from their upstream releases, each checked against the
+# manifest SHA-256 before it is unpacked. FILE_TOOLS holds "name|url|sha256".
+ARG FILE_TOOLS
+RUN : "${FILE_TOOLS:?}"; \
+    for entry in ${FILE_TOOLS}; do \
+      name=${entry%%|*}; rest=${entry#*|}; url=${rest%%|*}; sha=${rest#*|}; \
+      curl --fail --silent --show-error --location --retry 3 --output "/tmp/$name.download" "$url"; \
+      echo "$sha  /tmp/$name.download" | sha256sum --check --strict; \
+      case "$name" in \
+        hadolint) install -m 0755 /tmp/hadolint.download /usr/local/bin/hadolint ;; \
+        syft) tar -xzf /tmp/syft.download -C /usr/local/bin syft ;; \
+        trivy) tar -xzf /tmp/trivy.download -C /usr/local/bin trivy ;; \
+        node) mkdir -p /opt/node && tar -xJf /tmp/node.download -C /opt/node --strip-components=1 ;; \
+        *) echo "unknown tool $name" >&2; exit 1 ;; \
+      esac; \
+      rm -f "/tmp/$name.download"; \
+    done
+ENV PATH=/opt/node/bin:${PATH}
+# Node.js tools; npm ci verifies every package against package-lock.json.
+COPY node/package.json node/package-lock.json /opt/sdos-node/
+RUN npm ci --prefix /opt/sdos-node --ignore-scripts --no-audit --no-fund \
+    && ln -s /opt/sdos-node/node_modules/.bin/markdownlint-cli2 /usr/local/bin/markdownlint-cli2
 ENV SDOS_IN_CONTAINER=1
 WORKDIR /work
 
@@ -58,3 +82,6 @@ FROM oss-base AS ci
 
 # Interactive development: the same tools, used by .devcontainer.
 FROM oss-base AS dev
+
+# Documentation checks.
+FROM oss-base AS docs

@@ -38,7 +38,7 @@ Docker's cache and take seconds.
 | `make configure PRESET=<p>` | Runs CMake for one preset or group | Yes |
 | `make build PRESET=<p>` | Configures and builds | Yes; firmware presets need Task 019 |
 | `make test PRESET=<p>` | Builds and runs unit tests on the PC | Host presets only; on-target tests arrive in Task 033 |
-| `make quality` | Manifest validators, Python tests, and every host preset with warnings as errors | Yes; grows with Tasks 018 and 024 |
+| `make quality` | Manifest validators, hadolint, ShellCheck, Python tests, and every host preset with warnings as errors | Yes; grows with Tasks 018 and 024 |
 | `make clean` | Deletes `build/` | Yes |
 | `make package` | Packages firmware and host artifacts | Task 022 |
 | `make image` | Builds the course Linux image | Task 035 |
@@ -82,6 +82,28 @@ The facade exits with:
 `make` itself always exits with 2 when a step fails; it prints the facade's own
 status as `Error <n>`. CI calls `python3 ci/facade.py <command>` directly to get
 the status unchanged.
+
+## Editors and shells
+
+- **VS Code:** open the repository and choose "Reopen in Container". The
+  `.devcontainer` definition runs `make bootstrap` and opens `sdos-dev:current`
+  with clangd and CMake Tools.
+- **Shell:** `docker compose run --rm dev` opens a shell in the same image.
+  `docker compose --profile board run --rm board` adds read access to USB
+  serial devices. Flashing never runs in the container.
+
+## What the container holds
+
+| Kind | Tools | Pinned by |
+|---|---|---|
+| Ubuntu packages | GCC 12, Clang 15 with clang-tidy, clang-format, and clangd, the aarch64 cross GCC 12, CMake 3.22, Ninja, Python 3.10, ShellCheck, lcov, dtc | Snapshot 20261004T000000Z; each `.deb` SHA-256 in the manifest |
+| Python tools | jsonschema, yamllint, lizard, cmakelang, zizmor | [`toolchain/python-tools.lock`](../toolchain/python-tools.lock), hashes for every wheel |
+| Release binaries | hadolint, Syft, Trivy, Node.js 22 | SHA-256 in the manifest |
+| Node.js tools | markdownlint-cli2 | [`toolchain/node/package-lock.json`](../toolchain/node/package-lock.json) |
+
+The Dockerfile targets are `oss-base`, `ci`, `dev`, and `docs`; all currently
+hold the same tools. The TI compilers are added by Task 019 in a separate layer
+that is never published.
 
 ## Without Docker
 

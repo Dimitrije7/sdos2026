@@ -8,6 +8,8 @@ import io
 import json
 import os
 import re
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -78,6 +80,34 @@ class PythonLockTests(unittest.TestCase):
                 continue
             name = item["source"]["file_name"].split("-")[0].replace("_", "-").lower()
             self.assertEqual(locked.get(name), item["version"], name)
+
+
+class NodeLockTests(unittest.TestCase):
+    def test_markdownlint_matches_manifest_and_every_package_has_integrity(self) -> None:
+        lock = json.loads((container.ROOT / "toolchain" / "node" / "package-lock.json").read_text())
+        manifest = json.loads(container.MANIFEST.read_text())
+        pin = next(i for i in manifest["inputs"] if i["id"] == "npm.markdownlint-cli2.0.23.3")
+        entry = lock["packages"]["node_modules/markdownlint-cli2"]
+        self.assertEqual(entry["version"], pin["version"])
+        self.assertEqual(entry["integrity"], pin["integrity"]["sha512_integrity"])
+        missing = [name for name, item in lock["packages"].items() if name and "integrity" not in item]
+        self.assertEqual(missing, [])
+
+    def test_every_file_tool_is_a_hashed_manifest_input(self) -> None:
+        entries = container.build_args()["FILE_TOOLS"].split()
+        self.assertEqual([e.split("|")[0] for e in entries], list(container.FILE_TOOLS))
+        for entry in entries:
+            self.assertRegex(entry.split("|")[2], r"^[0-9a-f]{64}$")
+
+
+@unittest.skipUnless(shutil.which("hadolint"), "hadolint runs in the pinned container")
+class LintFixtureTests(unittest.TestCase):
+    def test_hadolint_rejects_an_unpinned_dockerfile(self) -> None:
+        bad = container.ROOT / "ci" / "fixtures" / "lint" / "unpinned.Dockerfile"
+        result = subprocess.run(["hadolint", str(bad)], capture_output=True, text=True, check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DL3007", result.stdout)  # the latest tag
+        self.assertIn("DL3008", result.stdout)  # unpinned apt package
 
 
 if __name__ == "__main__":

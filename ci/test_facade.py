@@ -57,6 +57,8 @@ class CommandTests(unittest.TestCase):
         self.assertEqual(code, facade.EXIT_OK)
         self.assertEqual(text.count("-DSDOS_WERROR=ON"), 4)
         self.assertIn("ci/validate_versions.py", text)
+        self.assertIn("+ hadolint toolchain/Dockerfile", text)
+        self.assertIn("+ shellcheck ci/feasibility/", text)
 
     def test_tests_on_a_dsp_preset_are_not_available_yet(self) -> None:
         code, text = run("test", "--preset", "c71x_0-freertos-debug", "--dry-run")

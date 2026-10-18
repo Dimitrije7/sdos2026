@@ -1,0 +1,30 @@
+# Docker Compose profiles for the SDOS development container. `make bootstrap`
+# builds the image first; this file only runs it.
+#
+#   docker compose run --rm dev                  interactive shell
+#   docker compose --profile board run --rm board  shell with USB serial access
+
+services:
+  dev:
+    image: sdos-dev:current
+    working_dir: /work
+    volumes:
+      - .:/work
+    environment:
+      SDOS_IN_CONTAINER: "1"
+    stdin_open: true
+    tty: true
+    command: ["bash"]
+
+  board:
+    extends: dev
+    profiles: ["board"]
+    volumes:
+      - /dev/serial/by-id:/dev/serial/by-id:ro
+      - /dev:/dev:ro
+    # USB serial adapters (ttyUSB, major 188) and the board's USB console
+    # (ttyACM, major 166). Block devices are deliberately excluded: flashing
+    # stays on the host behind the guarded flash command.
+    device_cgroup_rules:
+      - "c 188:* rw"
+      - "c 166:* rw"

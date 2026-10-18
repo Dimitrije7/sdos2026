@@ -60,6 +60,15 @@ PYTHON_TEST_MODULES = (
     "tests.target.test_sdos_board",
 )
 VALIDATORS = ("ci/validate_hardware.py", "ci/validate_licenses.py", "ci/validate_versions.py")
+DOCKERFILES = ("toolchain/Dockerfile",)
+
+
+def lint_steps(root: Path = ROOT) -> list[list[str]]:
+    shell = sorted(str(p.relative_to(root)) for p in (root / "ci").rglob("*.sh"))
+    steps = [["hadolint", *DOCKERFILES]]
+    if shell:
+        steps.append(["shellcheck", *shell])
+    return steps
 
 
 class UsageError(Exception):
@@ -226,7 +235,7 @@ def cmd_test(args: argparse.Namespace, run: Runner) -> int:
 
 
 def cmd_quality(args: argparse.Namespace, run: Runner) -> int:
-    steps = [[sys.executable, path] for path in VALIDATORS]
+    steps = [[sys.executable, path] for path in VALIDATORS] + lint_steps()
     steps.append([sys.executable, "-m", "unittest", *PYTHON_TEST_MODULES])
     failed = [" ".join(step[1:]) for step in steps if run(step) != 0]
     args.werror = True
