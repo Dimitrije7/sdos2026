@@ -2,7 +2,30 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: YAML and Markdown linting and cppcheck are enforced; the
+  vulnerability policy, MISRA-oriented checks, and REUSE are left.
+- Done: `.yamllint.yaml` and `.markdownlint-cli2.yaml` (each rule change has
+  its reason in the file; vendored skills are excluded), both added to
+  `make quality`; the 11 real findings in `docs/` were fixed.
+  - Cppcheck 2.22.0 built from the manifest's commit in a Dockerfile stage
+    (`toolchain/Dockerfile`, stage `cppcheck`), run by `make quality` over
+    the portable C (`ci/facade.py` `CPPCHECK`). Its first run found an
+    unchecked open in a test, two dead struct fields, and argument-order
+    clarity issues; all fixed, and it reports nothing now. Code that
+    includes TI headers is left to the TI compiler with warnings as errors.
+- Next:
+  1. Vulnerability policy for Trivy and Dependabot findings carried from Tasks
+     017 and 018 (braces, smol-toml, katex in markdownlint's dependencies;
+     libssl3 after the snapshot).
+  2. REUSE (sdist) and the maintainer decision on the enforced MISRA subset.
+- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". The MISRA subset is still the maintainer's.
+- Verification, 2026-10-19: `yamllint --strict` and `markdownlint-cli2` passed
+  in the container (0 issues in 60 Markdown files).
 
 ## Depends on
 

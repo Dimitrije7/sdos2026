@@ -9,6 +9,7 @@ set(SDOS_RTOS "none" CACHE STRING "Firmware runtime: freertos or baremetal")
 set_property(CACHE SDOS_RTOS PROPERTY STRINGS none freertos baremetal)
 option(SDOS_WERROR "Treat compiler warnings as errors" OFF)
 option(SDOS_SANITIZE "Build host code with AddressSanitizer and UndefinedBehaviorSanitizer" OFF)
+option(SDOS_COVERAGE "Build host code with gcov line and branch coverage" OFF)
 
 if(NOT SDOS_PRODUCT MATCHES "^(host|board-host|firmware)$")
   message(FATAL_ERROR "SDOS_PRODUCT=${SDOS_PRODUCT} is not one of host, board-host, firmware")
@@ -41,6 +42,14 @@ if(SDOS_SANITIZE)
   # program; GCC 12's does not.
   add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer)
   add_link_options(-fsanitize=address,undefined)
+endif()
+
+if(SDOS_COVERAGE)
+  if(NOT SDOS_PRODUCT STREQUAL "host" OR NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    message(FATAL_ERROR "SDOS_COVERAGE applies to GCC host presets only")
+  endif()
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
 endif()
 
 if(SDOS_PRODUCT STREQUAL "firmware")

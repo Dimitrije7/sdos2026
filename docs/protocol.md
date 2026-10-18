@@ -48,6 +48,7 @@ structure is ever copied to or from the wire.
 | 4 RUN | algorithm, two descriptors, parameters | result, 20 bytes |
 
 **Identity:**
+
 - byte 0 is the core: 0 = C66x_0, 1 = C66x_1, 2 = C71x_0;
 - byte 1 is the runtime: 1 = FreeRTOS, 2 = bare metal, 3 = mock;
 - capabilities;
@@ -63,16 +64,19 @@ Reserved bytes must be zero.
 and completed runs.
 
 **RUN request:**
+
 - algorithm id (4 bytes) and reserved (4 bytes);
 - input descriptor (24 bytes) and output descriptor (24 bytes);
 - parameter length (2 bytes) and reserved (2 bytes);
 - up to 420 bytes of parameters.
 
 **Descriptor:**
+
 - region, offset, length, sequence and CRC-32C, 4 bytes each;
 - flags (bit 0: the checksum field is valid) and reserved, 2 bytes each.
 
 **RUN result:**
+
 - output length;
 - output CRC-32C;
 - DSP cycles, as a 64-bit count;
@@ -150,6 +154,7 @@ it. This is what keeps a timeout from leaving stale ownership silently.
 the whole 6 × 9 table.
 
 **Cache maintenance:**
+
 - **Host side:** the library calls the backend's `sync_for_device` before RUN
   and `sync_for_cpu` after it.
 - **DSP side:** the runtime invalidates the input range before reading it, and

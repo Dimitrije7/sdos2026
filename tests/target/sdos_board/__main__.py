@@ -151,11 +151,19 @@ def cmd_dsp_ipc(args: argparse.Namespace) -> int:
     license_file = container.fetch_input("ti.linux-firmware-license-ti")
     dsp_ipc.upload(args.host, args.key, license_file, inputs["ti.linux-firmware-license-ti"]["integrity"]["sha256"])
     failed = []
+    if args.firmware and len(selected) != 1:
+        print("dsp-ipc: --firmware needs exactly one --core", file=sys.stderr)
+        return 2
     for core in selected:  # one DSP at a time: Task 013 excludes concurrent use
-        item = inputs[core.ti_echo_input]
-        firmware = container.fetch_input(core.ti_echo_input)
+        if args.firmware:  # e.g. Task 020's rebuild of TI's echo firmware
+            firmware = args.firmware
+            sha256, input_id = hashlib.sha256(firmware.read_bytes()).hexdigest(), f"local:{firmware.name}"
+        else:
+            firmware = container.fetch_input(core.ti_echo_input)
+            sha256 = inputs[core.ti_echo_input]["integrity"]["sha256"]
+            input_id = core.ti_echo_input
         result = dsp_ipc.run_core(
-            core, args.host, args.key, firmware, item["integrity"]["sha256"], item["id"], args.out,
+            core, args.host, args.key, firmware, sha256, input_id, args.out,
             count=args.count, cycles=args.cycles,
         )
         verdict = "pass" if result["passed"] else "FAIL"
@@ -226,6 +234,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--out", type=Path, required=True, help="directory for per-core results and logs")
     sub.add_argument("--count", type=int, default=10, help="ping messages per cycle")
     sub.add_argument("--cycles", type=int, default=2, help="start/echo/stop cycles; 2 proves restart")
+    sub.add_argument("--firmware", type=Path, help="a local TI-echo-compatible ELF instead of the pinned blob")
     sub.set_defaults(handler=cmd_dsp_ipc)
 
     sub = commands.add_parser("course-smoke", help="Task 021: course firmware on every core and runtime via dspctl")

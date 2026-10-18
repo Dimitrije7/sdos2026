@@ -21,9 +21,22 @@ in-progress
     the container, then runs the builder; documented in `docs/image.md`.
   - `ci/test_image.py` on a synthetic 16 MiB image: recipe applied, two builds
     byte-identical, replacement of existing files, refusals.
+  - First full `make image`, 2026-10-19, maintainer workstation (8 cores,
+    14 GB RAM), inputs already built: 910 s, most of it `xz`. Output
+    `sdos-course-bbai64.img.xz`, 1,114,447,596 bytes, SHA-256
+    `b3ed372685430f4d516b73e10fb15f3568a2c85b4424639efe603c7f27751c66`; raw
+    10 GiB sparse, SHA-256 `66d66fd3…`. Every check passed. Peak disk: the
+    sparse raw image (about 4.6 GB allocated) plus the output.
+  - First full build, 2026-10-19 on the maintainer's workstation (8 cores,
+    while other builds also ran): `make image` from 00:59 to 01:12:50, about
+    14 minutes; most of it is `xz` over the 10 GiB image. Output
+    `sdos-course-bbai64.img.xz`, 1,114,447,596 bytes, SHA-256
+    `b3ed372685430f4d516b73e10fb15f3568a2c85b4424639efe603c7f27751c66`.
+    Peak disk: the 10 GiB sparse raw image (about 4.6 GB allocated) plus the
+    output.
 - Next:
-  1. Record the first full build: duration, peak disk, output hashes, and a
-     second build's hashes.
+  1. A second full build, to confirm byte-identical output at full size (the
+     synthetic test in `ci/test_image.py` already shows it).
   2. Kernel from source (maintainer decision "both options"): build
      `linux.kernel-source-6.18.55-arm64-k3-r59` with the package's
      configuration in the container (needs bison, flex, bc, libssl-dev, and

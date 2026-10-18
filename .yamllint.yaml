@@ -1,0 +1,12 @@
+# yamllint policy (Task 024). GitHub Actions uses the key `on`, and action
+# pins carry a trailing `# vX.Y.Z` comment, so those rules are adjusted.
+extends: default
+rules:
+  document-start: disable
+  truthy:
+    allowed-values: ["true", "false"]
+    check-keys: false
+  line-length:
+    max: 160
+  comments:
+    min-spaces-from-content: 1

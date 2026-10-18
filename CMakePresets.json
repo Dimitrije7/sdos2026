@@ -121,6 +121,18 @@
       }
     },
     {
+      "name": "host-gcc-coverage",
+      "displayName": "PC host tools and tests, GCC, debug with line and branch coverage",
+      "inherits": [
+        "base",
+        "gcc",
+        "debug"
+      ],
+      "cacheVariables": {
+        "SDOS_COVERAGE": "ON"
+      }
+    },
+    {
       "name": "aarch64-gcc-debug",
       "displayName": "Board Linux programs for Cortex-A72, GCC, debug",
       "inherits": [
@@ -317,6 +329,10 @@
       "configurePreset": "host-gcc-sanitize"
     },
     {
+      "name": "host-gcc-coverage",
+      "configurePreset": "host-gcc-coverage"
+    },
+    {
       "name": "aarch64-gcc-debug",
       "configurePreset": "aarch64-gcc-debug"
     },
@@ -417,6 +433,16 @@
     {
       "name": "host-gcc-sanitize",
       "configurePreset": "host-gcc-sanitize",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error"
+      }
+    },
+    {
+      "name": "host-gcc-coverage",
+      "configurePreset": "host-gcc-coverage",
       "output": {
         "outputOnFailure": true
       },

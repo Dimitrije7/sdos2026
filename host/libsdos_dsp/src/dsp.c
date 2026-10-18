@@ -328,7 +328,7 @@ sdos_status sdos_dsp_recover(sdos_dsp *dsp, sdos_identity *identity)
     return status == SDOS_OK ? sdos_dsp_start(dsp, identity) : status;
 }
 
-static sdos_status refresh(sdos_dsp *dsp, sdos_buffer *buffer)
+static sdos_status refresh(const sdos_dsp *dsp, sdos_buffer *buffer)
 {
     sdos_buf_state next;
     if (buffer->generation != dsp->generation) {
@@ -432,8 +432,8 @@ sdos_status sdos_dsp_run(sdos_dsp *dsp, uint32_t algorithm, sdos_buffer *input, 
     }
     dsp->ops->sync_for_device(dsp, input->offset, input->length);
     dsp->ops->sync_for_device(dsp, output->offset, output->length);
-    status = request(dsp, SDOS_MSG_RUN, payload, (uint16_t)sdos_run_request_encode(&rq, payload, sizeof payload),
-                     reply, sizeof reply, &n);
+    n = sdos_run_request_encode(&rq, payload, sizeof payload);
+    status = request(dsp, SDOS_MSG_RUN, payload, (uint16_t)n, reply, sizeof reply, &n);
     if (status == SDOS_E_TIMEOUT || status == SDOS_E_TRANSPORT) {
         /* Unknown whether the DSP still uses them: nobody may until a restart. */
         (void)step(dsp, input, SDOS_BUF_TIMEOUT);

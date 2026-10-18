@@ -72,7 +72,7 @@ not.
 | `make configure PRESET=<p>` | Runs CMake for one preset or group | Yes |
 | `make build PRESET=<p>` | Configures and builds | Yes; firmware presets need `TI=accept` at bootstrap |
 | `make test PRESET=<p>` | Builds and runs unit tests on the PC | Host presets only; on-target tests arrive in Task 033 |
-| `make quality` | Manifest and workflow validators, hadolint, actionlint, zizmor, ShellCheck, Python tests, every host preset with tests, and, when TI is installed, every firmware preset and the three release TI references, all with warnings as errors | Yes; grows with Task 024 |
+| `make quality` | Manifest and workflow validators, hadolint, actionlint, zizmor, yamllint, markdownlint, ShellCheck, Python tests, every host preset with tests, and, when TI is installed, every firmware preset and the three release TI references, all with warnings as errors | Yes; grows with Task 024 |
 | `make clean` | Deletes `build/` | Yes |
 | `make package` | Packages firmware and host artifacts | Task 022 |
 | `make image` | Builds `dspctl` and the firmware, then the course SD image from the pinned BeagleBoard image; see [`image.md`](image.md) | Yes; the from-source kernel variant is still Task 035 |
@@ -87,11 +87,11 @@ comma-separated list.
 
 | Group | Presets | Product |
 |---|---|---|
-| `host` | `host-{gcc,clang}-{debug,release}`, `host-gcc-sanitize` | Libraries and unit tests for the PC; the last one with AddressSanitizer and UndefinedBehaviorSanitizer |
+| `host` | `host-{gcc,clang}-{debug,release}`, `host-gcc-sanitize`, `host-gcc-coverage` | Libraries and unit tests for the PC; `sanitize` adds AddressSanitizer and UndefinedBehaviorSanitizer, and `coverage` writes `build/host-gcc-coverage/coverage.json` and prints line and branch coverage per file |
 | `board-host` | `aarch64-gcc-{debug,release}` | Linux programs for the board's Cortex-A72 cores |
 | `firmware` | `{c66x_0,c66x_1,c71x_0}-{freertos,baremetal}-{debug,release}` | Course firmware for each DSP, built with the TI C6000 or C7000 compiler |
 | `ti-reference` | `ti-reference-{c66x_0,c66x_1,c71x_0}-{debug,release}` | TI's IPC echo firmware rebuilt from the pinned PDK |
-| `all` | All 25 | |
+| `all` | All 26 | |
 
 Each preset builds into `build/<preset>/` and writes `compile_commands.json`
 there for editors.

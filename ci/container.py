@@ -38,6 +38,7 @@ TI_TOOLS = {
     "c7000": "ti.c7000-cgt-5.0.0.lts",
 }
 PSDK_INPUT = "ti.psdk-rtos-j721e-11.02.01.03"
+CPPCHECK_INPUT = "cppcheck.2.22.0"
 # SDK folders extracted into the image: PDK with FreeRTOS, the C66x DSPLIB, the
 # C7x DSPLIB and FFTLIB (shipped without a version suffix), MMALIB, and the
 # SDK build scripts. Each name is an exact archive member, never a wildcard.
@@ -126,6 +127,8 @@ def build_args(manifest: Path = MANIFEST, ti: bool = False) -> dict[str, str]:
         "APT_INRELEASE_SHA256": " ".join(f"{s}={h}" for s, h in sorted(apt["inrelease_sha256"].items())),
         "APT_PACKAGES": " ".join(f"{p['name']}={p['version']}" for p in packages),
         "APT_DEB_SHA256": " ".join(f"{apt_cache_name(p)}={p['sha256']}" for p in packages),
+        "CPPCHECK_URL": inputs[CPPCHECK_INPUT]["source"]["url"],
+        "CPPCHECK_COMMIT": inputs[CPPCHECK_INPUT]["integrity"]["commit"],
         "FILE_TOOLS": " ".join(
             f"{name}|{inputs[i]['source']['url']}|{inputs[i]['integrity']['sha256']}"
             for name, i in FILE_TOOLS.items()

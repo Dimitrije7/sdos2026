@@ -1,0 +1,21 @@
+# markdownlint policy (Task 024). Prose wraps near 80 columns, but tables,
+# links, and commands may not, so line length is not checked. Table pipe
+# alignment is not enforced: tables are edited by hand and by scripts.
+config:
+  MD013: false
+  MD060: false
+  MD024:
+    siblings_only: true
+  # Task files open "Depends on" with lines such as "009.", which read as
+  # ordered lists starting at 9; real lists here are numbered 1, 2, 3.
+  MD029: false
+ignores:
+  - "build/**"
+  - "toolchain/node/node_modules/**"
+  - ".opencode/**"  # vendored skills, kept verbatim; the next three are links to them
+  - ".claude/**"
+  - ".codex/**"
+  - ".github/skills/**"
+  - ".github/agents/**"  # agent entry points with front matter, not documents
+  - ".github/prompts/**"
+  - "release/evidence/**"

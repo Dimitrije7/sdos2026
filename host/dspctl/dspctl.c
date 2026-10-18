@@ -35,11 +35,9 @@ static const char usage[] =
 typedef struct cli {
     sdos_dsp_options options;
     int json;
-    int argc;
-    char **argv;
 } cli;
 
-static int fail(sdos_dsp *dsp, const char *what, sdos_status status)
+static int fail(const sdos_dsp *dsp, const char *what, sdos_status status)
 {
     fprintf(stderr, "dspctl: %s: %s (%s)\n", what, sdos_dsp_error(dsp), sdos_status_name((uint32_t)status));
     return EXIT_FAIL;
@@ -339,7 +337,7 @@ static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
     return 0;
 }
 
-static int dispatch(cli *c, const char *command, sdos_dsp *dsp, int argc, char **argv)
+static int dispatch(const cli *c, const char *command, sdos_dsp *dsp, int argc, char **argv)
 {
     sdos_identity id;
     sdos_status status;

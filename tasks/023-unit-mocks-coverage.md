@@ -21,9 +21,17 @@ in-progress
   - GCC instead of Clang for sanitizers: Clang 15's AddressSanitizer crashed
     13 of 40 runs of an empty program in the container on this host kernel,
     and GCC 12's crashed in 0 of 40 (`cmake/SdosOptions.cmake` records why).
-- Next: line and branch coverage with a threshold for `firmware/common` and
-  `host/libsdos_dsp`; JUnit output for CI; deliberate-defect fixtures that
-  prove each gate fails.
+  - Preset `host-gcc-coverage` and `ci/coverage.py` (gcov JSON, no new
+    tools): `make test` and `make quality` print line and branch coverage
+    per file and write `coverage.json`. First result, 2026-10-19: 83.2% of
+    lines and 67.4% of branches overall; protocol 94.3%/83.3%, runtime
+    95.8%/85.7%, Linux backend 64.1%/49.4% (its ioctl paths need a kernel).
+- Next:
+  1. Maintainer decision: a coverage threshold. Recommendation: fail below
+     90% lines for `firmware/common`, and below 80% for `host/libsdos_dsp`,
+     measured by `ci/coverage.py`; report-only elsewhere.
+  2. JUnit output for CI; deliberate-defect fixtures that prove each gate
+     fails.
 - Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
 - Verification, 2026-10-19: `make test PRESET=host-gcc-sanitize` passed all
   six tests, ten times in a row.

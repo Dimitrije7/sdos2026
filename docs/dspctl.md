@@ -46,6 +46,7 @@ it is running.
 
 `load` copies the file to `/lib/firmware/sdos/<dsp>.xe66` (`.xe71` for the
 C71x) and selects it. Before that, it refuses:
+
 - a file built for the other DSP family;
 - any loadable segment outside that core's memory carve-out;
 - a file without an RPMsg resource table.

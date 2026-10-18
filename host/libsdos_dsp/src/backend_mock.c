@@ -51,7 +51,7 @@ static uint32_t mock_uptime(void)
 
 static sdos_status mock_query(sdos_dsp *dsp, sdos_dsp_info *info)
 {
-    mock_state *st = state_of(dsp);
+    const mock_state *st = state_of(dsp);
     info->state = st->state;
     (void)snprintf(info->remoteproc, sizeof info->remoteproc, "mock");
     (void)snprintf(info->firmware, sizeof info->firmware, "%s", st->firmware);

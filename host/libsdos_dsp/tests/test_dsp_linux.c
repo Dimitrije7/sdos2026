@@ -145,7 +145,7 @@ static void *kernel(void *unused)
 }
 
 /* One simulated firmware per connection, serving its own end of the pair. */
-static void *firmware(void *argument)
+static void *firmware(void *argument) /* cppcheck-suppress constParameterCallback */
 {
     static uint8_t region[65536];
     sdos_runtime *rt = calloc(1u, sizeof *rt);

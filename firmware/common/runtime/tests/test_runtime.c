@@ -82,6 +82,7 @@ static sdos_status run(uint32_t algorithm, sdos_descriptor in, sdos_descriptor o
     uint8_t payload[SDOS_PAYLOAD_MAX];
     uint8_t reply[SDOS_PAYLOAD_MAX];
     uint16_t reply_length = 0u;
+    uint16_t length;
     sdos_status st;
     memset(&rq, 0, sizeof rq);
     rq.algorithm = algorithm;
@@ -91,8 +92,8 @@ static sdos_status run(uint32_t algorithm, sdos_descriptor in, sdos_descriptor o
     if (params_length > 0u) {
         memcpy(rq.params, params, params_length);
     }
-    st = call(SDOS_MSG_RUN, payload, (uint16_t)sdos_run_request_encode(&rq, payload, sizeof payload), reply,
-              &reply_length);
+    length = (uint16_t)sdos_run_request_encode(&rq, payload, sizeof payload);
+    st = call(SDOS_MSG_RUN, payload, length, reply, &reply_length);
     if (st == SDOS_OK && result != NULL && sdos_run_result_decode(reply, reply_length, result) != SDOS_OK) {
         return SDOS_E_TRANSPORT;
     }
@@ -211,7 +212,8 @@ static void test_responses_are_never_handled_as_requests(void)
     sdos_header got;
     size_t n;
     reset();
-    n = sdos_runtime_handle(&rt, msg, sdos_encode(&h, NULL, msg, sizeof msg), reply, sizeof reply);
+    n = sdos_encode(&h, NULL, msg, sizeof msg);
+    n = sdos_runtime_handle(&rt, msg, n, reply, sizeof reply);
     CHECK("a response sent to the DSP is refused",
           sdos_decode_header(reply, n, &got) == SDOS_OK && got.status == SDOS_E_FIELD && got.request_id == 5u);
 }

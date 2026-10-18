@@ -71,14 +71,37 @@ VALIDATORS = (
     "ci/validate_workflows.py",
 )
 DOCKERFILES = ("toolchain/Dockerfile",)
+# Portable C only: code that includes TI's PDK headers is checked by the TI
+# compiler with warnings as errors instead.
+CPPCHECK = [
+    "cppcheck", "--quiet", "--error-exitcode=1", "--inline-suppr", "--std=c11",
+    "--enable=warning,performance,portability", "--suppress=missingIncludeSystem",
+    "-I", "firmware/common/protocol/include", "-I", "firmware/common/runtime/include",
+    "-I", "host/libsdos_dsp/include", "-I", "algorithms/fir_q15/include", "-I", "tests/unit/include",
+    "firmware/common/protocol", "firmware/common/runtime", "host", "algorithms",
+]
+# Course-owned portable C. DSP-only sources need TI headers, which cppcheck
+# cannot read, so they are checked by the TI compiler with warnings as errors.
+CPPCHECK = [
+    "cppcheck", "--quiet", "--error-exitcode=1", "--std=c99", "--inline-suppr",
+    "--enable=warning,style,performance,portability", "--suppress=missingIncludeSystem",
+    "--suppress=unusedFunction", "--suppress=unmatchedSuppression",
+    "-I", "firmware/common/protocol/include", "-I", "firmware/common/runtime/include",
+    "-I", "host/libsdos_dsp/include", "-I", "algorithms/fir_q15/include", "-I", "tests/unit/include",
+    "-D__GNUC__", "-DSDOS_CORES_MACROS_ONLY",
+    "firmware/common/protocol", "firmware/common/runtime", "host", "algorithms",
+]
 
 
 def lint_steps(root: Path = ROOT) -> list[list[str]]:
     shell = sorted(str(p.relative_to(root)) for p in (root / "ci").rglob("*.sh"))
     workflows = sorted(str(p.relative_to(root)) for p in (root / ".github" / "workflows").glob("*.yml"))
-    steps = [["hadolint", *DOCKERFILES], ["actionlint", *workflows], ["zizmor", "--offline", *workflows]]
+    steps = [["hadolint", *DOCKERFILES], ["actionlint", *workflows], ["zizmor", "--offline", *workflows],
+             ["yamllint", "--strict", ".github", "compose.yaml", ".yamllint.yaml", ".markdownlint-cli2.yaml"],
+             ["markdownlint-cli2", "**/*.md"], CPPCHECK]
     if shell:
         steps.append(["shellcheck", *shell])
+    steps.append(CPPCHECK)
     return steps
 
 
@@ -287,6 +310,14 @@ def cmd_build(args: argparse.Namespace, run: Runner) -> int:
     return _for_each(args.selection, lambda p: _build(p, run, args.werror))
 
 
+def _test(preset: str, run: Runner, werror: bool) -> int:
+    """Build, run the tests, and for the coverage preset report coverage."""
+    code = _build(preset, run, werror) or run(["ctest", "--preset", preset])
+    if code == 0 and preset.endswith("-coverage"):
+        code = run([sys.executable, "ci/coverage.py", f"build/{preset}"])
+    return code
+
+
 def cmd_test(args: argparse.Namespace, run: Runner) -> int:
     off_host = [p for p in args.selection if not p.startswith("host-")]
     if off_host:
@@ -294,10 +325,7 @@ def cmd_test(args: argparse.Namespace, run: Runner) -> int:
             "tests run on host-* presets; " + ", ".join(off_host) + " need a board "
             "or emulator, which Task 033 adds"
         )
-    return _for_each(
-        args.selection,
-        lambda p: _build(p, run, args.werror) or run(["ctest", "--preset", p]),
-    )
+    return _for_each(args.selection, lambda p: _test(p, run, args.werror))
 
 
 def _ti_installed() -> bool:
@@ -311,7 +339,7 @@ def cmd_quality(args: argparse.Namespace, run: Runner) -> int:
     args.werror = True
     host = [p for p in args.selection if p.startswith("host-")]
     firmware = [p for p in args.selection if not p.startswith("host-")]
-    if _for_each(host, lambda p: _build(p, run, True) or run(["ctest", "--preset", p])) != 0:
+    if _for_each(host, lambda p: _test(p, run, True)) != 0:
         failed.append("host build and tests")
     if _for_each(firmware, lambda p: _build(p, run, True)) != 0:
         failed.append("firmware build")

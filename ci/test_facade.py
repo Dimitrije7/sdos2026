@@ -23,7 +23,7 @@ class SelectionTests(unittest.TestCase):
     def test_matrix_covers_every_required_variant(self) -> None:
         names = facade.presets()
         found = facade.groups(names)
-        self.assertEqual(len(found["host"]), 5)  # GCC and Clang, debug and release, and sanitizers
+        self.assertEqual(len(found["host"]), 6)  # GCC and Clang, debug and release, sanitizers, coverage
         self.assertEqual(len(found["ti-reference"]), 6)
         self.assertEqual(len(found["board-host"]), 2)
         self.assertEqual(len(found["firmware"]), 12)  # 3 cores x 2 runtimes x 2 builds
@@ -36,7 +36,8 @@ class SelectionTests(unittest.TestCase):
         names = facade.presets()
         self.assertEqual(
             facade.expand("host-gcc-debug,host", names),
-            ["host-gcc-debug", "host-gcc-release", "host-clang-debug", "host-clang-release", "host-gcc-sanitize"],
+            ["host-gcc-debug", "host-gcc-release", "host-clang-debug", "host-clang-release", "host-gcc-sanitize",
+             "host-gcc-coverage"],
         )
 
     def test_unknown_preset_is_a_usage_error(self) -> None:
@@ -57,17 +58,21 @@ class CommandTests(unittest.TestCase):
     def test_quality_uses_werror_on_every_host_preset(self, _ti: mock.Mock) -> None:
         code, text = run("quality", "--dry-run")
         self.assertEqual(code, facade.EXIT_OK)
-        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 5)  # gcc and clang, debug and release, and sanitizers
+        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 6)  # gcc and clang, debug and release, sanitizers, coverage
         self.assertIn("ci/validate_versions.py", text)
         self.assertIn("+ hadolint toolchain/Dockerfile", text)
+        self.assertIn("+ yamllint --strict .github", text)
+        self.assertIn("+ markdownlint-cli2 **/*.md", text)
+        self.assertIn("+ cppcheck --quiet --error-exitcode=1", text)
         self.assertIn("+ shellcheck ci/feasibility/", text)
 
     @mock.patch.object(facade, "_ti_installed", return_value=True)
     def test_quality_builds_every_firmware_preset_when_ti_is_installed(self, _ti: mock.Mock) -> None:
         code, text = run("quality", "--dry-run")
         self.assertEqual(code, facade.EXIT_OK)
-        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 17)
-        self.assertEqual(text.count("+ ctest"), 5)  # DSP code is not run on the PC
+        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 18)
+        self.assertEqual(text.count("+ ctest"), 6)  # DSP code is not run on the PC
+        self.assertIn("ci/coverage.py build/host-gcc-coverage", text)
         self.assertEqual(text.count("ipc_echo_test_freertos BOARD=j721e_evm"), 3)  # TI references, release only
         self.assertNotIn("BUILD_PROFILE=debug", text)
 

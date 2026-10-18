@@ -24,12 +24,18 @@ in-progress
   - `make quality` builds the three release references (debug ones rebuild
     the whole PDK from source).
 - Next:
-  1. Record the reproducibility check (two clean builds) in this file.
-  2. In a board session after Task 013: load each rebuilt release ELF with
-     `dsp-ipc` (extend it to take a local file) and compare with TI's blob.
+  1. In a board session after Task 013, per core: `dsp-ipc --core <core>
+     --firmware build/ti-reference-<core>-release/pdk/ipc_echo_test_freertos/bin/j721e_evm/<name>_strip.xe6x
+     --out release/evidence/task-020/<UTC stamp>`, and compare with the TI
+     blob's result.
+  2. Rebuild `ti-reference-c66x_1-debug` (stopped mid-build on 2026-10-19 to
+     free the CPU; the other five built).
 - Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
-- Verification, 2026-10-19: `make build PRESET=ti-reference` built all six;
-  `python3 -m unittest ci.test_facade` passed.
+- Evidence: `release/evidence/task-020/20261019T010000Z/` holds the three
+  release build manifests and a summary. Two clean builds of the C66x_0
+  release reference gave byte-identical stripped ELFs.
+- Verification, 2026-10-19: five of six `ti-reference` presets built (C66x_1
+  debug stopped); `python3 -m unittest ci.test_facade` passed.
 
 ## Depends on
 

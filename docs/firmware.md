@@ -52,6 +52,7 @@ between the C66x and the C71x.
 
 Nothing TI ships is copied into the repository. The build reads the following
 from the pinned PSDK that `make bootstrap TI=accept` installs:
+
 - headers;
 - prebuilt PDK libraries: IPC, OSAL, CSL, Sciclient, and the FreeRTOS kernel;
 - TI's per-core linker command files.

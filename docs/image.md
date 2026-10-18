@@ -9,6 +9,7 @@ make image
 ```
 
 **Output, in `build/image/`:**
+
 - `sdos-course-bbai64.img.xz`, the image to flash;
 - its `.sha256` file;
 - `sdos-course-bbai64.manifest.json`, which records every input, every change,
@@ -58,6 +59,7 @@ BeagleBoard's default `debian` account.
 
 The maintainer chose to support two kernel sources (Task 035). The recipe's
 `kernel` field selects one:
+
 - `beagleboard-package`, the default, keeps BeagleBoard's pinned kernel
   package from the base image;
 - `source` will build the same kernel version from pinned source. It is not
@@ -72,6 +74,6 @@ publish it.
 
 ## Resources
 
-On the maintainer's workstation (8 cores) the first build took about the times
-recorded in [Task 035](../tasks/035-reproducible-image-builder.md). The
-decompressed image is a 10 GiB sparse file, of which about 4.5 GB is data.
+On an 8-core workstation, `make image` takes about 15 minutes once its inputs
+are built; compression is most of it. The decompressed image is a 10 GiB
+sparse file holding about 4.6 GB of data, and the result is about 1.1 GB.

@@ -129,13 +129,34 @@ RUN --mount=type=bind,from=ti-inputs,target=/mnt/ti-inputs \
     echo "${PSDK_SHA256}" > /opt/ti/psdk.archive.sha256
 ENV SDOS_TI_PSDK_ROOT=/opt/ti/psdk/current
 
+# Cppcheck and its MISRA add-on, built from the manifest's commit: Ubuntu
+# 22.04 packages only 2.7. The fetch is by commit and checked after checkout.
+FROM oss-base AS cppcheck
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+ARG CPPCHECK_URL
+ARG CPPCHECK_COMMIT
+RUN : "${CPPCHECK_URL:?}" "${CPPCHECK_COMMIT:?}"; \
+    git init --quiet /tmp/cppcheck; \
+    git -C /tmp/cppcheck fetch --quiet --depth 1 "${CPPCHECK_URL}" "${CPPCHECK_COMMIT}"; \
+    git -C /tmp/cppcheck checkout --quiet FETCH_HEAD; \
+    test "$(git -C /tmp/cppcheck rev-parse HEAD)" = "${CPPCHECK_COMMIT}"; \
+    cmake -S /tmp/cppcheck -B /tmp/cppcheck/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_COMPILER=g++-12 -DCMAKE_INSTALL_PREFIX=/opt/cppcheck -DFILESDIR=/opt/cppcheck/share; \
+    cmake --build /tmp/cppcheck/build; \
+    cmake --install /tmp/cppcheck/build; \
+    rm -rf /tmp/cppcheck
+
 # Non-interactive builds and checks; CI and `make` commands run here.
 # hadolint ignore=DL3006
 FROM ${TOOLCHAIN_BASE} AS ci
+COPY --from=cppcheck /opt/cppcheck /opt/cppcheck
+ENV PATH=/opt/cppcheck/bin:${PATH}
 
 # Interactive development: the same tools, used by .devcontainer.
 # hadolint ignore=DL3006
 FROM ${TOOLCHAIN_BASE} AS dev
+COPY --from=cppcheck /opt/cppcheck /opt/cppcheck
+ENV PATH=/opt/cppcheck/bin:${PATH}
 
 # Documentation checks.
 FROM oss-base AS docs

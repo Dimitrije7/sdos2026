@@ -48,6 +48,9 @@ static void test_messages(void)
     size_t n = 0u;
 
     CHECK("mock opens", dsp != NULL);
+    if (dsp == NULL) {
+        return;
+    }
     CHECK_EQ("info", sdos_dsp_info_get(dsp, &info), SDOS_OK);
     CHECK("a mock DSP starts running", info.state == SDOS_DSP_RUNNING && strcmp(info.device, "64800000.dsp") == 0);
     CHECK_EQ("hello", sdos_dsp_hello(dsp, &id), SDOS_OK);
