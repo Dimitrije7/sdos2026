@@ -33,7 +33,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: ci/feasibility/boundary_probe.sh "$RUNNER_TEMP/boundary.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: feasibility-boundary
           path: ${{ runner.temp }}/boundary.json
@@ -60,7 +60,7 @@ jobs:
           INPUT_ID: ${{ matrix.input }}
           FAMILY: ${{ matrix.family }}
         run: ci/feasibility/ti_cgt_probe.sh "$INPUT_ID" "$FAMILY" "$RUNNER_TEMP/ti-$FAMILY.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: feasibility-ti-${{ matrix.family }}
           path: ${{ runner.temp }}/ti-${{ matrix.family }}.json
@@ -76,7 +76,7 @@ jobs:
           persist-credentials: false
       - name: Stream, extract, and measure
         run: ci/feasibility/psdk_probe.sh "$RUNNER_TEMP/psdk.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: feasibility-psdk
           path: ${{ runner.temp }}/psdk.json
@@ -94,7 +94,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends bmap-tools device-tree-compiler
       - name: Expand, inspect, install a probe package, and measure
         run: ci/feasibility/image_probe.sh "$RUNNER_TEMP/image.json"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: feasibility-image
           path: ${{ runner.temp }}/image.json
