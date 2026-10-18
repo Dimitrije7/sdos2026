@@ -29,6 +29,7 @@ FILE_TOOLS = {
     "syft": "syft.v1.54.0",
     "trivy": "trivy.v0.75.0",
     "node": "nodejs.v22.23.3",
+    "actionlint": "actionlint.v1.7.12",
 }
 # TI compiler family for each TI input installed by the ti-toolchain stage.
 TI_TOOLS = {

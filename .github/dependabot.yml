@@ -1,0 +1,9 @@
+# Dependabot proposes Action updates. Each proposal must also update the pin in
+# manifest/versions.json, or ci/test_workflows.py fails the pull request.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

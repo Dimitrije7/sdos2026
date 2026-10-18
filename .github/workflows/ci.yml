@@ -1,0 +1,60 @@
+# Required pull-request gateway (Task 018). Every job calls the command facade;
+# no build logic lives here. `ci-gate` is the one required status check: it
+# always reports, and it fails unless every lane succeeded.
+name: ci
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+  push:
+    branches: [main, "release/**"]
+    tags: ["v*"]
+  workflow_dispatch:
+  schedule:
+    - cron: "17 1 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  # Superseded pull-request runs are cancelled; pushes to main always finish.
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  quality:
+    name: quality
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      # TI compilers only where the maintainer's acceptance for project
+      # automation applies: never for pull requests from forks.
+      SDOS_TI_TERMS: >-
+        ${{ (github.event_name != 'pull_request'
+            || github.event.pull_request.head.repo.full_name == github.repository)
+            && 'accept' || '' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the pinned container
+        run: python3 ci/facade.py bootstrap
+      - name: Run every quality check
+        run: python3 ci/facade.py quality
+      - name: Build for the board's Cortex-A72
+        run: python3 ci/facade.py build --preset board-host
+
+  ci-gate:
+    name: ci-gate
+    if: always()
+    needs: [quality]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every lane to succeed
+        env:
+          RESULTS: ${{ toJSON(needs.*.result) }}
+        run: |
+          echo "lane results: $RESULTS"
+          python3 -c 'import json, os, sys; r = json.loads(os.environ["RESULTS"]); sys.exit(0 if r and all(x == "success" for x in r) else 1)'

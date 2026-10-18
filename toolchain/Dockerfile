@@ -67,6 +67,7 @@ RUN : "${FILE_TOOLS:?}"; \
         syft) tar -xzf /tmp/syft.download -C /usr/local/bin syft ;; \
         trivy) tar -xzf /tmp/trivy.download -C /usr/local/bin trivy ;; \
         node) mkdir -p /opt/node && tar -xJf /tmp/node.download -C /opt/node --strip-components=1 ;; \
+        actionlint) tar -xzf /tmp/actionlint.download -C /usr/local/bin actionlint ;; \
         *) echo "unknown tool $name" >&2; exit 1 ;; \
       esac; \
       rm -f "/tmp/$name.download"; \

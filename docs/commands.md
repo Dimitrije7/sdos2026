@@ -61,7 +61,7 @@ not.
 | `make configure PRESET=<p>` | Runs CMake for one preset or group | Yes |
 | `make build PRESET=<p>` | Configures and builds | Yes; firmware presets need Task 019 |
 | `make test PRESET=<p>` | Builds and runs unit tests on the PC | Host presets only; on-target tests arrive in Task 033 |
-| `make quality` | Manifest validators, hadolint, ShellCheck, Python tests, every host preset with tests, and every firmware preset when TI is installed, all with warnings as errors | Yes; grows with Tasks 018 and 024 |
+| `make quality` | Manifest and workflow validators, hadolint, actionlint, zizmor, ShellCheck, Python tests, every host preset with tests, and every firmware preset when TI is installed, all with warnings as errors | Yes; grows with Tasks 018 and 024 |
 | `make clean` | Deletes `build/` | Yes |
 | `make package` | Packages firmware and host artifacts | Task 022 |
 | `make image` | Builds the course Linux image | Task 035 |
@@ -124,7 +124,7 @@ the status unchanged.
 |---|---|---|
 | Ubuntu packages | GCC 12, Clang 15 with clang-tidy, clang-format, and clangd, the aarch64 cross GCC 12, CMake 3.22, Ninja, Python 3.10, ShellCheck, lcov, dtc | Snapshot 20261004T000000Z; each `.deb` SHA-256 in the manifest |
 | Python tools | jsonschema, yamllint, lizard, cmakelang, zizmor | [`toolchain/python-tools.lock`](../toolchain/python-tools.lock), hashes for every wheel |
-| Release binaries | hadolint, Syft, Trivy, Node.js 22 | SHA-256 in the manifest |
+| Release binaries | hadolint, actionlint, Syft, Trivy, Node.js 22 | SHA-256 in the manifest |
 | Node.js tools | markdownlint-cli2 | [`toolchain/node/package-lock.json`](../toolchain/node/package-lock.json) |
 
 The Dockerfile targets are `oss-base`, `ci`, `dev`, and `docs`; all currently

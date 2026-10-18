@@ -1,0 +1,9 @@
+# Deliberately broken: a mutable tag, an unknown commit, and no permissions block.
+name: broken
+on: pull_request
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@0123456789abcdef0123456789abcdef01234567 # v7.0.1

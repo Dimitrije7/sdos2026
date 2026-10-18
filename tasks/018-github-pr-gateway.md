@@ -2,7 +2,36 @@
 
 ## Status
 
-pending
+in-progress
+
+## Handoff
+
+- Updated: 2026-10-18, claude.
+- State: The gateway workflow and its checks pass locally. Pushing `main`, a
+  test pull request, and branch protection wait for the maintainer.
+- Done:
+  - `.github/workflows/ci.yml`: the section 6.3 triggers, `contents: read`,
+    cancellation of superseded pull-request runs, timeouts, a `quality` job that
+    runs `bootstrap`, `quality`, and the board-host build through the facade,
+    and an always-reporting `ci-gate`. TI compilers are used only when the run
+    is not a pull request from a fork.
+  - `.github/CODEOWNERS` and `.github/dependabot.yml` for Actions.
+  - `ci/validate_workflows.py` with `ci/test_workflows.py` and the broken
+    fixture `ci/fixtures/workflows/unpinned.yml`; `make quality` now runs it
+    with actionlint and zizmor.
+- Next:
+  1. With the maintainer's approval, push `main`, open a pull request with a
+     harmless change and a second commit, and confirm both runs and
+     `ci-gate`.
+  2. Push a deliberately failing commit to that pull request and confirm
+     `ci-gate` fails; close it.
+  3. Apply the approved branch protection with `gh api`, export the settings
+     to `release/evidence/task-018/`, and complete the task.
+- Decisions: pending. Asked 2026-10-18 for approval to push and for the
+  branch-protection policy.
+- Verification, 2026-10-18: `make quality` passed in the TI image with 97
+  Python tests, four validators, hadolint, actionlint, zizmor ("No findings"),
+  ShellCheck, 4 host presets, and 12 firmware presets.
 
 ## Depends on
 

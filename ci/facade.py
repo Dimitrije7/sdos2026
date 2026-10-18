@@ -57,15 +57,22 @@ PYTHON_TEST_MODULES = (
     "ci.test_validate_versions",
     "ci.test_facade",
     "ci.test_container",
+    "ci.test_workflows",
     "tests.target.test_sdos_board",
 )
-VALIDATORS = ("ci/validate_hardware.py", "ci/validate_licenses.py", "ci/validate_versions.py")
+VALIDATORS = (
+    "ci/validate_hardware.py",
+    "ci/validate_licenses.py",
+    "ci/validate_versions.py",
+    "ci/validate_workflows.py",
+)
 DOCKERFILES = ("toolchain/Dockerfile",)
 
 
 def lint_steps(root: Path = ROOT) -> list[list[str]]:
     shell = sorted(str(p.relative_to(root)) for p in (root / "ci").rglob("*.sh"))
-    steps = [["hadolint", *DOCKERFILES]]
+    workflows = sorted(str(p.relative_to(root)) for p in (root / ".github" / "workflows").glob("*.yml"))
+    steps = [["hadolint", *DOCKERFILES], ["actionlint", *workflows], ["zizmor", "--offline", *workflows]]
     if shell:
         steps.append(["shellcheck", *shell])
     return steps
