@@ -415,6 +415,17 @@ unresolved link-checker row keep that default-deny until then.
    release-adjacent source archive keyed to each container/image digest, plus
    notices and build scripts, rather than relying on mutable upstream URLs.
 
+### Maintainer outcome
+
+On 2026-10-18 the maintainer accepted the recommended model and answered the
+ownership question with "We own no licenses, everything must be free and/or
+open source". Decisions 1, 3, 4, and 5 above take their recommended options.
+Decision 2 has no institutional acceptor: each person accepts no-cost terms for
+their own downloads, and the maintainer confirms exact terms for project
+automation. Blocking item 6 is closed by obtaining no MISRA documents. The
+authoritative record is the decision section of
+[`docs/licensing-policy.md`](../licensing-policy.md).
+
 No proprietary payload, MISRA rule text, license acceptance, or secret was
 obtained or stored during this research. Only public manifests, documentation,
 and the public BeagleBoard inventory were inspected.

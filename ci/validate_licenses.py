@@ -95,6 +95,23 @@ def validate_matrix(matrix: dict[str, Any]) -> None:
                 "license conclusion"
             )
 
+        if handling["cost"] != "no-cost" and handling["lane"] != "excluded":
+            raise ValidationFailure(
+                f"{artifact['id']}: an input that is not unconditionally no-cost "
+                "must stay in the excluded lane"
+            )
+        if handling["cost"] == "paid":
+            admitted = [
+                operation
+                for operation, decision in artifact["operations"].items()
+                if decision["status"] in {"allowed", "conditional"}
+            ]
+            if admitted:
+                raise ValidationFailure(
+                    f"{artifact['id']}: the no-cost-only policy prohibits paid "
+                    f"inputs, but it permits: {', '.join(admitted)}"
+                )
+
         public_container = artifact["operations"]["public_container"]["status"]
         if artifact["license"]["class"] in {"proprietary", "unresolved"} and (
             public_container in {"allowed", "conditional"}

@@ -1,6 +1,7 @@
 # SDOS 2026 licensing and distribution policy
 
-Status: proposed for maintainer decision  
+Status: accepted by the maintainer  
+Date: 2026-10-18  
 Task: [003 — Audit licensing and redistribution](../tasks/003-licensing-and-redistribution.md)  
 Machine source: [`manifest/license-matrix.json`](../manifest/license-matrix.json)  
 Evidence: [`docs/research/task-003-licensing-evidence.md`](research/task-003-licensing-evidence.md)
@@ -11,9 +12,11 @@ distribution control. An institutionally authorized person remains responsible
 for accepting vendor terms and approving any interpretation of a non-open
 license.
 
-## Recommended decision
+## Accepted decision
 
-Accept the following model for the public monorepo:
+The maintainer accepted this model on 2026-10-18 and added a no-cost
+constraint: the project owns no licenses, and every input must be free of
+charge or open source. Item 10 records that constraint.
 
 1. Keep project source, build recipes, checksums, manifests, and the fully open
    `oss-base`, `dev`, `ci`, `docs`, and image-builder layers public.
@@ -21,8 +24,9 @@ Accept the following model for the public monorepo:
    license-acceptance state, and proprietary MISRA text out of Git, public OCI
    images, public caches, logs, and release artifacts.
 3. Acquire the pinned TI layer from TI on an ephemeral authorized runner or an
-   institution-controlled cache only after the exact terms and manifest are
-   recorded. The project does not publish a TI toolchain container, even where
+   institution-controlled cache only after the exact no-cost terms and manifest
+   are recorded and the maintainer confirms acceptance of those terms for
+   project automation. The project does not publish a TI toolchain container, even where
    one component's license may permit an unmodified TI-device-use copy.
 4. Give untrusted fork jobs no secrets, credentials, accepted-license state, or
    access to restricted caches. TI builds may run there only if Task 005 proves
@@ -35,11 +39,11 @@ Accept the following model for the public monorepo:
 6. Admit firmware, libraries, and Linux-image files to a release through an
    allowlist built from the exact installed and post-link manifests. No parent
    archive, SDK, image, or compiler receives a blanket license conclusion.
-7. Obtain or confirm lawful institutional staff access to MISRA C:2012 and
-   Amendments 1–3. Keep the text staff-only. Public CI uses project-owned rule
-   IDs, qualified fixtures, and project messages; it never loads or emits
-   proprietary guideline text. Separate MISRA permission is required before
-   headline text is loaded into a shared tool.
+7. Obtain no MISRA documents. Checks, deviations, and course material use rule
+   IDs, project-written descriptions, and qualified fixtures; they never load
+   or reproduce MISRA guideline or headline text. A MISRA publication that
+   MISRA distributes at no cost may be used after Task 024 records its edition
+   and terms.
 8. For the first course release, distribute SDOS deltas, packages, and
    scripts applied to the official hash-pinned Beagle image. Publish a
    complete derived image only after its Gate 6 license, SPDX, and source
@@ -47,6 +51,11 @@ Accept the following model for the public monorepo:
 9. Deliver copyleft corresponding source as a permanent, release-adjacent
    source archive keyed to each published container or image digest, with its
    notices and build scripts. Mutable upstream URLs are not sufficient.
+10. Admit only no-cost inputs. The project buys no license, subscription, or
+    paid service. No-cost proprietary inputs, such as the TI SDK, compilers, and
+    libraries, remain governed by items 2–6. A paid input may appear in the
+    matrix only in the excluded lane with no permitted operation, and the
+    validator enforces this.
 
 This model makes the public build and test foundation usable immediately while
 preserving a fail-closed boundary around licensed inputs. It can later admit a
@@ -63,7 +72,6 @@ without changing the public repository or student API.
 | Trusted GitHub lane | Public image inputs, firmware allowlists, release metadata; licensed TI use only after Task 005 and institutional approval | Any payload whose exact terms or access boundary remain unresolved |
 | Institution-controlled layer | Exact TI archives and installed trees when approved, hashed, access-controlled, and manifest-complete | Public or student-wide access beyond the applicable terms |
 | Course image/release | Project outputs and exact third-party components with license mapping, notices, source duties, SBOM, hashes, and provenance | Toolchain installers, development SDK archives, unknown-license files |
-| Staff-only materials | MISRA documents and any separately licensed headline text | Git, CI, student images, reports, public artifacts |
 
 GitHub Actions cache is not automatically private enough for a restricted
 payload. A public-repository workflow can execute contributor-controlled code,
@@ -91,9 +99,9 @@ The main decisions are:
 | Linux kernel | GPL-2.0-only with documented per-file exceptions | Ship binaries with exact corresponding source, config, patches, notices, and hashes |
 | Ubuntu/tool containers | Mixed open-source package aggregate | Public after the Task 017 installed SBOM, notice, source, and reproducibility gates |
 | Cppcheck add-on | GPL-3.0-or-later; no MISRA rule text included | Public, pinned checker with source compliance; project-owned rule IDs and messages only |
-| MISRA materials | Proprietary staff reference | Institutionally licensed access only; never redistributed |
+| MISRA materials | Proprietary and paid | Not obtained; the project uses rule IDs and project-written descriptions only |
 | GitHub services/actions | Service terms plus per-action source licenses | Public fork model; full-SHA pins, least privilege, per-action license record |
-| Docker Desktop | Separate subscription terms from the open engine | Tier 2 only after user/institution eligibility is confirmed; installer not mirrored |
+| Docker Desktop | Separate subscription terms from the open engine | Tier 2 only where use is free of charge, or replaced by the open Docker Engine inside WSL2; installer not mirrored |
 
 ## Required records and enforcement
 
@@ -129,19 +137,29 @@ python3 ci/validate_licenses.py --check-links
 The validator rejects duplicate artifacts and components, unknown or orphaned
 blockers, unresolved conclusions without blockers, credentials or license
 acceptance in public PR lanes, proprietary material admitted to a public
-container, and non-open material marked as repository source.
+container, non-open material marked as repository source, and any input that
+is not unconditionally no-cost outside the excluded lane.
 
-## Decision and named ownership still required
+## Decision record
 
-The recommended model requires two maintainer inputs before Task 003 is `done`:
+On 2026-10-18 the maintainer was asked to accept the distribution model,
+including its two-lane CI consequence, and to name who owns TI license
+acceptance and MISRA access. The answer was: "1. I accept it 2. We own no
+licenses, everything must be free and/or open source".
 
-1. accept or replace the distribution model above, including its two-lane CI
-   consequence: fork PRs run the public checks, and TI firmware builds run on
-   trusted lanes unless Task 005 proves a lawful fork-safe path; and
-2. name the institution role or person authorized to own TI license acceptance
-   and MISRA access, and confirm whether MISRA C:2012 plus Amendments 1–3 access
-   already exists or must be obtained.
+Consequences:
 
-Until then, matrix revision 1 remains `proposed`, Task 003 remains in progress,
-and `LIC-004` is a Gate 0 blocker. Task 005 separately owns the measured TI
-GitHub-hosted feasibility proof; accepting this policy does not waive that gate.
+- There is no institutional license owner. Each person accepts no-cost vendor
+  terms for their own downloads. Project automation uses a no-cost proprietary
+  input only after the maintainer confirms its exact recorded terms; Task 005
+  prepares that confirmation for the TI packages.
+- "Free" means free of charge. The TI C6000 and C7000 compilers are no-cost but
+  proprietary. They remain admitted as the plan's firmware toolchain for all
+  three DSPs.
+- The MISRA blocker `LIC-004` is closed by excluding MISRA documents. Matrix
+  revision 2 records the decision, the excluded MISRA row, and the cost field.
+- Tier 2 Windows support requires no-cost Docker Desktop eligibility or the
+  open Docker Engine inside WSL2, tracked by `LIC-008`.
+
+Task 005 separately owns the measured TI GitHub-hosted feasibility proof;
+accepting this policy does not waive that gate.

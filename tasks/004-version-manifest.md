@@ -2,7 +2,7 @@
 
 ## Status
 
-pending
+ready
 
 ## Depends on
 

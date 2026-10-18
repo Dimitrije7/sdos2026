@@ -2,6 +2,7 @@
 
 Status: accepted by the maintainer  
 Date: 2026-10-18  
+Amended: 2026-10-18 by the Task 003 no-cost decision (P-001 Tier 2 and P-005)  
 Task: [001 — Resolve architecture and course policy](../tasks/001-architecture-course-policy.md)
 
 This document is the authoritative Phase 0 course-policy baseline. The
@@ -22,7 +23,7 @@ Use a tiered support policy:
 | Tier | Host | Release obligation |
 |---|---|---|
 | 1 | Ubuntu 22.04 LTS x86-64 with Docker Engine, Buildx, Compose v2, Git, and Make | Every documented workflow must pass before release. |
-| 2 | Windows 11 x86-64 with a supported Docker Desktop and WSL2 configuration, running the same Linux container and repository checkout inside the WSL filesystem | Supported only after the Task 017 clean-host suite passes and institutional Docker terms are confirmed; failures block claiming Windows support, not the Linux release. |
+| 2 | Windows 11 x86-64 with a supported Docker Desktop and WSL2 configuration, running the same Linux container and repository checkout inside the WSL filesystem | Supported only after the Task 017 clean-host suite passes and Docker Desktop is confirmed free of charge for the cohort, or the open Docker Engine inside WSL2 replaces it; failures block claiming Windows support, not the Linux release. |
 | Unsupported for the first release | macOS, Linux on Arm, Windows without WSL2, and other container engines | May be documented as community-tested only after repeatable evidence exists. |
 
 The course SDK container remains Linux/amd64. Students deploy over the network;
@@ -125,8 +126,10 @@ host-only standard update is local to the pinned container and host interfaces.
 
 Apply MISRA C:2012 with Amendments 1, 2, and 3 to project-owned firmware C.
 Firmware C++ and host code use the diagnostics and static-analysis policy in
-P-004; this project does not claim a MISRA C++ profile. Obtain standards text
-through lawful institutional access and never commit its proprietary rule text.
+P-004; this project does not claim a MISRA C++ profile. Under the Task 003
+no-cost decision the project holds no MISRA documents. Checks, deviations, and
+course material cite rule IDs and project-written descriptions, and never
+reproduce MISRA text.
 
 The initial automatic candidate subset is the following rule-ID intersection:
 
@@ -151,6 +154,8 @@ The initial automatic candidate subset is the following rule-ID intersection:
 
 The current open-source Cppcheck engine and `misra.py` add-on directly invoke
 checks for these identifiers, but coverage within an identifier can be partial.
+Task 024 must take each enforced rule's classification from a lawful no-cost
+source; a rule without one stays reported but non-enforcing.
 Task 004 pins the analyzer version. Task 024 must generate and commit its exact
 machine-readable capability manifest, intersect it with this list, and qualify
 each enabled rule with relevant conforming and violating fixtures. A missing or
@@ -186,8 +191,8 @@ tool badge.
 
 Reversibility: Task 024 may propose a narrower or broader enforced set from
 negative-fixture evidence, but changing it requires the task's maintainer
-checkpoint. A commercial analyzer can be added later without weakening this
-baseline.
+checkpoint. A commercial analyzer would first require the maintainer to
+reverse the no-cost rule in the licensing policy.
 
 ### P-006 — Gain, FIR, and FFT performance objectives
 
@@ -264,7 +269,7 @@ schema remains stable so old and new evidence can be compared.
 | C/C++, warnings, MISRA, deviations | P-004 and P-005. |
 | Connected-board versus PR checks | Existing plan policy remains: physical behavior is agent-run under `tests/target/`; no PR depends on a board. |
 | GitHub-hosted feasibility | Task 005 must provide measured proof; failure is an architecture blocker because there is no self-hosted fallback. |
-| Redistribution | Task 003 owns the authoritative license decision. |
+| Redistribution | [`docs/licensing-policy.md`](licensing-policy.md), accepted 2026-10-18 with a no-cost-only constraint. |
 | Hardware inventory | Task 002 owns the BOM and observed inventory. |
 | Version pins | Task 004 owns immutable versions and hashes after Tasks 001 and 003. |
 | Gain/FIR/FFT objectives | P-006. |

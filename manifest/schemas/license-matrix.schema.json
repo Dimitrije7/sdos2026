@@ -60,6 +60,7 @@
       "required": [
         "unknown_permission",
         "fork_pr_secrets",
+        "cost_rule",
         "public_payload_rule",
         "license_acceptance_rule",
         "release_evidence"
@@ -70,6 +71,9 @@
         },
         "fork_pr_secrets": {
           "const": false
+        },
+        "cost_rule": {
+          "const": "no-cost-only"
         },
         "public_payload_rule": {
           "type": "string",
@@ -241,6 +245,7 @@
       "additionalProperties": false,
       "required": [
         "lane",
+        "cost",
         "acquisition",
         "credentials_required",
         "license_acceptance_required",
@@ -252,8 +257,14 @@
             "public-pr",
             "trusted-github",
             "institution-controlled",
-            "staff-only",
             "excluded"
+          ]
+        },
+        "cost": {
+          "enum": [
+            "no-cost",
+            "eligibility-dependent",
+            "paid"
           ]
         },
         "acquisition": {

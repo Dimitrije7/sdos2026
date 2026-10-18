@@ -188,9 +188,9 @@ until connected hardware is observed.
 
 The proposed public/open layer, controlled TI layer, release allowlist, and
 MISRA-material handling are recorded in
-[`docs/licensing-policy.md`](licensing-policy.md). That policy becomes
-authoritative after its Task 003 maintainer decision; its named blockers remain
-fail-closed inputs to later tasks.
+[`docs/licensing-policy.md`](licensing-policy.md). The maintainer accepted it on
+2026-10-18 with a no-cost-only constraint: the project owns no licenses. Its
+named blockers remain fail-closed inputs to later tasks.
 
 Deliverables:
 
@@ -795,7 +795,8 @@ The open-source Cppcheck MISRA add-on is useful but partial. MISRA rule text is
 proprietary and is not shipped by Cppcheck or this repository. Therefore:
 
 - name exactly which rules are automatically checked;
-- obtain any required MISRA documents legally;
+- hold no MISRA documents under the no-cost policy, and cite rule IDs with
+  project-written descriptions only;
 - give unsupported decidable rules another automated check where possible;
 - handle undecidable/process rules through review and a deviation record;
 - isolate and report generated/vendor code separately;
@@ -884,9 +885,9 @@ longer works is a release failure.
 - A private monorepo requires confirmation of included minutes and
   Education/organization features before the course model is frozen.
 - Do not make an optional commercial dashboard a merge dependency.
-- The TI compiler/SDK license and MISRA documents are the expected non-open
-  inputs; handle them through institutional access without unauthorized
-  redistribution.
+- The no-cost TI compilers, SDK, and libraries are the expected non-open
+  inputs; handle them under the licensing policy without unauthorized
+  redistribution. The project buys no license and holds no MISRA documents.
 - Keep PR jobs incremental and parallel; reserve full image rebuilds and deep
   analysis for main/nightly/release lanes.
 

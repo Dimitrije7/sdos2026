@@ -61,7 +61,7 @@ class LicenseMatrixValidationTests(unittest.TestCase):
 
     def test_proprietary_payload_cannot_enter_public_container(self) -> None:
         matrix = copy.deepcopy(self.matrix)
-        artifact = self.artifact(matrix, "misra.c2012-materials")
+        artifact = self.artifact(matrix, "ti.c7x-optimized-libraries")
         artifact["operations"]["public_container"]["status"] = "conditional"
 
         with self.assertRaisesRegex(
@@ -69,6 +69,35 @@ class LicenseMatrixValidationTests(unittest.TestCase):
             "proprietary or unresolved payload cannot enter the public container",
         ):
             subject.validate_matrix(matrix)
+
+    def test_paid_input_cannot_leave_the_excluded_lane(self) -> None:
+        matrix = copy.deepcopy(self.matrix)
+        artifact = self.artifact(matrix, "misra.c2012-materials")
+        artifact["handling"]["lane"] = "institution-controlled"
+
+        with self.assertRaisesRegex(
+            subject.ValidationFailure, "must stay in the excluded lane"
+        ):
+            subject.validate_matrix(matrix)
+
+    def test_paid_input_cannot_be_permitted_any_operation(self) -> None:
+        matrix = copy.deepcopy(self.matrix)
+        artifact = self.artifact(matrix, "misra.c2012-materials")
+        artifact["operations"]["download"]["status"] = "conditional"
+
+        with self.assertRaisesRegex(
+            subject.ValidationFailure, "prohibits paid inputs, but it permits: download"
+        ):
+            subject.validate_matrix(matrix)
+
+    def test_cost_rule_is_required_by_schema(self) -> None:
+        matrix = copy.deepcopy(self.matrix)
+        matrix["policy"]["cost_rule"] = "paid-allowed"
+
+        with self.assertRaises(subject.ValidationFailure):
+            subject.validate_against_schema(
+                matrix, self.schema, Path("manifest/license-matrix.json")
+            )
 
     def test_unresolved_conclusion_requires_blocker(self) -> None:
         matrix = copy.deepcopy(self.matrix)

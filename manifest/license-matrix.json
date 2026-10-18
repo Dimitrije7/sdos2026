@@ -2,14 +2,15 @@
   "$schema": "./schemas/license-matrix.schema.json",
   "schema_version": "1.0.0",
   "matrix_id": "sdos-third-party-license-policy",
-  "revision": 1,
+  "revision": 2,
   "updated": "2026-10-18",
-  "decision_status": "proposed",
+  "decision_status": "accepted",
   "policy": {
     "unknown_permission": "prohibited-until-resolved",
     "fork_pr_secrets": false,
+    "cost_rule": "no-cost-only",
     "public_payload_rule": "Git, public OCI images, public CI caches, and public release artifacts may contain only exact components whose applicable license permits that distribution and whose required notices, source, and device-use conditions are satisfied.",
-    "license_acceptance_rule": "Only an authorized person may accept terms for the institution. CI recipes may consume a recorded authorization but must not silently accept terms, transfer acceptance to students, or expose acceptance state or credentials to fork jobs.",
+    "license_acceptance_rule": "The project buys no license, subscription, or paid service. Each person accepts no-cost vendor terms for their own downloads; project automation may use a no-cost proprietary input only after the maintainer confirms acceptance of its exact recorded terms. CI recipes may consume that recorded confirmation but must not silently accept terms, transfer acceptance to students, or expose acceptance state or credentials to fork jobs.",
     "release_evidence": [
       "exact artifact version, canonical URL, and SHA-256",
       "upstream and installed component manifests",
@@ -17,7 +18,7 @@
       "complete license and attribution bundle",
       "corresponding-source or source-offer evidence where required",
       "post-link firmware component and runtime-library inventory",
-      "institutional approval for every non-open or ambiguous component"
+      "maintainer approval for every non-open or ambiguous component"
     ]
   },
   "artifacts": [
@@ -64,19 +65,20 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Fetch only the pinned upstream archive after an authorized institutional acceptance record exists."},
+        "download": {"status": "conditional", "conditions": "Fetch only the pinned upstream archive after the maintainer's acceptance of the exact no-cost terms is recorded."},
         "install": {"status": "conditional", "conditions": "Install only from the verified archive in an authorized environment and retain the installed manifest."},
         "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove authorized unattended use on GitHub-hosted runners without secrets or acceptance in fork jobs."},
         "cache": {"status": "unresolved", "conditions": "No GitHub or institutional cache until the exact archive terms, access boundary, and fork isolation are approved."},
-        "student_access": {"status": "conditional", "conditions": "Students use TI's own distribution and accept presented terms, or receive only exact components whose included license permits institutional redistribution."},
+        "student_access": {"status": "conditional", "conditions": "Students use TI's own distribution and accept presented terms, or receive only exact components whose included license permits project redistribution."},
         "source_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted source path under its exact included license with notices and TI-device restrictions where applicable."},
         "binary_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted binary whose exact included license permits it, normally unmodified and for TI-device use, with the license and notices."},
         "public_container": {"status": "prohibited", "conditions": "The aggregate SDK is excluded from public OCI layers even when individual components are redistributable."},
         "course_image": {"status": "conditional", "conditions": "Only file-level-cleared runtime or firmware components may enter the course image; development SDK content is excluded."},
-        "release": {"status": "conditional", "conditions": "Release only cleared outputs and components covered by the post-link inventory, notice bundle, and institutional approval."}
+        "release": {"status": "conditional", "conditions": "Release only cleared outputs and components covered by the post-link inventory, notice bundle, and maintainer approval."}
       },
       "handling": {
         "lane": "institution-controlled",
+        "cost": "no-cost",
         "acquisition": "Checksummed upstream download or approved private cache after the exact package terms are recorded.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -134,6 +136,7 @@
       },
       "handling": {
         "lane": "excluded",
+        "cost": "no-cost",
         "acquisition": "No baseline acquisition; preserve only official links until the documented fallback is selected.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -186,10 +189,10 @@
       ],
       "operations": {
         "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
-        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded institutional authorization."},
+        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded maintainer acceptance."},
         "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove fork-safe unattended use and historical-version availability on GitHub-hosted runners."},
         "cache": {"status": "unresolved", "conditions": "No GitHub cache or private mirror until exact terms and access controls are approved."},
-        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless institutional redistribution is separately approved."},
+        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."},
         "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
         "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes the compiler installer and installed compiler binaries from releases and shared toolchain images."},
         "public_container": {"status": "prohibited", "conditions": "No public OCI layer contains the compiler or installer."},
@@ -198,6 +201,7 @@
       },
       "handling": {
         "lane": "institution-controlled",
+        "cost": "no-cost",
         "acquisition": "Checksummed upstream download on an authorized ephemeral runner or approved access-controlled cache.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -250,10 +254,10 @@
       ],
       "operations": {
         "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
-        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded institutional authorization."},
+        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded maintainer acceptance."},
         "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove fork-safe unattended use and historical-version availability on GitHub-hosted runners."},
         "cache": {"status": "unresolved", "conditions": "No GitHub cache or private mirror until exact terms and access controls are approved."},
-        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless institutional redistribution is separately approved."},
+        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless project redistribution is separately approved."},
         "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
         "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes installer and installed compiler binaries from releases and shared toolchain images."},
         "public_container": {"status": "prohibited", "conditions": "No public OCI layer contains the compiler or installer."},
@@ -262,6 +266,7 @@
       },
       "handling": {
         "lane": "institution-controlled",
+        "cost": "no-cost",
         "acquisition": "Checksummed upstream download on an authorized ephemeral runner or approved access-controlled cache.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -310,6 +315,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Pinned public source or cleared extraction from the verified SDK package.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -369,19 +375,20 @@
         }
       ],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Fetch only exact pinned packages after institutional authorization and license capture."},
+        "download": {"status": "conditional", "conditions": "Fetch only exact pinned packages after maintainer acceptance and license capture."},
         "install": {"status": "conditional", "conditions": "Install only in the authorized TI layer and retain each library manifest."},
         "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove public-fork execution does not expose restricted payloads or acceptance state."},
-        "cache": {"status": "unresolved", "conditions": "Cache only if exact terms and access boundaries are institutionally approved."},
+        "cache": {"status": "unresolved", "conditions": "Cache only if exact terms and access boundaries are approved by the maintainer."},
         "student_access": {"status": "conditional", "conditions": "Students obtain the package from TI or receive only a cleared TI-device-use subset with its full license."},
         "source_redistribution": {"status": "conditional", "conditions": "Redistribute only supplied source and derivatives for TI-device use with the full license and notices."},
         "binary_redistribution": {"status": "conditional", "conditions": "Redistribute supplied objects unmodified for TI-device use with the full license and notices."},
         "public_container": {"status": "prohibited", "conditions": "No C7x proprietary library payload enters the public OCI layer."},
         "course_image": {"status": "conditional", "conditions": "Only linked firmware and required unmodified objects may enter the image after a post-link inventory and notice bundle."},
-        "release": {"status": "conditional", "conditions": "Release only a file-level-cleared TI-device-use bundle approved by the institutional licensing owner."}
+        "release": {"status": "conditional", "conditions": "Release only a file-level-cleared TI-device-use bundle approved by the maintainer."}
       },
       "handling": {
         "lane": "institution-controlled",
+        "cost": "no-cost",
         "acquisition": "Checksummed TI download or approved access-controlled cache.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -432,6 +439,7 @@
       },
       "handling": {
         "lane": "trusted-github",
+        "cost": "no-cost",
         "acquisition": "Pinned public repository or distribution package with per-blob allowlist.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -479,6 +487,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Pinned public source archive or Git commit.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -532,6 +541,7 @@
       },
       "handling": {
         "lane": "trusted-github",
+        "cost": "no-cost",
         "acquisition": "Public immutable image URL and companion Syft inventory recorded in the BeagleBoard distribution catalog.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -581,6 +591,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Pinned public Git commit and source archive.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -632,6 +643,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Public OCI registry and frozen Ubuntu archive snapshot.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -801,6 +813,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Pinned public Ubuntu packages or upstream release archives.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -849,6 +862,7 @@
       },
       "handling": {
         "lane": "excluded",
+        "cost": "no-cost",
         "acquisition": "No acquisition until Task 004 selects a candidate.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -898,6 +912,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Pinned public source or release archive.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -908,9 +923,9 @@
     },
     {
       "id": "misra.c2012-materials",
-      "name": "MISRA C:2012, Amendments 1–3, and licensed headline text",
+      "name": "MISRA C:2012, Amendments 1–3, and headline text",
       "category": "standard",
-      "purpose": "Lawful staff reference for the accepted MISRA-oriented policy, rule interpretation, classifications, and deviation review.",
+      "purpose": "Paid standards documents that the project deliberately does not obtain; recorded so that no workflow assumes access to them.",
       "source": {
         "owner": "The MISRA Consortium Limited",
         "canonical_url": "https://www.misra.org.uk/",
@@ -918,43 +933,73 @@
           "https://forum.misra.org.uk/showthread.php?tid=1551",
           "https://www.misra.org.uk/app/uploads/2021/06/MISRA-Compliance-2020.pdf"
         ],
-        "version_rule": "Institutional access must cover MISRA C:2012 and the accepted Amendments 1, 2, and 3; record the licensed edition, permitted users, and any separate permission to load headline text into Cppcheck.",
-        "integrity_rule": "Keep purchase/license records outside Git and record only document identity and access scope in the project evidence."
+        "version_rule": "Not acquired. A no-cost MISRA publication may be used only after Task 024 records its exact edition and terms in a separate matrix row.",
+        "integrity_rule": "No MISRA document, extract, or headline-text file enters the repository, CI, caches, images, or releases."
       },
       "license": {
         "class": "proprietary",
         "expression": "LicenseRef-MISRA-Proprietary",
-        "conclusion": "The standard and guideline text are proprietary. MISRA states that loading headline text into a tool can require a separate organizational license; the project may publish rule IDs and its own controls, not copied rule wording.",
+        "conclusion": "The standard and guideline text are proprietary and sold. Under the 2026-10-18 no-cost decision the project holds no copy. Checks, deviations, and course material cite rule IDs and project-written descriptions only.",
         "checked_on": "2026-10-18",
         "obligations": [
-          "limit access to licensed users and scope",
-          "do not commit or redistribute guideline or headline text",
-          "do not emit proprietary text into CI logs, reports, caches, or artifacts",
-          "obtain explicit permission before loading headline text into a shared tool workflow"
+          "do not commit, load, or reproduce guideline or headline text",
+          "do not emit MISRA text into CI logs, reports, caches, or artifacts",
+          "describe checks as MISRA-oriented or as a checked subset, never as compliance"
         ]
       },
       "components": [],
       "operations": {
-        "download": {"status": "conditional", "conditions": "Only a licensed staff user acquires the materials through the authorized channel."},
-        "install": {"status": "conditional", "conditions": "Store only in institution-approved staff access under the purchased license scope."},
-        "ci_use": {"status": "prohibited", "conditions": "Public or shared CI never loads proprietary MISRA text; it uses project-owned rule IDs and messages."},
-        "cache": {"status": "prohibited", "conditions": "No GitHub cache, OCI layer, project mirror, or general student cache may contain the text."},
-        "student_access": {"status": "prohibited", "conditions": "The course does not redistribute standards text to students; licensed institutional access must explicitly cover any student use."},
-        "source_redistribution": {"status": "prohibited", "conditions": "Do not redistribute the document or extracted text."},
-        "binary_redistribution": {"status": "prohibited", "conditions": "Do not redistribute document files or tool data containing extracted text."},
-        "public_container": {"status": "prohibited", "conditions": "No proprietary MISRA material enters public containers."},
-        "course_image": {"status": "prohibited", "conditions": "No proprietary MISRA material enters the board image."},
-        "release": {"status": "prohibited", "conditions": "Release only project-authored rule IDs, enforcement mappings, deviations, and truthful scope wording."}
+        "download": {
+          "status": "prohibited",
+          "conditions": "The project buys no MISRA document."
+        },
+        "install": {
+          "status": "prohibited",
+          "conditions": "No MISRA document is stored by the project."
+        },
+        "ci_use": {
+          "status": "prohibited",
+          "conditions": "CI uses project-owned rule IDs, messages, and fixtures only."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "No cache may contain MISRA text."
+        },
+        "student_access": {
+          "status": "not-applicable",
+          "conditions": "The course supplies no MISRA document; students may consult copies they lawfully own."
+        },
+        "source_redistribution": {
+          "status": "prohibited",
+          "conditions": "Do not redistribute the document or extracted text."
+        },
+        "binary_redistribution": {
+          "status": "prohibited",
+          "conditions": "Do not redistribute document files or tool data containing extracted text."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "No MISRA material enters a container."
+        },
+        "course_image": {
+          "status": "prohibited",
+          "conditions": "No MISRA material enters the board image."
+        },
+        "release": {
+          "status": "prohibited",
+          "conditions": "Release only project-authored rule IDs, enforcement mappings, deviations, and truthful scope wording."
+        }
       },
       "handling": {
-        "lane": "staff-only",
-        "acquisition": "Institutional purchase or confirmed existing access, with separate tool-use permission if headline text is loaded.",
-        "credentials_required": true,
-        "license_acceptance_required": true,
+        "lane": "excluded",
+        "cost": "paid",
+        "acquisition": "None. The maintainer decided on 2026-10-18 that the project owns no licenses.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
         "repository_payload": "none"
       },
-      "blocker_ids": ["LIC-004"],
-      "notes": "The open PR gate remains functional without the text; licensed staff access is needed to govern the accepted guideline classifications and interpretation."
+      "blocker_ids": [],
+      "notes": "Task 024 sources each enforced rule's classification from a lawful no-cost source or leaves the rule reported but unenforced. The open PR gate never depends on the text."
     },
     {
       "id": "docker.oss-engine",
@@ -1019,6 +1064,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Supported operating-system packages or verified upstream packages.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -1038,7 +1084,7 @@
         "license_urls": [
           "https://www.docker.com/legal/docker-subscription-service-agreement/"
         ],
-        "version_rule": "The Tier 2 qualification records the tested Docker Desktop version and the institution/student eligibility under the then-current subscription terms.",
+        "version_rule": "The Tier 2 qualification records the tested Docker Desktop version and each user's no-cost eligibility under the then-current Docker terms.",
         "integrity_rule": "Use Docker's signed distribution and record the installed version; do not mirror the installer."
       },
       "license": {
@@ -1055,7 +1101,7 @@
       "components": [],
       "operations": {
         "download": {"status": "conditional", "conditions": "Each eligible user obtains Docker Desktop from Docker's distribution channel."},
-        "install": {"status": "conditional", "conditions": "The user or institution accepts the applicable subscription terms."},
+        "install": {"status": "conditional", "conditions": "Each eligible user accepts Docker's no-cost terms; the project buys no subscription."},
         "ci_use": {"status": "not-applicable", "conditions": "GitHub-hosted Linux CI does not use Docker Desktop."},
         "cache": {"status": "prohibited", "conditions": "The project does not cache or mirror the Desktop installer."},
         "student_access": {"status": "unresolved", "conditions": "Tier 2 remains conditional until cohort and institution eligibility are confirmed."},
@@ -1067,6 +1113,7 @@
       },
       "handling": {
         "lane": "excluded",
+        "cost": "eligibility-dependent",
         "acquisition": "Direct per-user download after eligibility is confirmed.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -1131,6 +1178,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "GitHub-hosted service and full-SHA-pinned public action repositories.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -1209,6 +1257,7 @@
       },
       "handling": {
         "lane": "public-pr",
+        "cost": "no-cost",
         "acquisition": "Pinned public Git commit from git.ti.com, with no account or license acceptance.",
         "credentials_required": false,
         "license_acceptance_required": false,
@@ -1290,6 +1339,7 @@
       },
       "handling": {
         "lane": "excluded",
+        "cost": "no-cost",
         "acquisition": "Direct per-maintainer download from TI.",
         "credentials_required": false,
         "license_acceptance_required": true,
@@ -1303,8 +1353,8 @@
     {
       "id": "LIC-001",
       "description": "The exact selected PSDK, compiler, and optimized-library archives must be acquired without accepting terms in this repository and their shipped manifests must be reconciled path by path.",
-      "owner": "Task 004 with the institution's authorized TI license owner",
-      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, included license texts, and written approval of the classified acquisition and redistribution uses.",
+      "owner": "Task 004 for the record; Task 005 for the maintainer's confirmation of exact no-cost terms",
+      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, and included license texts, then record the maintainer's acceptance of the exact no-cost terms and approval of the classified acquisition and redistribution uses.",
       "gate": "Gate 0"
     },
     {
@@ -1320,13 +1370,6 @@
       "owner": "Tasks 035–037",
       "unblock_condition": "Resolve every empty or ambiguous inventory result, generate a valid SPDX filesystem/package SBOM, and provide the per-component license manifest, notice bundle, corresponding-source evidence, firmware allowlist, hashes, and reproducible build provenance before publishing an image.",
       "gate": "Gate 6 release publication"
-    },
-    {
-      "id": "LIC-004",
-      "description": "The repository has no recorded institutional entitlement for MISRA C:2012 plus Amendments 1–3 or for shared tool use of headline text.",
-      "owner": "Maintainer and institution licensing/procurement owner",
-      "unblock_condition": "Name the institutionally authorized license owner and record either existing lawful staff access covering the accepted documents or approval to obtain it; obtain separate MISRA permission before loading headline text into shared tooling.",
-      "gate": "Gate 0 for policy ownership; Task 024 before any text-assisted check"
     },
     {
       "id": "LIC-005",
@@ -1351,9 +1394,9 @@
     },
     {
       "id": "LIC-008",
-      "description": "Tier 2 Docker Desktop eligibility has not been confirmed for the institution and student cohort under the current subscription terms.",
+      "description": "Tier 2 depends on Docker Desktop being available at no cost to every Tier 2 user under Docker's current terms; the project buys no subscription.",
       "owner": "Task 034 Tier 2 host qualification",
-      "unblock_condition": "Record the applicable educational/personal/organization eligibility and validate the Windows clean-host workflow without redistributing Docker Desktop.",
+      "unblock_condition": "Record no-cost eligibility for the Tier 2 cohort, or qualify the open-source Docker Engine inside WSL2 instead, and validate the Windows clean-host workflow without redistributing Docker Desktop.",
       "gate": "Tier 2 support claim; does not block Tier 1 or Gate 0"
     }
   ]
