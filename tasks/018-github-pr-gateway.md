@@ -2,31 +2,26 @@
 
 ## Status
 
-in-progress
+done
 
-## Handoff
+## Completion evidence
 
-- Updated: 2026-10-18, claude.
-- State: The gateway workflow and its checks pass locally. Pushing `main`, a
-  test pull request, and branch protection wait for the maintainer.
-- Done:
-  - `.github/workflows/ci.yml`: the section 6.3 triggers, `contents: read`,
-    cancellation of superseded pull-request runs, timeouts, a `quality` job that
-    runs `bootstrap`, `quality`, and the board-host build through the facade,
-    and an always-reporting `ci-gate`. TI compilers are used only when the run
-    is not a pull request from a fork.
-  - `.github/CODEOWNERS` and `.github/dependabot.yml` for Actions.
-  - `ci/validate_workflows.py` with `ci/test_workflows.py` and the broken
-    fixture `ci/fixtures/workflows/unpinned.yml`; `make quality` now runs it
-    with actionlint and zizmor.
-- Next:
-  1. With the maintainer's approval, push `main`, open a pull request with a
-     harmless change and a second commit, and confirm both runs and
-     `ci-gate`.
-  2. Push a deliberately failing commit to that pull request and confirm
-     `ci-gate` fails; close it.
-  3. Apply the approved branch protection with `gh api`, export the settings
-     to `release/evidence/task-018/`, and complete the task.
+- `.github/workflows/ci.yml` runs on the section 6.3 triggers with
+  `contents: read`, timeouts, cancellation of superseded pull-request runs, and
+  safe fork behavior: fork pull requests run without TI. Its `quality` job only
+  calls the facade; `ci-gate` always reports.
+- `ci/validate_workflows.py` requires every Action to match its manifest commit
+  and the gateway to keep its triggers and `ci-gate`; `make quality` runs it
+  with actionlint and zizmor, and `ci/fixtures/workflows/unpinned.yml` proves
+  the rejection. CODEOWNERS names the maintainer.
+- [`release/evidence/task-018/summary.md`](../release/evidence/task-018/summary.md):
+  pull request #2 ran the gateway when opened and on each new commit; its
+  deliberately broken commit failed `ci-gate` and GitHub reported it
+  `BLOCKED`. Dependabot pull request #1 was also blocked, by the pin check.
+- Branch protection on `main` is applied and exported in
+  `main-protection.json`.
+- Dependabot: security updates only; three npm advisories in markdownlint-cli2
+  dependencies go to Task 024.
 - Decisions, 2026-10-18: asked "May I push local main (23 commits ...) to
   github.com/Dimitrije7/sdos2026?", the maintainer chose "Yes, push
   (Recommended)". Asked "How strictly should main be protected?", the
@@ -34,9 +29,9 @@ in-progress
   `ci-gate`, force pushes and deletion are blocked, no approval is required,
   and the maintainer and agents acting as the maintainer may still push
   directly to `main`.
-- Verification, 2026-10-18: `make quality` passed in the TI image with 97
-  Python tests, four validators, hadolint, actionlint, zizmor ("No findings"),
-  ShellCheck, 4 host presets, and 12 firmware presets.
+  On 2026-10-18 the maintainer chose "Close; security-only (Recommended)"
+  for Dependabot: pull request #1 was closed with an explanation, and routine
+  version updates were disabled.
 
 ## Depends on
 
