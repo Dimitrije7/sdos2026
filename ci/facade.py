@@ -194,6 +194,9 @@ def in_container(args: argparse.Namespace, run: Runner) -> int:
     if args.command == "bootstrap":
         if not ti:
             print(TI_NOTICE, file=sys.stderr)
+        elif not run.dry_run:
+            print("checking the TI SDK archive in the input cache (3.7 GB on first use)", flush=True)
+            container.fetch_input(container.PSDK_INPUT)
         code = run(container.build_command(ti=ti))
         return code or run(container.run_command(tag, _container_args(args), rootless))
     if not run.dry_run and not container.image_present(tag):

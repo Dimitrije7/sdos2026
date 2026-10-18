@@ -2,7 +2,7 @@
   "$schema": "./schemas/versions.schema.json",
   "schema_version": 1,
   "manifest_id": "sdos-platform-versions",
-  "revision": 2,
+  "revision": 3,
   "updated": "2026-10-18",
   "selection_rule": {
     "release_cutoff": "2026-10-04",
@@ -361,7 +361,7 @@
       },
       "integrity": {
         "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
-        "path": "dsplib_* folder"
+        "path": "dsplib/"
       },
       "acquisition": {
         "status": "gated",
@@ -370,7 +370,7 @@
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
-      "notes": "The components page says 11.00.00.01 while the SDK manifest says 11.02.00. Task 019 records the folder actually present in the hashed archive and revises this entry.",
+      "notes": "Resolved by Task 019 from the hashed archive: the C7x library ships in the unversioned folder dsplib/, and its TI manifest docs/DSPLIB_manifest.html declares DSPLIB 11.00.00 under the TI Text File license.",
       "state": "candidate"
     },
     {
@@ -387,7 +387,7 @@
       },
       "integrity": {
         "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
-        "path": "fftlib_* folder"
+        "path": "fftlib/"
       },
       "acquisition": {
         "status": "gated",
@@ -396,6 +396,7 @@
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+      "notes": "Resolved by Task 019 from the hashed archive: the C7x library ships in the unversioned folder fftlib/, and its TI manifest docs/FFTLIB_manifest.html declares FFTLIB 11.00.00 under the TI Text File license.",
       "state": "candidate"
     },
     {
@@ -412,7 +413,7 @@
       },
       "integrity": {
         "contained_in": "ti.psdk-rtos-j721e-11.02.01.03",
-        "path": "mmalib_* folder"
+        "path": "mmalib_11_02_00_11/"
       },
       "acquisition": {
         "status": "gated",
@@ -421,7 +422,7 @@
         ]
       },
       "evidence": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
-      "notes": "The components page says 11.02.00.11 while the SDK manifest says 11.02.01. Task 019 resolves it from the hashed archive.",
+      "notes": "Resolved by Task 019 from the hashed archive: folder mmalib_11_02_00_11/ with version file 11_02_00_11; its TI manifest declares MMALIB 11.02.00 under the TI Text File license.",
       "state": "candidate"
     },
     {

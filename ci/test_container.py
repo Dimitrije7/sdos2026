@@ -119,8 +119,11 @@ class TiTermsTests(unittest.TestCase):
             container.record_ti_acceptance(record=record)
             self.assertTrue(container.ti_accepted(record=record))
             args = container.build_args(ti=True)
-            self.assertEqual(args["TOOLCHAIN_BASE"], "ti-toolchain")
+            self.assertEqual(args["TOOLCHAIN_BASE"], "ti-sdk")
             self.assertIn("c6000|https://dr-download.ti.com/", args["TI_TOOLS"])
+            self.assertRegex(args["PSDK_SHA256"], r"^[0-9a-f]{64}$")
+            self.assertIn("ti-inputs=", " ".join(container.build_command(ti=True)))
+            self.assertNotIn("ti-inputs=", " ".join(container.build_command(ti=False)))
 
     def test_acceptance_of_other_installers_does_not_count(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, mock.patch.dict(os.environ, {"SDOS_TI_TERMS": ""}):
@@ -131,6 +134,22 @@ class TiTermsTests(unittest.TestCase):
     def test_ti_and_open_images_have_different_tags(self) -> None:
         self.assertNotEqual(container.image_tag(ti=True), container.image_tag(ti=False))
         self.assertIn(":dev-ti-", container.image_tag(ti=True))
+
+
+class FetchInputTests(unittest.TestCase):
+    def test_cached_file_with_matching_hash_is_reused_without_network(self) -> None:
+        payload = b"pinned payload"
+        with tempfile.TemporaryDirectory() as tmp:
+            manifest = Path(tmp) / "versions.json"
+            manifest.write_text(json.dumps({"inputs": [{
+                "id": "x", "kind": "file",
+                "source": {"url": "https://invalid.example/x.bin", "file_name": "x.bin"},
+                "integrity": {"sha256": __import__("hashlib").sha256(payload).hexdigest()},
+            }]}))
+            cache = Path(tmp) / "cache"
+            cache.mkdir()
+            (cache / "x.bin").write_bytes(payload)
+            self.assertEqual(container.fetch_input("x", cache, manifest), cache / "x.bin")
 
 
 if __name__ == "__main__":

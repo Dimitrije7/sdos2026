@@ -39,6 +39,11 @@ if(SDOS_PRODUCT STREQUAL "firmware")
   endif()
 endif()
 
+if(EXISTS "$ENV{SDOS_TI_PSDK_ROOT}/../../psdk.archive.sha256")
+  file(READ "$ENV{SDOS_TI_PSDK_ROOT}/../../psdk.archive.sha256" SDOS_TI_PSDK_SHA256)
+  string(STRIP "${SDOS_TI_PSDK_SHA256}" SDOS_TI_PSDK_SHA256)
+endif()
+
 # Record what built this tree, so every artifact traces to manifest pins.
 file(WRITE "${CMAKE_BINARY_DIR}/sdos-build-info.json"
 "{
@@ -50,6 +55,7 @@ file(WRITE "${CMAKE_BINARY_DIR}/sdos-build-info.json"
   \"compiler_version\": \"${CMAKE_C_COMPILER_VERSION}\",
   \"compiler\": \"${CMAKE_C_COMPILER}\",
   \"ti_installer_sha256\": \"${SDOS_TI_INSTALLER_SHA256}\",
+  \"ti_psdk_archive_sha256\": \"${SDOS_TI_PSDK_SHA256}\",
   \"container_image\": \"$ENV{SDOS_IMAGE}\"
 }
 ")

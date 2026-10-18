@@ -1,7 +1,7 @@
 # Build and test commands
 
-Status: host, board-host, and firmware presets verified on 2026-10-18; the TI
-SDK libraries for firmware images arrive with the rest of Task 019  
+Status: host, board-host, and firmware presets and the TI SDK layer verified
+on 2026-10-18  
 Code: [`Makefile`](../Makefile), [`ci/facade.py`](../ci/facade.py),
 [`ci/container.py`](../ci/container.py),
 [`toolchain/Dockerfile`](../toolchain/Dockerfile),
@@ -41,10 +41,19 @@ that present the terms. After reading them:
 make bootstrap TI=accept
 ```
 
-This records your acceptance of exactly the pinned installers in
-`~/.config/sdos/ti-terms-accepted.json`, downloads both installers from TI,
-checks their SHA-256 against the manifest, and installs them unattended in an
-extra image layer, about 200 MB more. Later bootstraps reuse the record. The
+This records your acceptance of exactly the pinned TI inputs in
+`~/.config/sdos/ti-terms-accepted.json`. It then:
+
+- downloads TI's Processor SDK RTOS archive, 3.7 GB, once into
+  `~/.cache/sdos/inputs/`, resuming after interruptions, and checks its SHA-256;
+- downloads both compiler installers from TI, checks their SHA-256, and
+  installs them unattended;
+- extracts the SDK parts that firmware needs, about 2.1 GB: the PDK with
+  FreeRTOS and drivers, the C66x DSPLIB, the C7x DSPLIB and FFTLIB, MMALIB,
+  and the SDK build scripts. The archive is checked again before extraction.
+
+Expect about 20 GB of free disk and, on the first run, as long as the SDK
+download takes. `SDOS_INPUT_CACHE` moves the download cache. Later bootstraps reuse the record. The
 layer stays on your machine: never push an `sdos-dev:*-ti-*` image to a
 registry. A pin change makes the record stale, so you accept the new
 installers again.
@@ -91,7 +100,8 @@ layer, configuring a firmware preset stops with a message naming the missing
 compiler. A compiler whose version differs from the manifest is rejected.
 
 Each build tree holds `sdos-build-info.json`, recording the product, core,
-runtime, compiler and version, the TI installer SHA-256, and the image tag.
+runtime, compiler and version, the TI installer and SDK archive SHA-256, and
+the image tag.
 
 ## Exit status
 

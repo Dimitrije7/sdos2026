@@ -11,7 +11,7 @@
 # lets the bare base image fetch ca-certificates before it can verify TLS peers.
 
 ARG BASE_IMAGE
-# oss-base, or ti-toolchain once the user has accepted TI's terms.
+# oss-base, or ti-sdk once the user has accepted TI's terms.
 ARG TOOLCHAIN_BASE=oss-base
 
 FROM ${BASE_IMAGE} AS oss-base
@@ -80,9 +80,9 @@ RUN npm ci --prefix /opt/sdos-node --ignore-scripts --no-audit --no-fund \
 ENV SDOS_IN_CONTAINER=1
 WORKDIR /work
 
-# TI C6000 and C7000 compilers. This layer exists only in local images and
-# trusted CI jobs: the license matrix prohibits publishing it, and the facade
-# builds it only after `make bootstrap TI=accept`. TI_TOOLS holds
+# TI C6000 and C7000 compilers. This layer and ti-sdk exist only in local
+# images and trusted CI jobs: the license matrix prohibits publishing them, and
+# the facade builds them only after `make bootstrap TI=accept`. TI_TOOLS holds
 # "family|url|sha256"; each installer is checked before it runs.
 FROM oss-base AS ti-toolchain
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
@@ -107,6 +107,27 @@ RUN : "${TI_TOOLS:?}"; \
     /opt/ti/c6000/bin/cl6x --compiler_revision; \
     /opt/ti/c7000/bin/cl7x --compiler_revision
 ENV SDOS_TI_C6000_ROOT=/opt/ti/c6000 SDOS_TI_C7000_ROOT=/opt/ti/c7000
+
+# The parts of TI's Processor SDK RTOS that course firmware needs: PDK with
+# FreeRTOS and drivers, the C66x and C7x DSP libraries, and the SDK build
+# scripts. `make bootstrap` downloads the archive once into the user's cache
+# and passes that directory as the ti-inputs build context; the archive is
+# checked against the manifest SHA-256 again before extraction.
+FROM ti-toolchain AS ti-sdk
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+ARG PSDK_FILE
+ARG PSDK_SHA256
+ARG PSDK_COMPONENTS
+RUN --mount=type=bind,from=ti-inputs,target=/mnt/ti-inputs \
+    : "${PSDK_FILE:?}" "${PSDK_SHA256:?}" "${PSDK_COMPONENTS:?}"; \
+    echo "${PSDK_SHA256}  /mnt/ti-inputs/${PSDK_FILE}" | sha256sum --check --strict; \
+    mkdir -p /opt/ti/psdk; \
+    root=${PSDK_FILE%.tar.gz}; \
+    set --; for component in ${PSDK_COMPONENTS}; do set -- "$@" "$root/$component"; done; \
+    tar -xzf "/mnt/ti-inputs/${PSDK_FILE}" -C /opt/ti/psdk "$@"; \
+    ln -s "/opt/ti/psdk/$root" /opt/ti/psdk/current; \
+    echo "${PSDK_SHA256}" > /opt/ti/psdk.archive.sha256
+ENV SDOS_TI_PSDK_ROOT=/opt/ti/psdk/current
 
 # Non-interactive builds and checks; CI and `make` commands run here.
 # hadolint ignore=DL3006

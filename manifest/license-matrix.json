@@ -2,7 +2,7 @@
   "$schema": "./schemas/license-matrix.schema.json",
   "schema_version": "1.0.0",
   "matrix_id": "sdos-third-party-license-policy",
-  "revision": 5,
+  "revision": 6,
   "updated": "2026-10-18",
   "decision_status": "accepted",
   "policy": {
@@ -292,7 +292,7 @@
       "license": {
         "class": "open-source",
         "expression": "BSD-3-Clause",
-        "conclusion": "The current J721E manifest classifies C66x DSPLIB 3.4.0 source as BSD-3-Clause; the exact selected package must confirm the same conclusion.",
+        "conclusion": "The J721E SDK manifest classifies C66x DSPLIB 3.4.0 as BSD-3-Clause and the package's own manifest says TI BSD. Task 019 found BSD-3-Clause text in 737 of 746 C files, but 49 files under packages/ti/dsplib/src/*/c66/ also cite a TMS320-only TI_license.PDF that is not shipped; those files stay out of published artifacts until LIC-001 resolves them.",
         "checked_on": "2026-10-18",
         "obligations": [
           "retain copyright, conditions, and disclaimer in source distributions",
@@ -1406,8 +1406,8 @@
     {
       "id": "LIC-001",
       "description": "The exact selected PSDK, compiler, and optimized-library archives must be acquired without accepting terms in this repository and their shipped manifests must be reconciled path by path.",
-      "owner": "Task 004 recorded the pins and Task 005 the maintainer's acceptance of the exact no-cost terms; Task 019 owns the path-by-path inventory",
-      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, and included license texts, then record the maintainer's acceptance of the exact no-cost terms and approval of the classified acquisition and redistribution uses. Versions, URLs, hashes, and the acceptance are recorded; the installed inventories and license texts remain.",
+      "owner": "Task 004 recorded the pins, Task 005 the maintainer's acceptance of the exact no-cost terms, and Task 019 the path-by-path inventory; the first task that publishes a TI-derived artifact requests the remaining approval",
+      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, and included license texts, then record the maintainer's acceptance of the exact no-cost terms and approval of the classified acquisition and redistribution uses. Done: versions, URLs, hashes, acceptance, and the inventory in release/evidence/task-019/psdk-inventory.json, which maps every extracted file to a TI manifest row and hashes each manifest and license file. Remaining: the maintainer's approval of redistribution for the TI Text File components, and resolution of 49 C66x DSPLIB files whose headers cite a TMS320-only TI_license.PDF that the package does not include.",
       "gate": "Before any TI-derived artifact is published; moved from Gate 0 by the accepted Gate 0 condition G0-4"
     },
     {

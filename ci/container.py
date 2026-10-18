@@ -14,6 +14,7 @@ import os
 import shutil
 import subprocess
 import time
+import urllib.request
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -36,7 +37,20 @@ TI_TOOLS = {
     "c6000": "ti.c6000-cgt-8.3.7",
     "c7000": "ti.c7000-cgt-5.0.0.lts",
 }
+PSDK_INPUT = "ti.psdk-rtos-j721e-11.02.01.03"
+# SDK folders extracted into the image: PDK with FreeRTOS, the C66x DSPLIB, the
+# C7x DSPLIB and FFTLIB (shipped without a version suffix), MMALIB, and the
+# SDK build scripts. Each name is an exact archive member, never a wildcard.
+PSDK_COMPONENTS = (
+    "pdk_jacinto_11_02_01_08",
+    "dsplib_c66x_3_4_0_0",
+    "dsplib",
+    "fftlib",
+    "mmalib_11_02_00_11",
+    "psdk_rtos",
+)
 TI_ACCEPTANCE = Path.home() / ".config" / "sdos" / "ti-terms-accepted.json"
+INPUT_CACHE = Path(os.environ.get("SDOS_INPUT_CACHE", Path.home() / ".cache" / "sdos" / "inputs"))
 IMAGE_NAME = "sdos-dev"
 CURRENT_TAG = f"{IMAGE_NAME}:current"  # what .devcontainer opens; moved by each bootstrap
 
@@ -63,7 +77,7 @@ def ti_terms(manifest: Path = MANIFEST) -> list[dict[str, str]]:
             "sha256": inputs[item_id]["integrity"]["sha256"],
             "terms_page": inputs[item_id]["evidence"],
         }
-        for family, item_id in TI_TOOLS.items()
+        for family, item_id in [*TI_TOOLS.items(), ("psdk", PSDK_INPUT)]
     ]
 
 
@@ -117,7 +131,11 @@ def build_args(manifest: Path = MANIFEST, ti: bool = False) -> dict[str, str]:
         ),
     }
     if ti:
-        args["TOOLCHAIN_BASE"] = "ti-toolchain"
+        psdk = inputs[PSDK_INPUT]
+        args["TOOLCHAIN_BASE"] = "ti-sdk"
+        args["PSDK_FILE"] = psdk["source"]["file_name"]
+        args["PSDK_SHA256"] = psdk["integrity"]["sha256"]
+        args["PSDK_COMPONENTS"] = " ".join(PSDK_COMPONENTS)
         args["TI_TOOLS"] = " ".join(
             f"{family}|{inputs[i]['source']['url']}|{inputs[i]['integrity']['sha256']}"
             for family, i in TI_TOOLS.items()
@@ -144,6 +162,43 @@ def image_tag(
     return f"{IMAGE_NAME}:{flavor}-{digest.hexdigest()[:12]}"
 
 
+def fetch_input(input_id: str, cache: Path | None = None, manifest: Path = MANIFEST) -> Path:
+    """Download a pinned file input into the cache, resuming, and verify it."""
+    item = _inputs(manifest)[input_id]
+    cache = cache or INPUT_CACHE
+    target = cache / item["source"]["file_name"]
+    expected = item["integrity"]["sha256"]
+    if target.exists() and _sha256(target) == expected:
+        return target
+    cache.mkdir(parents=True, exist_ok=True)
+    partial = target.with_name(target.name + ".part")
+    for _attempt in range(8):
+        offset = partial.stat().st_size if partial.exists() else 0
+        request = urllib.request.Request(item["source"]["url"], headers={"Range": f"bytes={offset}-"})
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response, partial.open("ab") as out:
+                if offset and response.status != 206:
+                    out.truncate(0)
+                while chunk := response.read(1 << 20):
+                    out.write(chunk)
+            break
+        except OSError as exc:
+            print(f"download interrupted ({exc}); resuming", flush=True)
+    if _sha256(partial) != expected:
+        partial.unlink(missing_ok=True)
+        raise RuntimeError(f"{input_id}: downloaded file does not match the manifest SHA-256")
+    partial.rename(target)
+    return target
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1 << 20):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def build_command(target: str = "dev", ti: bool = False) -> list[str]:
     argv = ["docker", "build", "--target", target, "--tag", image_tag(target, ti=ti)]
     if target == "dev":
@@ -151,6 +206,8 @@ def build_command(target: str = "dev", ti: bool = False) -> list[str]:
     argv += ["--file", str(DOCKERFILE)]
     for key, value in build_args(ti=ti).items():
         argv += ["--build-arg", f"{key}={value}"]
+    if ti:
+        argv += ["--build-context", f"ti-inputs={INPUT_CACHE}"]
     return argv + [str(DOCKERFILE.parent)]
 
 

@@ -1,0 +1,980 @@
+{
+  "psdk_root": "/opt/ti/psdk/ti-processor-sdk-rtos-j721e-evm-11_02_01_03",
+  "archive_sha256": "8421152eedff7b0bb3a59caf884fd0932b8a9976e394cf8bf73f257dee4e50bc",
+  "components": [
+    {
+      "component": "pdk_jacinto_11_02_01_08",
+      "files": 18124,
+      "bytes": 1646589600,
+      "tree_sha256": "85557371b070a11eb724f0a8314eeb9f22fd0fce85b1870a2a954905072b6b8c",
+      "manifest": "docs/manifest/pdk_jacinto_manifest.html",
+      "manifest_sha256": "8a976542a4f9698bfeccfea43250d60800195204c0145659e7516996387a4151",
+      "license_files": {
+        "packages/ti/build/unit-test/Unity/LICENSE.txt": "3ed9b51da86f52c729c96cc99fdde6444b2297c788a9cf4ad1d3649dc34c4985",
+        "packages/ti/drv/enet/enet_cli/FreeRTOS-Plus-CLI/LICENSE_INFORMATION.txt": "6aa2663d0ffab6e9c830273b00d6f7b233955773057881c808bc368ca0079928",
+        "packages/ti/drv/sa/src/pkafw/license.txt": "702683d99b909d7077833c32a0b8f097662df5e26ceff978025cf13ded3321f7",
+        "packages/ti/drv/sciclient/COPYING.txt": "0eb625aed8919015d75ed9c223b21e8c4871025858a9d40aea28028bcfbfbaeb",
+        "packages/ti/kernel/freertos/FreeRTOS-LTS/FreeRTOS-Kernel/portable/ThirdParty/GCC/RISC-V/README-for-info-on-official-MIT-license-port.txt": "4bf3d9148e03363e4b55af8fe811704c492418d3851fe95a638ca5c048cd0c5a",
+        "packages/ti/transport/lwip/lwip-stack/COPYING": "ef4aac92e05e87cd1cdc140870ed52206ba03d4a7fe46c1e11d7ffa6c87d252b",
+        "packages/ti/transport/lwip/lwip-stack/contrib/apps/LwipMibCompiler/SharpSnmpLib/license.txt": "ef1f7505cfdff240e72602bc50ef1cdba37c681c84611cdf30e4371320c70942"
+      },
+      "manifest_entries": [
+        {
+          "Software Name": "PDK",
+          "Version": "11.02.00",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and Binary",
+          "Location": "[as installed]/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "TIFS",
+          "Version": "11.02.xx",
+          "License Type": "TI Text File License ('TSPA')",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/packages/ti/drv/sciclient/soc/Vx",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "CSI-RX core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/csirx",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "CSI-TX core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/csitx",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "DP core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/dss/src/csl/dp, [as installed]/packages/ti/drv/dss/src/csl/dp_sd0801",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "DSI core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/dss/src/csl/dsi",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "DPHY Core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/dss/src/csl/dphy",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "LPDDR4 Core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/lpddr",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "MMCSD Core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/mmc/Vx",
+          "Obtained from": "Arasan Chip Systems Inc"
+        },
+        {
+          "Software Name": "CPSW Switch config tool",
+          "Version": "1.0",
+          "License Type": "MIT License",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/enet/enet_cfgserver/priv/inc/jsmn.h",
+          "Obtained from": "Serge Zaitsev"
+        },
+        {
+          "Software Name": "PDK PKA Firmware",
+          "Version": "1.1",
+          "License Type": "TI Text File",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/packages/ti/drv/sa/src/pkafw",
+          "Obtained from": "Inside Secure B.V."
+        },
+        {
+          "Software Name": "PDK SA LLD",
+          "Version": "4.0.0",
+          "License Type": "BSD-3-Clause, SSLeay",
+          "Delivered As": "Source and Binary",
+          "Location": "[as_installed]/packages/ti/drv/sa/*",
+          "Obtained from": "TI and OpenSSL 0.9.8h \u00e2\u20ac\u201c http://www.openssl.org/source/"
+        },
+        {
+          "Software Name": "Free RTOS",
+          "Version": "10.5.1",
+          "License Type": "MIT License",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/kernel/*",
+          "Obtained from": "Amazon.com"
+        },
+        {
+          "Software Name": "lwIP",
+          "Version": "STABLE-2_1_2_RELEASE",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "[as installed]/packages/ti/transport/lwip/lwip-stack/*",
+          "Obtained from": "https://savannah.nongnu.org/git/?group=lwip"
+        },
+        {
+          "Software Name": "LwIP contrib",
+          "Version": "STABLE-2_1_0_RELEASE",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "[as installed]/packages/ti/transport/lwip/lwip-contrib/*",
+          "Obtained from": "https://savannah.nongnu.org/git/?group=lwip"
+        },
+        {
+          "Software Name": "Pugixml",
+          "Version": "v1.14",
+          "License Type": "MIT License",
+          "Delivered As": "Source and Binary",
+          "Location": "as installed",
+          "Obtained from": "https://github.com/zeux/pugixml"
+        },
+        {
+          "Software Name": "RTOS_ETHERNET_TSN_STACK",
+          "Version": "11.02.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Binary",
+          "Location": "[as installed]/ https://bitbucket.itg.ti.com/projects/PROCESSOR-SDK/repos/enet-tsn-stack/browse",
+          "Obtained from": "Texas Instruments and Excelfore Corporation"
+        },
+        {
+          "Software Name": "Pugixml",
+          "Version": "v1.14",
+          "License Type": "MIT License",
+          "Delivered As": "Source and Binary",
+          "Location": "as installed",
+          "Obtained from": "https://github.com/zeux/pugixml"
+        }
+      ],
+      "files_by_license": {
+        "BSD-3-Clause": 16960,
+        "MIT License": 908,
+        "BSD-3-Clause, SSLeay": 215,
+        "TI Text File License ('TSPA')": 38,
+        "TI Text File": 3
+      },
+      "uncovered_files_by_directory": {}
+    },
+    {
+      "component": "dsplib_c66x_3_4_0_0",
+      "files": 4625,
+      "bytes": 38268108,
+      "tree_sha256": "02dd1c9ffb972275094d16daeed8fdb0454a37d793cc31a0c3ebf25d2445648a",
+      "manifest": "packages/ti/dsplib/docs/manifest/Software_Manifest.html",
+      "manifest_sha256": "a48d0f09ee5e3837038780e397aeee0b6b7d64c61bea3d35e654560caa6525f7",
+      "license_files": {},
+      "manifest_entries": [
+        {
+          "Software Name": "Digital Signal Processing library",
+          "Version": "3.4.0.0",
+          "License Type": "TI BSD",
+          "Delivered As": "Source",
+          "Location": "~/ti/dsplib",
+          "Obtained from": ""
+        }
+      ],
+      "files_by_license": {
+        "TI BSD": 4625
+      },
+      "uncovered_files_by_directory": {}
+    },
+    {
+      "component": "dsplib",
+      "files": 1848,
+      "bytes": 239904728,
+      "tree_sha256": "cf4f5a73fbe614247cfbbc196208f29b936ed4850562f0813690f0083834bb05",
+      "manifest": "docs/DSPLIB_manifest.html",
+      "manifest_sha256": "cb1f42027b64577ff27264e0ebadbaf8575887f987117c9fc5435404faa64b83",
+      "license_files": {},
+      "manifest_entries": [
+        {
+          "Software Name": "DSPLIB",
+          "Version": "11.00.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Object",
+          "Location": "~/DSPLIB",
+          "Obtained from": "TI"
+        }
+      ],
+      "files_by_license": {
+        "TI Text File": 1848
+      },
+      "uncovered_files_by_directory": {}
+    },
+    {
+      "component": "fftlib",
+      "files": 803,
+      "bytes": 84445156,
+      "tree_sha256": "ff5be19dbbabfaafb280a56c06af7b32d6d3e48713a88eda6d2ed789c553b3af",
+      "manifest": "docs/FFTLIB_manifest.html",
+      "manifest_sha256": "0aa7442222b105e95ce000cab9179ad937025dbe925171ad3a2e26dd37cc9f26",
+      "license_files": {},
+      "manifest_entries": [
+        {
+          "Software Name": "FFTLIB",
+          "Version": "11.00.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Object",
+          "Location": "~/FFTLIB",
+          "Obtained from": "TI"
+        }
+      ],
+      "files_by_license": {
+        "TI Text File": 803
+      },
+      "uncovered_files_by_directory": {}
+    },
+    {
+      "component": "mmalib_11_02_00_11",
+      "files": 628,
+      "bytes": 164376181,
+      "tree_sha256": "788c83c3afc17195574bf36c495b912a547c13e5131d2d2526b1e5517f430def",
+      "manifest": "docs/manifest/MMALIB_11.02.00_manifest.html",
+      "manifest_sha256": "ea7750c130b8be33163b610c3085a6977f31e95815d9fa74f67a682c8204e085",
+      "license_files": {},
+      "manifest_entries": [
+        {
+          "Software Name": "MMALIB",
+          "Version": "11.02.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Limited Source and Object",
+          "Location": "~/MMALIB",
+          "Obtained from": "TI"
+        }
+      ],
+      "files_by_license": {
+        "TI Text File": 628
+      },
+      "uncovered_files_by_directory": {}
+    },
+    {
+      "component": "psdk_rtos",
+      "files": 289,
+      "bytes": 39859971,
+      "tree_sha256": "9f131d093b3ef8c7591a43a35b2408d54c022f014f89aca2e683ba7663d5853b",
+      "manifest": "PROCESSOR_SDK_RTOS_J721E_manifest.html",
+      "manifest_sha256": "a94416c566b44c1e200c522df0c8461229ebfba6463aed9f536cb24191ce2b1e",
+      "license_files": {},
+      "manifest_entries": [
+        {
+          "Software Name": "Vision Applications",
+          "Version": "11_02_01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "[as installed]/vision_apps/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "sdk_builder",
+          "Version": "11_02_01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "[as installed]/sdk_builder/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "Concerto",
+          "Version": "11_02_01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "[as installed]/sdk_builder/concerto*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "PowerVR Graphics Native SDK",
+          "Version": "3.4",
+          "License Type": "MIT",
+          "Delivered As": "Source",
+          "Location": "[as installed]/vision_apps/kernels/srv/gpu/3dsrv/Tools",
+          "Obtained from": "https://github.com/powervr-graphics/Native_SDK/tree/R14.2-v3.4"
+        },
+        {
+          "Software Name": "OpenMAX Wrapper",
+          "Version": "NA",
+          "License Type": "MIT",
+          "Delivered As": "Source",
+          "Location": "[as installed]/vision_apps/utils/openmax_wrapper/src",
+          "Obtained from": "QNX"
+        },
+        {
+          "Software Name": "IVISION Header files",
+          "Version": "1.0.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/ivision/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "CG_XML",
+          "Version": "2.61.00",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and Binary",
+          "Location": "[as_installed]/cg_xml_[version]/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "GCC",
+          "Version": "13.3.0-r0.3",
+          "License Type": "GPL-3.0-with-GCC-exception & GPL-3.0-only",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/toolchain/*",
+          "Obtained from": "https://layers.openembedded.org/layerindex/branch/scarthgap/layer/openembedded-core/"
+        },
+        {
+          "Software Name": "XDS110 utilities and firmware",
+          "Version": "7.0.100.0",
+          "License Type": "TI Text file",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/vision_apps/tools/tiva_firmware/firmware_*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "VXLIB Library",
+          "Version": "1.1.7",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source and Object",
+          "Location": "~/ti/vxlib/* except for the files listed in (2)",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "VXLIB Library \u2013 Khronos",
+          "Version": "1.1.7",
+          "License Type": "TI Text File License AND Khronos License",
+          "Delivered As": "Source and Object",
+          "Location": "See footnote (2)",
+          "Obtained from": "https://www.khronos.org/registry/OpenVX/sample/openvx_sample_1.1.tar.bz2"
+        },
+        {
+          "Software Name": "DSP Library",
+          "Version": "3.4.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "~/ti/dsplib",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "Ctools_UCLib_Examples",
+          "Version": "1.3",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./Ctools_UCLib_Examples/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "DSPTraceLib",
+          "Version": "1.14",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./DSPTraceLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "AETLib",
+          "Version": "4.19",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./aet/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "ETBLib",
+          "Version": "1.22",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./ETBLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "ETMLib",
+          "Version": "0.6",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./ETMLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "Examples",
+          "Version": "5.9",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./Examples/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "ITMLib",
+          "Version": "1.1",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./ITMLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "PMICMILib",
+          "Version": "1.3",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./PMICMILib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "SCILib",
+          "Version": "1.5",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./SCILib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "STMLib",
+          "Version": "5.2",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./STMLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "jquery",
+          "Version": "1.7.1",
+          "License Type": "MIT",
+          "Delivered As": "Source",
+          "Location": "./aet/doc/html/jquery.js./CPTLib/doc/CPT_66AK2Exx_html/jquery.js./CPTLib/doc/CPT_66AK2Gxx_html/jquery.js./CPTLib/doc/CPT_C66AK2Hxx_html/jquery.js./CPTLib/doc/CPT_C6657_html/jquery.js./CPTLib/doc/CPT_C6670_html/jquery.js./CPTLib/doc/CPT_C6672_html/jquery.js./CPTLib/doc/CPT_C6674_html/jquery.js./CPTLib/doc/CPT_C6678_html/jquery.js./CPTLib/doc/CPT_TCI6612_html/jquery.js./CPTLib/doc/CPT_TCI6614_html/jquery.js./CPTLib/doc/CPT_TCI6630K2L_html/jquery.js./Ctools_UCLib/doc/Ctools_UCLib_html/jquery.js./DSPTraceLib/doc/html/jquery.js./ETBLib/doc/html/jquery.js./ETMLib/doc/html/jquery.js./ITMLib/doc/html/jquery.js./PMICMILib/doc/CMI_html/jquery.js./PMICMILib/doc/PMI_html/jquery.js./SCILib/doc/sci_am437x_html/jquery.js./SCILib/doc/sci_dra7xx_html/jquery.js./SCILib/doc/sci_omap4430_html/jquery.js./SCILib/doc/sci_omap4460_html/jquery.js./SCILib/doc/sci_omap4470_html/jquery.js./SCILib/doc/sci_omap5430_html/jquery.js./SCILib/doc/sci_tda3x_html/jquery.js./STMLib/doc/STM_html/jquery.js",
+          "Obtained from": "Doxygen generate"
+        },
+        {
+          "Software Name": "CPTLib",
+          "Version": "0.15",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./CPTLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "Ctools_UCLib",
+          "Version": "1.5",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "./Ctools_UCLib/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "PTK",
+          "Version": "1.5.0.0",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "https://git.ti.com/cgit/processor-sdk/ti-perception-toolkit",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TIADALG Algorithm / TIADALG Algorithm Test / TIADALG Algorithm make file/ Documents /Data",
+          "Version": "08.06.00",
+          "License Type": "TI TEXT FILE",
+          "Delivered As": "Source, Binary",
+          "Location": "/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TIADALG & Opencv Algorithm",
+          "Version": "08.06.00",
+          "License Type": "Opencv BSD License",
+          "Delivered As": "Source",
+          "Location": "/ / tiadalg_solve_pnp /alg",
+          "Obtained from": "TI & Opencv"
+        },
+        {
+          "Software Name": "TIADALG Lib",
+          "Version": "08.06.00",
+          "License Type": "TI TEXT FILE and Opencv BSD License",
+          "Delivered As": "Binary",
+          "Location": "/lib/C66/debug/ libtiadalg_solve_pnp*",
+          "Obtained from": "TI & Opencv"
+        },
+        {
+          "Software Name": "TIADALG Lib",
+          "Version": "08.06.00",
+          "License Type": "TI TEXT FILE and Opencv BSD License",
+          "Delivered As": "Binary",
+          "Location": "/lib/C66/release/ libtiadalg_solve_pnp*",
+          "Obtained from": "TI & Opencv"
+        },
+        {
+          "Software Name": "TIADALG Lib",
+          "Version": "08.06.00",
+          "License Type": "TI TEXT FILE and Opencv BSD License",
+          "Delivered As": "Binary",
+          "Location": "/lib/x86_64/debug/ libtiadalg_solve_pnp*",
+          "Obtained from": "TI & Opencv"
+        },
+        {
+          "Software Name": "TIADALG Lib",
+          "Version": "08.06.00",
+          "License Type": "TI TEXT FILE and Opencv BSD License",
+          "Delivered As": "Binary",
+          "Location": "/lib/x86_64/release/ libtiadalg_solve_pnp*",
+          "Obtained from": "TI & Opencv"
+        },
+        {
+          "Software Name": "EdgeAI TIVOX Kernels",
+          "Version": "11.xx.xx",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source",
+          "Location": "https://git.ti.com/cgit/edgeai/edgeai-tiovx-kernels",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "EdgeAI apps utils",
+          "Version": "11.xx.xx",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source",
+          "Location": "https://git.ti.com/cgit/edgeai/edgeai-apps-utils",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "Edge AI TIOVX Applications",
+          "Version": "11.xx.xx",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source",
+          "Location": "https://github.com/TexasInstruments/edgeai-tiovx-apps",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "VXLIB",
+          "Version": "11.02.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Object",
+          "Location": "~/VXLIB",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "FFTLIB",
+          "Version": "11.02.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Object",
+          "Location": "~/FFTLIB",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "DSPLIB",
+          "Version": "11.02.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Object",
+          "Location": "~/DSPLIB",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "MATHLIB",
+          "Version": "11.02.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Object",
+          "Location": "~/MATHLIB",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TI Foundational Security",
+          "Version": "v11.02.xx",
+          "License Type": "TI Text File",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "RM/PM HAL for R5F",
+          "Version": "v11.02.xx",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "pdk/packages/ti/drv/sciclient/src/rm_pm_hal",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "Security AES Key Inversion",
+          "Version": "N/A",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/*",
+          "Obtained from": "TI and OpenSSL 0.9.8h http://www.openssl.org/source/"
+        },
+        {
+          "Software Name": "Software utilities (e.g., macros)",
+          "Version": "N/A",
+          "License Type": "Creative Commons CC0",
+          "Delivered As": "Source",
+          "Location": "pdk/packages/ti/drv/sciclient/src/rm_pm_hal",
+          "Obtained from": "https://github.com/rustyrussell/ccan/"
+        },
+        {
+          "Software Name": "mcusw",
+          "Version": "11.02.01",
+          "License Type": "TI Text File License ('TSPA')",
+          "Delivered As": "Source",
+          "Location": "[as installed]\\*",
+          "Obtained from": "Texas Instruments Incorporated"
+        },
+        {
+          "Software Name": "MMALIB",
+          "Version": "11.02.01",
+          "License Type": "TI Text File",
+          "Delivered As": "Limited Source and Object",
+          "Location": "~/MMALIB",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "Imaging",
+          "Version": "11.02.01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "[install_path]/imaging/* (except prebuilt_libs)",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "Auto White Balance Library",
+          "Version": "11.01.00",
+          "License Type": "TI Text File",
+          "Delivered As": "Binary",
+          "Location": "[install_path]/imaging/prebuilt_libs",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "D3 IMX390 Discovery RTOS Sensor Driver",
+          "Version": "11.01.00",
+          "License Type": "MIT",
+          "Delivered As": "Source",
+          "Location": "[install_path]/imaging/sensor_drv/src/imx390_discovery",
+          "Obtained from": "D3"
+        },
+        {
+          "Software Name": "D3 IMX728 RTOS Sensor Driver",
+          "Version": "11.01.00",
+          "License Type": "MIT",
+          "Delivered As": "Source",
+          "Location": "[install_path]/imaging/sensor_drv/src/IMX728",
+          "Obtained from": "Sony with modifications from TI for D3 IMX728"
+        },
+        {
+          "Software Name": "VHWA",
+          "Version": "11.02.01",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and Binary",
+          "Location": "[as installed]/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "Khronos OpenVX Conformance Test",
+          "Version": "11_02_01",
+          "License Type": "Apache License 2.0",
+          "Delivered As": "Source and library",
+          "Location": "tiovx/conformance_test/ - test_conformance/ - test_data/ - test_engine/ tiovx/conformance_test/test_executable",
+          "Obtained from": "https://www.khronos.org/registry/OpenVX/sample/openvx_sample_1.1.tar.bz2 https://gitlab.khronos.org/openvx/openvx/merge_requests/215/diffs#61460ab92d55d3574516d066273ba5db78c35a54"
+        },
+        {
+          "Software Name": "TIOVX OpenVX Framework (from OpenVX 1.2 spec)",
+          "Version": "11_02_01",
+          "License Type": "Apache License 2.0",
+          "Delivered As": "Source",
+          "Location": "tiovx/source/framework/vx_tensor.c",
+          "Obtained from": "https://www.khronos.org/registry/OpenVX/sample/openvx_sample_1.2.tar.bz2"
+        },
+        {
+          "Software Name": "TIOVX OpenVX Framework - Khronos",
+          "Version": "11_02_01",
+          "License Type": "Apache License 2.0",
+          "Delivered As": "Source",
+          "Location": "tiovx/include/VX/ tiovx/source/ - framework (1) - include (1) - vxu tiovx/utils (1)",
+          "Obtained from": "https://www.khronos.org/registry/OpenVX/sample/openvx_sample_1.1.tar.bz2 https://www.khronos.org/registry/OpenVX/extensions/vx_khr_pipelining/OpenVX_Graph_Pipelining_Streaming_and_Batch_Processing_Extension_1_0.pdf https://registry.khronos.org/OpenVX/extensions/vx_khr_bidirectional_parameters/vx_khr_bidirectional_parameters_1_3_1.pdf https://registry.khronos.org/OpenVX/extensions/vx_khr_swap_move/vx_khr_swap_move_1_3_1.html https://registry.khronos.org/OpenVX/extensions/vx_khr_safe_casts/vx_khr_safe_casts_1_3_1.pdf"
+        },
+        {
+          "Software Name": "TIOVX OpenVX Framework - TI",
+          "Version": "11_02_01",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source",
+          "Location": "tiovx/include/TI tiovx/kernels tiovx/source/framework (1) tiovx/source/include (1) tiovx/source/platform tiovx/tutorial tiovx/utils (1)",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TIOVX OpenVX Tools",
+          "Version": "11_02_01",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source",
+          "Location": "tiovx/tools",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TIOVX Test Framework Extension \u2013 TI Text File",
+          "Version": "11_02_01",
+          "License Type": "TI Text File License",
+          "Delivered As": "Source",
+          "Location": "tiovx/conformance_test/ - test_tiovx (1) - kernels (1)",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TIOVX Test Framework Extension \u2013 Apache",
+          "Version": "11_02_01",
+          "License Type": "Apache License 2.0",
+          "Delivered As": "Source",
+          "Location": "tiovx/conformance_test/ - test_tiovx (1) - kernels (1)",
+          "Obtained from": "https://www.khronos.org/registry/OpenVX/sample/openvx_sample_1.1.tar.bz2"
+        },
+        {
+          "Software Name": "SDL",
+          "Version": "11.02.01",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "PDK",
+          "Version": "11.02.01",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and Binary",
+          "Location": "[as installed]/*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "TIFS",
+          "Version": "11.02.xx",
+          "License Type": "TI Text File License ('TSPA')",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/packages/ti/drv/sciclient/soc/Vx",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "CSI-RX core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/csirx",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "CSI-TX core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/csitx",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "DP core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/dss/src/csl/dp, [as installed]/packages/ti/drv/dss/src/csl/dp_sd0801",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "DSI core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/dss/src/csl/dsi",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "DPHY Core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/dss/src/csl/dphy",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "LPDDR4 Core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/lpddr",
+          "Obtained from": "Cadence Design Systems, Inc"
+        },
+        {
+          "Software Name": "MMCSD Core driver",
+          "Version": "1.0",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/csl/src/ip/mmc/Vx",
+          "Obtained from": "Arasan Chip Systems Inc"
+        },
+        {
+          "Software Name": "CPSW Switch config tool",
+          "Version": "1.0",
+          "License Type": "MIT License",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/drv/enet/enet_cfgserver/priv/inc/jsmn.h",
+          "Obtained from": "Serge Zaitsev"
+        },
+        {
+          "Software Name": "PDK PKA Firmware",
+          "Version": "1.1",
+          "License Type": "TI Text File",
+          "Delivered As": "Binary",
+          "Location": "[as_installed]/packages/ti/drv/sa/src/pkafw",
+          "Obtained from": "Inside Secure B.V."
+        },
+        {
+          "Software Name": "PDK SA LLD",
+          "Version": "4.0.0",
+          "License Type": "BSD-3-Clause, SSLeay",
+          "Delivered As": "Source and Binary",
+          "Location": "[as_installed]/packages/ti/drv/sa/*",
+          "Obtained from": "TI and OpenSSL 0.9.8h \u00e2\u20ac\u201c http://www.openssl.org/source/"
+        },
+        {
+          "Software Name": "Free RTOS",
+          "Version": "10.5.1",
+          "License Type": "MIT License",
+          "Delivered As": "Source",
+          "Location": "[as installed]/packages/ti/kernel/*",
+          "Obtained from": "Amazon.com"
+        },
+        {
+          "Software Name": "lwIP",
+          "Version": "STABLE-2_1_2_RELEASE",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "[as installed]/packages/ti/transport/lwip/lwip-stack/*",
+          "Obtained from": "https://savannah.nongnu.org/git/?group=lwip"
+        },
+        {
+          "Software Name": "LwIP contrib",
+          "Version": "STABLE-2_1_0_RELEASE",
+          "License Type": "BSD-3-Clause",
+          "Delivered As": "Source and binary",
+          "Location": "[as installed]/packages/ti/transport/lwip/lwip-contrib/*",
+          "Obtained from": "https://savannah.nongnu.org/git/?group=lwip"
+        },
+        {
+          "Software Name": "Unity",
+          "Version": "2.6.0",
+          "License Type": "MIT License",
+          "Delivered As": "Source",
+          "Location": "[as_installed]/ethfw/unit_test/unity/*",
+          "Obtained from": "https://github.com/ThrowTheSwitch/Unity"
+        },
+        {
+          "Software Name": "EthFw",
+          "Version": "11.02.01",
+          "License Type": "TI Text File License (TSPA)",
+          "Delivered As": "Source and Binary",
+          "Location": "As installed /*",
+          "Obtained from": "Texas Instruments"
+        },
+        {
+          "Software Name": "Pugixml",
+          "Version": "v1.14",
+          "License Type": "MIT License",
+          "Delivered As": "Source and Binary",
+          "Location": "as installed",
+          "Obtained from": "https://github.com/zeux/pugixml"
+        },
+        {
+          "Software Name": "RTOS_ETHERNET_TSN_STACK",
+          "Version": "11.02.01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source and Binary",
+          "Location": "[as installed]/ https://bitbucket.itg.ti.com/projects/PROCESSOR-SDK/repos/enet-tsn-stack/browse",
+          "Obtained from": "Texas Instruments and Excelfore Corporation"
+        },
+        {
+          "Software Name": "Pugixml",
+          "Version": "v1.14",
+          "License Type": "MIT License",
+          "Delivered As": "Source and Binary",
+          "Location": "as installed",
+          "Obtained from": "https://github.com/zeux/pugixml"
+        },
+        {
+          "Software Name": "App Utilities",
+          "Version": "11.02.01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "[as installed]/app_utils/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "Video IO",
+          "Version": "11.02.01",
+          "License Type": "TI Text File",
+          "Delivered As": "Source",
+          "Location": "[as installed]/video_io/*",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "TIDL SW",
+          "Version": "11.02.01",
+          "License Type": "TI TEXT FILE",
+          "Delivered As": "Limited Source, Binary and documents",
+          "Location": "ti_dl",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "OpenCV",
+          "Version": "4.1.0",
+          "License Type": "BSD-3-Clause AND Zlib AND Jasper 2.0 AND Jpeg AND LibPNG AND MIT AND IlmImf openexr AND BSD-3-Clause with Google WebM Patent Language",
+          "Delivered As": "Binary",
+          "Location": "ti_dl\\test",
+          "Obtained from": "http://opencv.org/releases.html"
+        },
+        {
+          "Software Name": "Google Protocol Buffers",
+          "Version": "3.21.12",
+          "License Type": "Google Protocol Buffer License",
+          "Delivered As": "Binary",
+          "Location": "ti_dl\\utils\\tidlModelImport\\tidl_model_import.exe",
+          "Obtained from": "https://developers.google.com/protocol-buffers/docs/downloads"
+        },
+        {
+          "Software Name": "Google flatbuffers",
+          "Version": "1.12.0",
+          "License Type": "Apache",
+          "Delivered As": "Binary",
+          "Location": "ti_dl\\utils\\tidlModelImport\\tidl_model_import.exe",
+          "Obtained from": "https://github.com/google/flatbuffers"
+        },
+        {
+          "Software Name": "Tensorflow Lite - schema",
+          "Version": "2.12.0",
+          "License Type": "Apache",
+          "Delivered As": "Source",
+          "Location": "\\ti_dl\\utils\\tfliteImport\\schema_generated.h",
+          "Obtained from": "https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/schema/schema_generated.h"
+        },
+        {
+          "Software Name": "Makerules",
+          "Version": "11.02.01",
+          "License Type": "TI TEXT FILE",
+          "Delivered As": "Source",
+          "Location": "makerules",
+          "Obtained from": "TI"
+        },
+        {
+          "Software Name": "onnxruntime",
+          "Version": "1.23.0",
+          "License Type": "MIT License",
+          "Delivered As": "Binary",
+          "Location": "\\ti_dl\\utils\\tfliteImport\\out\\",
+          "Obtained from": "https://github.com/microsoft/onnxruntime"
+        }
+      ],
+      "files_by_license": {
+        "TI TEXT FILE": 289
+      },
+      "uncovered_files_by_directory": {}
+    }
+  ]
+}
