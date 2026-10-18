@@ -159,10 +159,15 @@ static void test_load_checks_the_elf(void)
     CHECK_EQ("load needs a stopped DSP", sdos_dsp_load(dsp, good), SDOS_E_STATE);
     CHECK_EQ("stop", sdos_dsp_stop(dsp), SDOS_OK);
     CHECK_EQ("firmware for another core is refused", sdos_dsp_load(dsp, bad), SDOS_E_DESCRIPTOR);
-    CHECK("the refusal says why", strstr(sdos_dsp_error(dsp), "outside the c66x_0 carve-out") != NULL);
+    CHECK("the refusal says why", strstr(sdos_dsp_error(dsp), "not in memory c66x_0 may load") != NULL);
     CHECK_EQ("fitting firmware loads", sdos_dsp_load(dsp, good), SDOS_OK);
     (void)sdos_dsp_info_get(dsp, &info);
     CHECK("firmware name is set", strcmp(info.firmware, "sdos/c66x_0.xe66") == 0);
+    (void)sdos_write_elf(bad, 140u, 0x00800000u, 0x8000u);
+    CHECK_EQ("firmware in local L2 SRAM loads", sdos_dsp_load(dsp, bad), SDOS_OK);
+    (void)sdos_write_elf(bad, 140u, 0xA6100200u, 0x1000u);
+    CHECK_EQ("a misaligned entry point is refused", sdos_dsp_load(dsp, bad), SDOS_E_FIELD);
+    CHECK("the refusal names the alignment", strstr(sdos_dsp_error(dsp), "not 0x400-aligned") != NULL);
     (void)sdos_write_elf(bad, 145u, 0xA6100000u, 0x1000u);
     CHECK_EQ("a C7x file on a C66x core is refused", sdos_dsp_load(dsp, bad), SDOS_E_FIELD);
     CHECK_EQ("missing file", sdos_dsp_load(dsp, "/nonexistent.xe66"), SDOS_E_TRANSPORT);

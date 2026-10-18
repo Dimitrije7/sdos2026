@@ -123,7 +123,7 @@ def resource_table(blob: bytes) -> list[dict[str, Any]]:
     return entries
 
 
-def inspect(path: Path, core: dict[str, Any], require_trace: bool = False) -> Report:
+def inspect(path: Path, core: dict[str, Any], require_trace: bool = False, runtime: str | None = None) -> Report:
     data = path.read_bytes()
     if data[:4] != b"\x7fELF":
         raise ElfError(f"{path.name} is not an ELF file")
@@ -140,8 +140,6 @@ def inspect(path: Path, core: dict[str, Any], require_trace: bool = False) -> Re
     if machine != MACHINE[core["family"]]:
         report.problems.append(f"machine {machine} is not {core['family']} ({MACHINE[core['family']]})")
 
-    regions = [(name, int(r["base"], 16), int(r["base"], 16) + int(r["size"], 16)) for name, r in core["memory"].items()]
-    loadable = [(n, lo, hi) for n, lo, hi in regions if n == "firmware"]
     for i in range(phnum):
         if is64:
             kind, flags, _off, vaddr, paddr, filesz, memsz, _align = _unpack("<IIQQQQQQ", data, phoff + i * phentsize)
@@ -151,13 +149,11 @@ def inspect(path: Path, core: dict[str, Any], require_trace: bool = False) -> Re
             continue
         perms = ("R" if flags & 4 else "-") + ("W" if flags & 2 else "-") + ("X" if flags & 1 else "-")
         report.segments.append(Segment(paddr, filesz, memsz, perms))
-    outside = [s for s in report.segments
-               if not any(lo <= s.address and s.address + s.memory_size <= hi for _n, lo, hi in loadable)]
-    if outside:
-        report.problems.append(
-            f"{len(outside)} of {len(report.segments)} segments lie outside the {core['name']} firmware "
-            f"carve-out, first at {outside[0].address:#x}")
-
+    report.problems += placement_problems(report.segments, core, runtime)
+    alignment = _hex(core.get("boot_alignment", "0x1"))
+    if entry % alignment:
+        report.problems.append(f"entry point {entry:#x} is not {alignment:#x}-aligned, so remoteproc cannot boot "
+                               f"{core['name']} from it")
     sections = _sections(data, is64, shoff, shentsize, shnum, shstrndx) if shoff else {}
     if ".resource_table" not in sections:
         report.problems.append("no .resource_table section; remoteproc cannot set up RPMsg or trace")
@@ -171,9 +167,66 @@ def inspect(path: Path, core: dict[str, Any], require_trace: bool = False) -> Re
     vdevs = [r for r in report.resources if r["type"] == "vdev" and r["id"] == VIRTIO_ID_RPMSG]
     if not vdevs or len(vdevs[0]["vrings"]) != 2:
         report.problems.append("resource table has no RPMsg vdev with two vrings")
-    if require_trace and not any(r["type"] == "trace" for r in report.resources):
+    traces = [r for r in report.resources if r["type"] == "trace"]
+    if require_trace and not traces:
         report.problems.append("resource table has no trace buffer")
+    ranges = load_ranges(core, runtime)
+    for trace in traces:
+        if not any(lo <= trace["address"] and trace["address"] + trace["length"] <= hi for _n, lo, hi in ranges):
+            report.problems.append(f"trace buffer {trace['address']:#x}+{trace['length']:#x} is not in memory Linux "
+                                   f"can read through remoteproc")
     return report
+
+
+def _hex(value: Any) -> int:
+    return int(str(value), 16)
+
+
+def load_ranges(core: dict[str, Any], runtime: str | None = None) -> list[tuple[str, int, int]]:
+    """(name, start, end) where remoteproc may load segments under this runtime.
+
+    Without a runtime, the largest cache reserve of any runtime applies."""
+    ranges = []
+    for region in core["regions"]:
+        if not region["loadable"] or region["runtime_use"] != "any":
+            continue
+        reserves = region.get("cache_reserve", {})
+        reserve = _hex(reserves[runtime]) if runtime in reserves else max([_hex(v) for v in reserves.values()] or [0])
+        start, end = _hex(region["base"]), _hex(region["base"]) + _hex(region["size"]) - reserve
+        if end > start:
+            ranges.append((region["name"], start, end))
+    return ranges
+
+
+def _why_not(core: dict[str, Any], start: int, end: int, runtime: str | None) -> str:
+    for region in core["regions"]:
+        base, top = _hex(region["base"]), _hex(region["base"]) + _hex(region["size"])
+        if start < top and base < end:
+            if not region["loadable"] or region["runtime_use"] != "any":
+                owner = {"none": "is reserved", "audit": "is not confirmed free (Task 012)"}.get(region["runtime_use"],
+                                                                                              "cannot be loaded")
+                return f"overlaps {region['name']}, which {owner}: {region['reason'].split('. ')[0]}"
+            return (f"reaches into the part of {region['name']} that the {runtime or 'any'} runtime uses as cache "
+                    f"or that lies past its end")
+    return f"is outside every memory region of {core['name']}"
+
+
+def placement_problems(segments: list[Segment], core: dict[str, Any], runtime: str | None) -> list[str]:
+    """Every loadable segment inside one load range, and no two overlapping.
+
+    Linker overlays share run addresses, never load addresses, so overlapping
+    PT_LOAD segments are always an error."""
+    problems = []
+    ranges = load_ranges(core, runtime)
+    for seg in segments:
+        end = seg.address + seg.memory_size
+        if not any(lo <= seg.address and end <= hi for _n, lo, hi in ranges):
+            problems.append(f"segment {seg.address:#x}..{end:#x} {_why_not(core, seg.address, end, runtime)}")
+    ordered = sorted(segments, key=lambda seg: seg.address)
+    for first, second in zip(ordered, ordered[1:]):
+        if first.address + first.memory_size > second.address:
+            problems.append(f"segments {first.address:#x}+{first.memory_size:#x} and {second.address:#x} overlap")
+    return problems
 
 
 def load_core(name: str, manifest: Path = CORES) -> dict[str, Any]:
@@ -188,10 +241,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("core")
     parser.add_argument("elf", type=Path)
     parser.add_argument("--require-trace", action="store_true", help="course firmware must expose a trace buffer")
+    parser.add_argument("--runtime", choices=("freertos", "baremetal"),
+                        help="the firmware's runtime, which decides how much local SRAM is cache")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     try:
-        report = inspect(args.elf, load_core(args.core), args.require_trace)
+        report = inspect(args.elf, load_core(args.core), args.require_trace, args.runtime)
     except (ElfError, ValueError, OSError) as exc:
         print(f"firmware check: {exc}", file=sys.stderr)
         return 1

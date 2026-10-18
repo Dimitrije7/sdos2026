@@ -12,7 +12,7 @@ from ci.test_firmware_elf import elf32, resource_table
 from tests.target.sdos_board import course_smoke
 from tests.target.sdos_board.cores import CORES
 
-LOAD_ADDRESS = {"c66x_0": (140, 0xA6100000), "c66x_1": (140, 0xA7100000), "c71x_0": (145, 0xA8100000)}
+LOAD_ADDRESS = {"c66x_0": (140, 0xA6100000), "c66x_1": (140, 0xA7100000), "c71x_0": (145, 0xA8200000)}
 
 
 def fake_build(root: Path, broken: str | None = None) -> Path:
@@ -23,8 +23,8 @@ def fake_build(root: Path, broken: str | None = None) -> Path:
             continue
         machine, address = LOAD_ADDRESS[name.rsplit("-", 1)[0]]
         if name == broken:
-            address = 0x64800000  # local L2 SRAM: outside every carve-out
-        path.write_bytes(elf32(machine, [(address, 0x100)], resource_table()))
+            address = 0xA8000000  # the C71x vring pool, which Linux allocates from
+        path.write_bytes(elf32(machine, [(address, 0x100)], resource_table(trace_address=address)))
     return root
 
 
@@ -84,7 +84,7 @@ class CourseSmokeTests(unittest.TestCase):
         board = ShellBoard()
         with tempfile.TemporaryDirectory() as tmp:
             build = fake_build(Path(tmp) / "build", broken="c71x_0-freertos")
-            with self.assertRaisesRegex(RuntimeError, "c71x_0-freertos: 1 of 1 segments lie outside"):
+            with self.assertRaisesRegex(RuntimeError, "c71x_0-freertos: segment 0xa8000000.*overlaps dma_pool"):
                 course_smoke.run("board", None, Path(tmp) / "out", list(CORES.values()), board, build)
         self.assertEqual(board.uploads, [])
 

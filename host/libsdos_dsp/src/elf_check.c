@@ -63,8 +63,31 @@ static sdos_status check_resource_table(const uint8_t *table, size_t size, char 
     return SDOS_E_FIELD;
 }
 
-static sdos_status check(const uint8_t *elf, size_t size, const sdos_core_desc *core, char *why, size_t capacity)
+/* Inside one of the ranges remoteproc may load for this core. */
+static int loadable(size_t core_index, uint64_t address, uint64_t memsz)
 {
+    size_t r;
+    for (r = 0u; r < SDOS_LOAD_RANGE_COUNT; r++) {
+        uint64_t lo = sdos_load_ranges[r].base;
+        uint64_t span = sdos_load_ranges[r].size;
+        if (sdos_load_ranges[r].core == core_index && address >= lo && memsz <= span && address - lo <= span - memsz) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void segment(const uint8_t *elf, int is64, uint64_t header, uint32_t *kind, uint64_t *address, uint64_t *memsz)
+{
+    const uint8_t *ph = elf + header;
+    *kind = u32(ph);
+    *address = is64 ? u64(ph + 24) : u32(ph + 12);
+    *memsz = is64 ? u64(ph + 40) : u32(ph + 20);
+}
+
+static sdos_status check(const uint8_t *elf, size_t size, size_t core_index, char *why, size_t capacity)
+{
+    const sdos_core_desc *core = &sdos_core_table[core_index];
     int is64;
     uint64_t phoff;
     uint64_t shoff;
@@ -74,8 +97,7 @@ static sdos_status check(const uint8_t *elf, size_t size, const sdos_core_desc *
     uint16_t shnum;
     uint16_t shstrndx;
     uint16_t i;
-    uint64_t lo = core->firmware_base;
-    uint64_t hi = (uint64_t)core->firmware_base + core->firmware_size;
+    uint16_t j;
     uint64_t names_offset;
 
     if (size < 64u || memcmp(elf, "\x7f" "ELF", 4u) != 0 || elf[5] != 1u) {
@@ -87,6 +109,14 @@ static sdos_status check(const uint8_t *elf, size_t size, const sdos_core_desc *
         (void)snprintf(why, capacity, "built for machine %u, but %s needs %u", (unsigned)u16(elf + 18), core->name,
                        (unsigned)core->elf_machine);
         return SDOS_E_FIELD;
+    }
+    {
+        uint64_t entry = is64 ? u64(elf + 24) : u32(elf + 24);
+        if (entry % core->boot_alignment != 0u) {
+            (void)snprintf(why, capacity, "entry point 0x%llx is not 0x%x-aligned, so remoteproc cannot boot %s",
+                           (unsigned long long)entry, (unsigned)core->boot_alignment, core->name);
+            return SDOS_E_FIELD;
+        }
     }
     phoff = is64 ? u64(elf + 32) : u32(elf + 28);
     shoff = is64 ? u64(elf + 40) : u32(elf + 32);
@@ -100,17 +130,28 @@ static sdos_status check(const uint8_t *elf, size_t size, const sdos_core_desc *
         return SDOS_E_FIELD;
     }
     for (i = 0u; i < phnum; i++) {
-        const uint8_t *ph = elf + phoff + (uint64_t)i * phentsize;
-        uint64_t address = is64 ? u64(ph + 24) : u32(ph + 12);
-        uint64_t memsz = is64 ? u64(ph + 40) : u32(ph + 20);
-        if (u32(ph) != PT_LOAD || memsz == 0u) {
+        uint32_t kind;
+        uint64_t address;
+        uint64_t memsz;
+        segment(elf, is64, phoff + (uint64_t)i * phentsize, &kind, &address, &memsz);
+        if (kind != PT_LOAD || memsz == 0u) {
             continue;
         }
-        if (address < lo || memsz > hi - lo || address - lo > hi - lo - memsz) {
-            (void)snprintf(why, capacity, "segment 0x%llx+0x%llx lies outside the %s carve-out 0x%x+0x%x",
-                           (unsigned long long)address, (unsigned long long)memsz, core->name,
-                           (unsigned)core->firmware_base, (unsigned)core->firmware_size);
+        if (!loadable(core_index, address, memsz)) {
+            (void)snprintf(why, capacity, "segment 0x%llx+0x%llx is not in memory %s may load (manifest/dsp-cores.json)",
+                           (unsigned long long)address, (unsigned long long)memsz, core->name);
             return SDOS_E_DESCRIPTOR;
+        }
+        for (j = (uint16_t)(i + 1u); j < phnum; j++) {
+            uint32_t other_kind;
+            uint64_t other;
+            uint64_t other_size;
+            segment(elf, is64, phoff + (uint64_t)j * phentsize, &other_kind, &other, &other_size);
+            if (other_kind == PT_LOAD && other_size != 0u && address < other + other_size && other < address + memsz) {
+                (void)snprintf(why, capacity, "segments 0x%llx and 0x%llx overlap", (unsigned long long)address,
+                               (unsigned long long)other);
+                return SDOS_E_DESCRIPTOR;
+            }
         }
     }
     if (shoff == 0u || shstrndx >= shnum || !in_bounds(size, shoff, (uint64_t)shentsize * shnum) ||
@@ -140,7 +181,7 @@ static sdos_status check(const uint8_t *elf, size_t size, const sdos_core_desc *
     return SDOS_E_FIELD;
 }
 
-sdos_status sdos__elf_check(const char *path, const sdos_core_desc *core, char *why, size_t capacity)
+sdos_status sdos__elf_check(const char *path, size_t core_index, char *why, size_t capacity)
 {
     FILE *file = fopen(path, "rb");
     uint8_t *data;
@@ -165,7 +206,7 @@ sdos_status sdos__elf_check(const char *path, const sdos_core_desc *core, char *
         return SDOS_E_TRANSPORT;
     }
     (void)fclose(file);
-    status = check(data, (size_t)size, core, why, capacity);
+    status = check(data, (size_t)size, core_index, why, capacity);
     free(data);
     return status;
 }

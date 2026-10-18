@@ -270,7 +270,7 @@ sdos_status sdos_dsp_load(sdos_dsp *dsp, const char *elf_path)
     if (status != SDOS_OK) {
         return status;
     }
-    status = sdos__elf_check(elf_path, dsp->core, why, sizeof why);
+    status = sdos__elf_check(elf_path, dsp->core_index, why, sizeof why);
     if (status != SDOS_OK) {
         return sdos__fail(dsp, status, "%s: %s", elf_path, why);
     }

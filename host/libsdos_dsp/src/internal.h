@@ -55,8 +55,9 @@ sdos_status sdos__fail(sdos_dsp *dsp, sdos_status status, const char *format, ..
 #endif
     ;
 
-/* Check that an ELF targets this core and stays inside its carve-out. */
-sdos_status sdos__elf_check(const char *path, const sdos_core_desc *core, char *why, size_t capacity);
+/* Check that an ELF targets this core and loads only where remoteproc may load
+ * for it (manifest/dsp-cores.json), without overlapping segments. */
+sdos_status sdos__elf_check(const char *path, size_t core_index, char *why, size_t capacity);
 
 uint64_t sdos__now_ms(void);
 

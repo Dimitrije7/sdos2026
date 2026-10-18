@@ -2,31 +2,75 @@
 
 ## Status
 
-pending
+in-progress
 
 ## Handoff
 
 - Updated: 2026-10-19, claude.
-- State: created from the maintainer's requirement below; not started.
-- Done: this task file; the policy change recorded in
-  `docs/course-policy.md` (P-002) and Task 032's scope.
-- Next, scheduled as the next build-track work, before the from-source kernel
-  (Task 035 step 2), because the course firmware's linker setup is new and
-  nothing depends on it yet:
-  1. Board-free, now: memory contract in `manifest/dsp-cores.json` (local
-     SRAM, DDR carve-outs, shared regions, address views, mandatory
-     reservations with reasons); `firmware/linker/` with `SDOS.cmd` per core
-     and runtime and module fragments; startup, cache, and MMU changes;
-     load/run copy; generated definitions; validator generalization; layout
-     examples and negative fixtures; all 12 builds; map reports.
-  2. Needs Task 012's live device-tree audit: confirm ownership of local SRAM,
-     MSMC, and shared DDR on the running board before declaring them usable.
-  3. Board session after Task 013: load, initialization, correctness, and
-     restart of the default and alternative layouts, per core and runtime.
+- State: the board-free part is implemented: every firmware build links from
+  editable native TI linker files over a manifest memory contract, with
+  module fragments, load/run copying, overlays, generalized validation, real-
+  linker negative tests, and map reports. Left: the ownership audit of MSMC and
+  shared DDR (needs Task 012) and the board proof.
+- Done:
+  - Memory contract: `manifest/dsp-cores.json` schema 2 lists every region per
+    core (`ddr`, `l2sram`, `l1dsram`, `l1psram`, `dma_pool`, `msmc`,
+    `shared_ddr`) with owner, `loadable`, `runtime_use`, per-runtime
+    `cache_reserve`, reason, and source, plus `boot_alignment` with its reason.
+  - Generated definitions: `cmake/SdosCores.cmake` writes `sdos/cores.h` (core
+    table, load ranges, region macros) and, for firmware presets,
+    `sdos_memory.cmd` (ORIGIN, LENGTH, USABLE per region for the preset's
+    runtime).
+  - Linker files: `firmware/linker/<core>/SDOS.cmd` (main entry per core, both
+    runtimes via `SDOS_RTOS_*`), `common/c66x_runtime.cmd`,
+    `common/c71x_runtime.cmd`, `modules/fir_memory.cmd` (load DDR, run L2,
+    `table(BINIT)`, LOAD_START/RUN_START/RUN_SIZE), `modules/buffers_memory.cmd`
+    (coefficients, `UNION` overlay of scratch, NOINIT). TI's linker files are no
+    longer used. `SDOS_LINKER_SCRIPT` selects any other file.
+  - Whole firmware placed: resource table, trace, boot and vectors, code, near
+    and far data, stack, heap, IPC buffers, runtime state, task stack, module
+    code, coefficients, scratch. The FreeRTOS C66x vector symbol map moved into
+    `SDOS.cmd`.
+  - Startup: `sdos_layout_check()` runs the FIR from its run address over
+    linker-placed coefficients and scratch and traces the addresses and result;
+    the TI runtimes process BINIT before `main()` on both families.
+  - Validation: `ci/firmware_elf.py --runtime` accepts any loadable region minus
+    that runtime's cache, refuses reserved and unaudited regions with their
+    reason, overlapping load segments, and a misaligned entry point; the C check
+    in `libsdos_dsp` uses the generated load ranges and the boot alignment.
+    Every link treats linker warnings as errors.
+  - Reports: `ci/linker_report.py` writes `<name>.layout.txt` and `.json` after
+    every link (regions with first and last address and use; sections with run,
+    load, size, region).
+  - Alternative layouts as presets: `c66x_0-baremetal-release-l2` (everything in
+    L2, 43.6% of 288 KiB) and `c71x_0-freertos-release-ddr` (data first, code at
+    the top, fixed-address coefficients, inline module placement).
+  - Tests: `ci/test_firmware_elf.py` (L2 up to the runtime's cache, reserved and
+    unaudited regions, overlap, alignment), `ci/test_linker_layouts.py` (real TI
+    links: default and reordered layouts build; vring pool, FreeRTOS L2 cache,
+    and misaligned entry refused), C load tests in `test_dsp_mock`.
+  - Documentation: `docs/linker.md`; policy P-002 amended; Task 032 scope.
+  - Platform findings recorded in `docs/linker.md`: FreeRTOS keeps 64 KiB of C66x
+    L2 as cache through TI's prebuilt kernel library; C66x L1 is all cache in
+    both runtimes; C71x code regions need room for three 2 and 4 MiB-aligned
+    slots; MSMC and shared DDR cannot be loaded by remoteproc and wait for the
+    ownership audit.
+- Next:
+  1. With Task 012's live device tree: confirm the L2 sizes (C71x 448 KiB as
+     TI's linker files declare) and MSMC and shared-DDR ownership; then mark
+     usable parts `runtime_use: any` (still `loadable: false`) with evidence.
+  2. Board session after Task 013: `course-smoke` for the default layout, then
+     the two example presets; record the `layout:` trace line and a restart for
+     each core and runtime under `release/evidence/task-041/`.
+  3. Optional: rebuild TI's FreeRTOS C66x kernel library with a smaller L2
+     cache to give FreeRTOS the full L2, if a lab needs it.
 - Decisions: on 2026-10-19 the maintainer wrote "make a task for this and
   schedule it to be done as you find best", with the requirement quoted
   below, which states "Treat the DSP linker-policy change as authorized."
-- Verification: none yet.
+- Verification, 2026-10-19: all 14 firmware presets (12 plus 2 example
+  layouts) built in the container with warnings as errors and passed the
+  runtime-specific check; `ci.test_linker_layouts` passed 4 real-link cases;
+  host tests passed in six configurations. Board checks not run.
 
 ## Depends on
 

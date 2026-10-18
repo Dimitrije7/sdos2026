@@ -60,6 +60,7 @@ PYTHON_TEST_MODULES = (
     "ci.test_workflows",
     "ci.test_firmware_elf",
     "ci.test_image",
+    "ci.test_linker_layouts",
     "tests.target.test_sdos_board",
     "tests.target.test_dsp_ipc",
     "tests.target.test_course_smoke",

@@ -67,22 +67,16 @@ the R5F cores, which may run no firmware on a BeagleBone AI-64.
 
 ## Memory
 
-Each core's carve-outs come from
-[`manifest/dsp-cores.json`](../manifest/dsp-cores.json):
-
-| Core | IPC pool (vrings) | Firmware carve-out |
-|---|---|---|
-| C66x_0 | `0xa7000000`, 1 MiB | `0xa6100000`, 15 MiB |
-| C66x_1 | `0xa6000000`, 1 MiB | `0xa7100000`, 15 MiB |
-| C71x_0 | `0xa8000000`, 1 MiB | `0xa8100000`, 15 MiB |
+Each core's regions, their owners, and their limits are in
+[`manifest/dsp-cores.json`](../manifest/dsp-cores.json). Placement is in
+editable TI linker files under [`firmware/linker/`](../firmware/linker/):
+[`linker.md`](linker.md) explains the files, the memory each DSP can use, the
+mandatory rules and their reasons, load/run copies, overlays, and the reports.
 
 TI swaps the two C66x IPC pools on purpose. The firmware fails to compile if
-TI's memory map disagrees with the manifest. After linking, every build runs
-`ci/firmware_elf.py`, which refuses any loadable segment outside the core's
-carve-out. The same check runs before `dspctl load` and before the Task 013
-board procedure uploads anything. It has already caught one real defect: the
-C71x linker file has no rule for `.tracebuf`, so the linker placed the trace
-buffer in local L2 SRAM. The C71x build now keeps it in `.bss`.
+TI's memory map disagrees with the manifest. After linking, every build checks
+the result against the manifest. The same check runs before `dspctl load` and
+before the board procedures upload anything.
 
 ## Runtimes
 

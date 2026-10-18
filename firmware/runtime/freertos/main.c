@@ -13,8 +13,8 @@
 #define STACK_ALIGN 8
 #endif
 
-static uint8_t main_stack[32u * 1024u] __attribute__((aligned(STACK_ALIGN)));
-static sdos_runtime runtime;
+static uint8_t main_stack[32u * 1024u] __attribute__((section(".sdos.task_stack"), aligned(STACK_ALIGN)));
+static sdos_runtime runtime __attribute__((section(".sdos.runtime")));
 
 static void main_task(void *arg0, void *arg1)
 {
@@ -28,6 +28,7 @@ static void main_task(void *arg0, void *arg1)
         return;
     }
     sdos_platform_init();
+    (void)sdos_layout_check();
     sdos_identity_init(&runtime.identity, SDOS_RUNTIME_FREERTOS);
     runtime.algorithms = sdos_builtin_algorithms;
     runtime.algorithm_count = sdos_builtin_algorithm_count;

@@ -36,6 +36,10 @@ extern const void *const sdos_resource_table_address;
  * down. Under FreeRTOS this blocks in RPMessage_recv; bare metal polls. */
 void sdos_service_run(sdos_runtime *runtime);
 
+/* Run the FIR from its linked location over linker-placed coefficients and
+ * scratch, and trace the layout; 0 when the result is correct. */
+int sdos_layout_check(void);
+
 /* Identity of this build, filled in from CMake definitions. */
 void sdos_identity_init(sdos_identity *identity, uint8_t runtime_kind);
 

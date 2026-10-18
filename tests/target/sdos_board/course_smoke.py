@@ -54,7 +54,8 @@ def check_artifacts(found: dict[str, Path]) -> list[str]:
     for name, path in found.items():
         if name == "dspctl" or not path.is_file():
             continue
-        report = firmware_elf.inspect(path, firmware_elf.load_core(name.rsplit("-", 1)[0]), require_trace=True)
+        core, runtime = name.rsplit("-", 1)
+        report = firmware_elf.inspect(path, firmware_elf.load_core(core), require_trace=True, runtime=runtime)
         problems += [f"{name}: {problem}" for problem in report.problems]
     return problems
 

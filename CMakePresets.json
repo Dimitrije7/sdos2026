@@ -203,6 +203,16 @@
       }
     },
     {
+      "name": "c66x_0-baremetal-release-l2",
+      "displayName": "c66x_0 firmware, bare metal, release, example layout running from L2 SRAM",
+      "inherits": [
+        "c66x_0-baremetal-release"
+      ],
+      "cacheVariables": {
+        "SDOS_LINKER_SCRIPT": "${sourceDir}/firmware/linker/examples/c66x_0_l2.cmd"
+      }
+    },
+    {
       "name": "c66x_1-freertos-debug",
       "displayName": "c66x_1 firmware, FreeRTOS, debug",
       "inherits": [
@@ -278,6 +288,16 @@
       ],
       "cacheVariables": {
         "SDOS_CORE": "c71x_0"
+      }
+    },
+    {
+      "name": "c71x_0-freertos-release-ddr",
+      "displayName": "c71x_0 firmware, FreeRTOS, release, example layout with the DDR carve-out repartitioned",
+      "inherits": [
+        "c71x_0-freertos-release"
+      ],
+      "cacheVariables": {
+        "SDOS_LINKER_SCRIPT": "${sourceDir}/firmware/linker/examples/c71x_0_ddr.cmd"
       }
     },
     {
@@ -357,6 +377,10 @@
       "configurePreset": "c66x_0-baremetal-release"
     },
     {
+      "name": "c66x_0-baremetal-release-l2",
+      "configurePreset": "c66x_0-baremetal-release-l2"
+    },
+    {
       "name": "c66x_1-freertos-debug",
       "configurePreset": "c66x_1-freertos-debug"
     },
@@ -379,6 +403,10 @@
     {
       "name": "c71x_0-freertos-release",
       "configurePreset": "c71x_0-freertos-release"
+    },
+    {
+      "name": "c71x_0-freertos-release-ddr",
+      "configurePreset": "c71x_0-freertos-release-ddr"
     },
     {
       "name": "c71x_0-baremetal-debug",

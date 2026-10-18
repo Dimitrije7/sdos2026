@@ -18,16 +18,21 @@ class Core:
     ti_core: str
     kernel_firmware: str
     ti_echo_input: str
-    memory: dict[str, dict[str, str]]
+    regions: tuple[dict[str, object], ...]
+    boot_alignment: str
+    boot_alignment_reason: str
 
-    def regions(self) -> list[tuple[str, int, int]]:
-        """(name, base, end) of each carve-out the core may load into or share."""
-        return [(name, int(r["base"], 16), int(r["base"], 16) + int(r["size"], 16)) for name, r in self.memory.items()]
+    def region(self, name: str) -> dict[str, object]:
+        return next(r for r in self.regions if r["name"] == name)
+
+
+def _core(item: dict[str, object]) -> Core:
+    return Core(**{**item, "regions": tuple(item["regions"])})  # type: ignore[arg-type]
 
 
 def load(manifest: Path = MANIFEST) -> dict[str, Core]:
     data = json.loads(manifest.read_text(encoding="utf-8"))
-    return {item["name"]: Core(**item) for item in data["cores"]}
+    return {item["name"]: _core(item) for item in data["cores"]}
 
 
 CORES = load()

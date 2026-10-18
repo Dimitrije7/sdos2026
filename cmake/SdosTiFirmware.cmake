@@ -61,7 +61,7 @@ function(sdos_add_ti_firmware target)
   else()
     target_compile_options(${target} PRIVATE -mi10)
   endif()
-  target_link_libraries(${target} PRIVATE sdos_runtime sdos_cores)
+  target_link_libraries(${target} PRIVATE sdos_runtime sdos_cores sdos_fir_q15)
   sdos_target_warnings(${target})
 
   # Libraries in TI's link order. TI ships release builds only; debug firmware
@@ -109,19 +109,29 @@ function(sdos_add_ti_firmware target)
     target_link_libraries(${target} PRIVATE "${pdk}/${lib}")
   endforeach()
 
-  # Linker command files: TI's per-core FreeRTOS map and the shared DDR map.
-  # Both runtimes use TI's per-core map, so they share one memory layout.
-  set(lds "${examples}/linker_${_isa}_${core}_freertos.lds")
+  # Linker command files (Task 041): the editable main file for this core,
+  # which includes the generated sdos_memory.cmd, the runtime fragment, and
+  # the module fragments. -DSDOS_LINKER_SCRIPT=<file> selects another layout.
+  set(SDOS_LINKER_SCRIPT "${PROJECT_SOURCE_DIR}/firmware/linker/${SDOS_CORE}/SDOS.cmd" CACHE FILEPATH
+      "Main linker command file for this firmware build")
+  get_filename_component(script_dir "${SDOS_LINKER_SCRIPT}" DIRECTORY)
+  string(TOUPPER "${SDOS_RTOS}" rtos_upper)
   set(model --rom_model)
   if(_isa STREQUAL "c7x")
     set(model --ram_model)
   endif()
+  get_filename_component(memory_dir "${SDOS_MEMORY_CMD}" DIRECTORY)
   target_link_options(${target} PRIVATE
-    --warn_sections --reread_libs ${model} "-i${examples}" "${lds}" "${examples}/memory_map_ddr.cmd"
+    # A linker warning can mean an image that cannot run (a relocation
+    # overflow, an unplaced section), so every link treats warnings as errors.
+    --emit_warnings_as_errors --warn_sections --reread_libs ${model} "--define=SDOS_RTOS_${rtos_upper}"
+    "-i${script_dir}" "-i${memory_dir}" "-i${PROJECT_SOURCE_DIR}/firmware/linker/common"
+    "-i${PROJECT_SOURCE_DIR}/firmware/linker/modules" "${SDOS_LINKER_SCRIPT}"
     "-i${SDOS_TI_ROOT}/lib")
+  file(GLOB fragments "${PROJECT_SOURCE_DIR}/firmware/linker/*/*.cmd")
+  set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${SDOS_LINKER_SCRIPT};${SDOS_MEMORY_CMD};${fragments}")
   # libc.a is TI's index of runtime libraries; it must come after every object.
   target_link_libraries(${target} PRIVATE "${SDOS_TI_ROOT}/lib/libc.a")
-  set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${lds}")
 
   # Every build is checked against the core's carve-out and resource table.
   if(_isa STREQUAL "c66")
@@ -132,6 +142,9 @@ function(sdos_add_ti_firmware target)
   set(stripped "$<TARGET_FILE_DIR:${target}>/${name}.${_ext}")
   add_custom_command(TARGET ${target} POST_BUILD
     COMMAND "${strip}" -p "$<TARGET_FILE:${target}>" -o "${stripped}"
-    COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/firmware_elf.py" --require-trace "${SDOS_CORE}" "${stripped}"
-    COMMENT "Stripping and checking ${name}.${_ext} against ${SDOS_CORE}'s memory map")
+    COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/firmware_elf.py" --require-trace --runtime "${SDOS_RTOS}"
+            "${SDOS_CORE}" "${stripped}"
+    COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/linker_report.py" "${CMAKE_BINARY_DIR}/${target}.map"
+            "$<TARGET_FILE_DIR:${target}>/${name}"
+    COMMENT "Stripping, checking, and reporting ${name}.${_ext} against ${SDOS_CORE}'s memory map")
 endfunction()

@@ -5,14 +5,8 @@
 
 #include "sdos/platform.h"
 
-/* TI's C66x linker command files place .tracebuf in the core's external data
- * area. The C7x files have no .tracebuf rule, so there it stays in .bss, as in
- * TI's C7x examples; otherwise the linker would put it in local L2 SRAM. */
-#if defined(BUILD_C7X)
-char sdos_trace_buffer[SDOS_TRACE_SIZE];
-#else
+/* SDOS.cmd places .tracebuf in memory remoteproc maps for Linux to read. */
 char sdos_trace_buffer[SDOS_TRACE_SIZE] __attribute__((section(".tracebuf")));
-#endif
 
 static uint32_t trace_next;
 

@@ -1,8 +1,8 @@
 {
-  "schema": "sdos-dsp-cores/1",
-  "revision": 1,
-  "updated": "2026-10-18",
-  "description": "Stable logical identity of each DSP. Linux enumerates remoteprocN in probe order, so tools resolve a core by its device-tree unit address instead. The C header host/libsdos_dsp generates and the Python board tools both read this file.",
+  "schema": "sdos-dsp-cores/2",
+  "revision": 2,
+  "updated": "2026-10-19",
+  "description": "Stable logical identity and memory contract of each DSP. Tools resolve a core by its device-tree unit address, never by remoteprocN. Every region a DSP can address is listed with its owner, whether remoteproc can load ELF segments into it, how much of it the runtime reserves as cache, and the reason for each limit. Linker command files, the C core table, and the ELF validators are generated from or checked against this file (Task 041); section placement itself stays in the editable linker files.",
   "evidence": "release/evidence/task-008/20261018T175900Z-dmesg.txt lists every reserved-memory node and the dma_pool each DSP is assigned. The firmware regions follow TI's PDK memory_map_defines.inc, which swaps the two C66x IPC pools on purpose; TI's pinned echo firmware links inside them. Task 012 confirms every region against the live device tree.",
   "cores": [
     {
@@ -13,16 +13,100 @@
       "ti_core": "c66xdsp_1",
       "kernel_firmware": "j7-c66_0-fw",
       "ti_echo_input": "ti.ipc-echo-fw-j721e-c66xdsp1",
-      "memory": {
-        "dma_pool": {
+      "regions": [
+        {
+          "name": "dma_pool",
+          "kind": "ddr",
           "base": "0xa7000000",
-          "size": "0x100000"
+          "size": "0x100000",
+          "owner": "linux-remoteproc",
+          "loadable": false,
+          "runtime_use": "none",
+          "reason": "Linux allocates this core's vrings and RPMsg buffers here when it starts the core (shared-dma-pool in the device tree, first memory-region of the remoteproc node); TI swaps the two C66x pools on purpose. Firmware must not place anything here.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
         },
-        "firmware": {
+        {
+          "name": "ddr",
+          "kind": "ddr",
           "base": "0xa6100000",
-          "size": "0xf00000"
+          "size": "0xf00000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "reason": "Reserved for this core by the device tree (second memory-region of the remoteproc node). The split into resource table, text, data, and heap is a default in the linker files, not a constraint.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
+        },
+        {
+          "name": "l2sram",
+          "kind": "local-sram",
+          "base": "0x00800000",
+          "global_base": "0x4d80800000",
+          "size": "0x48000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x10000",
+            "baremetal": "0x0"
+          },
+          "reason": "C66x CorePac L2: 288 KiB at local address 0x00800000. TI's FreeRTOS port configures the top 64 KiB as L2 cache (ti/kernel/freertos/config/j721e/c66/FreeRTOSConfig.h, portCONFIGURE_CACHE_L2_SIZE = 64K, compiled into TI's prebuilt kernel library); the bare-metal runtime leaves L2 at its reset state, all SRAM. remoteproc (k3-dsp-rproc) loads segments addressed at the local L2 view.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (L2SRAM 0x00800000, 0x48000); FreeRTOSConfig.h"
+        },
+        {
+          "name": "l1dsram",
+          "kind": "local-sram",
+          "base": "0x00f00000",
+          "size": "0x8000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x8000",
+            "baremetal": "0x8000"
+          },
+          "reason": "C66x L1D: 32 KiB at 0x00F00000, configured entirely as cache by both runtimes (FreeRTOS: portCONFIGURE_CACHE_LID_SIZE = 32K; bare metal: reset default). Using it as SRAM requires changing that configuration first.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc; FreeRTOSConfig.h"
+        },
+        {
+          "name": "l1psram",
+          "kind": "local-sram",
+          "base": "0x00e00000",
+          "size": "0x8000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x8000",
+            "baremetal": "0x8000"
+          },
+          "reason": "C66x L1P: 32 KiB at 0x00E00000, configured entirely as cache by both runtimes (FreeRTOS: portCONFIGURE_CACHE_LIP_SIZE = 32K; bare metal: reset default).",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc; FreeRTOSConfig.h"
+        },
+        {
+          "name": "msmc",
+          "kind": "shared-sram",
+          "base": "0x70020000",
+          "size": "0x7d0000",
+          "owner": "unverified",
+          "loadable": false,
+          "runtime_use": "audit",
+          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. Linux may map the rest; Task 012 must confirm ownership from the live device tree before use. remoteproc cannot load into it (not in the DSP's memory-region list), so firmware may only use it at run time.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW)"
+        },
+        {
+          "name": "shared_ddr",
+          "kind": "ddr",
+          "base": "0xaa000000",
+          "size": "0x1c00000",
+          "owner": "rtos-ipc",
+          "loadable": false,
+          "runtime_use": "audit",
+          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. It is not in this core's remoteproc memory-region list, so remoteproc cannot load into it; run-time use must be agreed with the other RTOS cores, which Task 012 audits.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
         }
-      }
+      ],
+      "boot_alignment": "0x400",
+      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 1 KiB-aligned address on the C66x; it refuses to start firmware whose entry point is not aligned."
     },
     {
       "name": "c66x_1",
@@ -32,16 +116,100 @@
       "ti_core": "c66xdsp_2",
       "kernel_firmware": "j7-c66_1-fw",
       "ti_echo_input": "ti.ipc-echo-fw-j721e-c66xdsp2",
-      "memory": {
-        "dma_pool": {
+      "regions": [
+        {
+          "name": "dma_pool",
+          "kind": "ddr",
           "base": "0xa6000000",
-          "size": "0x100000"
+          "size": "0x100000",
+          "owner": "linux-remoteproc",
+          "loadable": false,
+          "runtime_use": "none",
+          "reason": "Linux allocates this core's vrings and RPMsg buffers here when it starts the core (shared-dma-pool in the device tree, first memory-region of the remoteproc node); TI swaps the two C66x pools on purpose. Firmware must not place anything here.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
         },
-        "firmware": {
+        {
+          "name": "ddr",
+          "kind": "ddr",
           "base": "0xa7100000",
-          "size": "0xf00000"
+          "size": "0xf00000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "reason": "Reserved for this core by the device tree (second memory-region of the remoteproc node). The split into resource table, text, data, and heap is a default in the linker files, not a constraint.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
+        },
+        {
+          "name": "l2sram",
+          "kind": "local-sram",
+          "base": "0x00800000",
+          "global_base": "0x4d81800000",
+          "size": "0x48000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x10000",
+            "baremetal": "0x0"
+          },
+          "reason": "C66x CorePac L2: 288 KiB at local address 0x00800000. TI's FreeRTOS port configures the top 64 KiB as L2 cache (ti/kernel/freertos/config/j721e/c66/FreeRTOSConfig.h, portCONFIGURE_CACHE_L2_SIZE = 64K, compiled into TI's prebuilt kernel library); the bare-metal runtime leaves L2 at its reset state, all SRAM. remoteproc (k3-dsp-rproc) loads segments addressed at the local L2 view.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (L2SRAM 0x00800000, 0x48000); FreeRTOSConfig.h"
+        },
+        {
+          "name": "l1dsram",
+          "kind": "local-sram",
+          "base": "0x00f00000",
+          "size": "0x8000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x8000",
+            "baremetal": "0x8000"
+          },
+          "reason": "C66x L1D: 32 KiB at 0x00F00000, configured entirely as cache by both runtimes (FreeRTOS: portCONFIGURE_CACHE_LID_SIZE = 32K; bare metal: reset default). Using it as SRAM requires changing that configuration first.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc; FreeRTOSConfig.h"
+        },
+        {
+          "name": "l1psram",
+          "kind": "local-sram",
+          "base": "0x00e00000",
+          "size": "0x8000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x8000",
+            "baremetal": "0x8000"
+          },
+          "reason": "C66x L1P: 32 KiB at 0x00E00000, configured entirely as cache by both runtimes (FreeRTOS: portCONFIGURE_CACHE_LIP_SIZE = 32K; bare metal: reset default).",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc; FreeRTOSConfig.h"
+        },
+        {
+          "name": "msmc",
+          "kind": "shared-sram",
+          "base": "0x70020000",
+          "size": "0x7d0000",
+          "owner": "unverified",
+          "loadable": false,
+          "runtime_use": "audit",
+          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. Linux may map the rest; Task 012 must confirm ownership from the live device tree before use. remoteproc cannot load into it (not in the DSP's memory-region list), so firmware may only use it at run time.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW)"
+        },
+        {
+          "name": "shared_ddr",
+          "kind": "ddr",
+          "base": "0xaa000000",
+          "size": "0x1c00000",
+          "owner": "rtos-ipc",
+          "loadable": false,
+          "runtime_use": "audit",
+          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. It is not in this core's remoteproc memory-region list, so remoteproc cannot load into it; run-time use must be agreed with the other RTOS cores, which Task 012 audits.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
         }
-      }
+      ],
+      "boot_alignment": "0x400",
+      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 1 KiB-aligned address on the C66x; it refuses to start firmware whose entry point is not aligned."
     },
     {
       "name": "c71x_0",
@@ -51,16 +219,76 @@
       "ti_core": "c7x_1",
       "kernel_firmware": "j7-c71_0-fw",
       "ti_echo_input": "ti.ipc-echo-fw-j721e-c7x1",
-      "memory": {
-        "dma_pool": {
+      "regions": [
+        {
+          "name": "dma_pool",
+          "kind": "ddr",
           "base": "0xa8000000",
-          "size": "0x100000"
+          "size": "0x100000",
+          "owner": "linux-remoteproc",
+          "loadable": false,
+          "runtime_use": "none",
+          "reason": "Linux allocates this core's vrings and RPMsg buffers here when it starts the core (shared-dma-pool in the device tree, first memory-region of the remoteproc node); TI swaps the two C66x pools on purpose. Firmware must not place anything here.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
         },
-        "firmware": {
+        {
+          "name": "ddr",
+          "kind": "ddr",
           "base": "0xa8100000",
-          "size": "0xf00000"
+          "size": "0xf00000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "reason": "Reserved for this core by the device tree (second memory-region of the remoteproc node). The split into resource table, text, data, and heap is a default in the linker files, not a constraint.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
+        },
+        {
+          "name": "l2sram",
+          "kind": "local-sram",
+          "base": "0x64800000",
+          "global_base": "0x64800000",
+          "size": "0x70000",
+          "owner": "core",
+          "loadable": true,
+          "runtime_use": "any",
+          "cache_reserve": {
+            "freertos": "0x0",
+            "baremetal": "0x0"
+          },
+          "reason": "C71x L2 SRAM as TI's C7x linker files declare it (448 KiB at 0x64800000); TI's C7x startup configures the remaining L2 as cache. Task 012 confirms the size against the live device tree.",
+          "source": "TI PDK 11.02.01.08 linker_c7x_c7x_1_freertos.lds (L2SRAM 0x64800000, 0x70000)"
+        },
+        {
+          "name": "msmc",
+          "kind": "shared-sram",
+          "base": "0x70020000",
+          "size": "0x7d0000",
+          "owner": "unverified",
+          "loadable": false,
+          "runtime_use": "audit",
+          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. Linux may map the rest; Task 012 must confirm ownership from the live device tree before use. remoteproc cannot load into it (not in the DSP's memory-region list), so firmware may only use it at run time.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW)"
+        },
+        {
+          "name": "shared_ddr",
+          "kind": "ddr",
+          "base": "0xaa000000",
+          "size": "0x1c00000",
+          "owner": "rtos-ipc",
+          "loadable": false,
+          "runtime_use": "audit",
+          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. It is not in this core's remoteproc memory-region list, so remoteproc cannot load into it; run-time use must be agreed with the other RTOS cores, which Task 012 audits.",
+          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
         }
-      }
+      ],
+      "boot_alignment": "0x200000",
+      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 2 MiB-aligned address on the C71x; it refuses to start firmware whose entry point is not aligned."
     }
-  ]
+  ],
+  "fields": {
+    "loadable": "remoteproc can copy an ELF segment here: the region is in this core's device-tree memory-region list or is the core's own internal memory.",
+    "runtime_use": "any: code and data; none: firmware must not use it; audit: usable only after Task 012 confirms nothing else owns it, and then only at run time (NOLOAD or copied in).",
+    "cache_reserve": "bytes at the top of a local SRAM that the runtime configures as cache; firmware may not place anything there under that runtime.",
+    "boot_alignment": "Required alignment of the ELF entry point, with the loader's reason."
+  }
 }
