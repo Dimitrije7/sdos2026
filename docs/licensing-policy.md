@@ -165,3 +165,8 @@ the pinned TI compilers and SDK for project automation, and said fork pull
 requests do not matter. Two GitHub-hosted runs proved unattended use, so
 blocker `LIC-002` is closed in matrix revision 4. The evidence is in
 [`docs/research/task-005-feasibility.md`](research/task-005-feasibility.md).
+
+On 2026-10-18 the maintainer accepted Gate 0 with condition G0-4. Matrix
+revision 5 therefore gates `LIC-001` on publication of any TI-derived artifact
+instead of on Gate 0. Task 019 owns its remaining path-by-path inventory. See
+[`release/evidence/gate-0/gate-0-record.md`](../release/evidence/gate-0/gate-0-record.md).

@@ -1,6 +1,6 @@
 # Gate 0 record
 
-Status: proposed for maintainer decision  
+Status: accepted 2026-10-18, conditional go  
 Prepared: 2026-10-18 by claude for [Task 006](../../../tasks/006-gate-0-decision.md)  
 Baseline commit: `802293b`
 
@@ -37,13 +37,16 @@ should move. None of them makes the Task 008 target ambiguous.
 
 ## Conditions
 
-| ID | Condition | Owner | Blocks |
-|---|---|---|---|
-| G0-1 | A 5 V, 4 A center-positive barrel-jack supply. USB-A power is below BeagleBoard's 5 V/3 A requirement; it is tolerated only for flashing, first boot, and read-only checks. | Maintainer purchase | Task 010 stability and all DSP work |
-| G0-2 | The workstation session gains the `dialout` group through a full logout or reboot. The group was added on 2026-10-18 but the running session predates it. | Maintainer | Serial capture in Tasks 007 and 008 |
-| G0-3 | A U-Boot boot log needs the USB-UART adapter attached while the board also uses USB-C. With one USB-A port, that needs the PC's USB-C port or a small USB hub. | Maintainer | Complete serial boot log in Task 008; Linux console works without it |
-| G0-4 | Move `LIC-001`'s gate from Gate 0 to "before any TI-derived artifact is published". Its remaining work is the path-by-path archive inventory owned by Task 019; acquisition and CI use are already accepted and proven. | Agent after approval | Nothing before Task 019 |
-| G0-5 | Repository destination and staff owner: `Dimitrije7/sdos2026`, public, with the maintainer as the sole staff owner until a course organization is chosen before student onboarding. | Maintainer decision | Student onboarding, not bring-up |
+The maintainer accepted these conditions as revised on 2026-10-18 after
+reporting the bench changes quoted under Decision.
+
+| ID | Condition | Owner | Blocks | State at acceptance |
+|---|---|---|---|---|
+| G0-1 | Board power. BeagleBoard asks for 5 V/3 A or more; the baseline supply is a 5 V, 4 A center-positive barrel jack. | Maintainer | Task 010 stability and all DSP work | Accepted for now: a Xiaomi 5 V/3 A USB-C charger, or the PC's USB-A port while the board needs USB networking. Unexpected resets are first attributed to power. |
+| G0-2 | Serial access for the workstation account. | Maintainer | Serial capture in Tasks 007 and 008 | The account is in `dialout`; the running session predates it. Until a reboot, the maintainer grants a per-device ACL with `setfacl`. |
+| G0-3 | A boot-loader log needs the 3-pin `UART0` debug header J3. | Maintainer purchase | Complete serial boot log in Task 008 | Open. The maintainer's adapter is a CH340 USB-to-ESP-01 board with Dupont wires, which do not fit J3. Captures on P9.11/P9.13 received no console text, because the stock image routes UART0 to J3. A 3-pin cable matching J3 is needed; the Linux console over USB works meanwhile. |
+| G0-4 | Move `LIC-001`'s gate from Gate 0 to "before any TI-derived artifact is published". | Agent | Nothing before Task 019 | Done in license matrix revision 5. |
+| G0-5 | Repository `Dimitrije7/sdos2026`, public, with the maintainer as the sole staff owner until a course organization is chosen before student onboarding. | Maintainer | Student onboarding | Accepted. |
 
 Deferred manifest items keep their owners: TI Linux firmware in Task 013,
 ti-rpmsg-char in Task 027, and minimum Docker host versions in Task 017.
@@ -60,6 +63,10 @@ ti-rpmsg-char in Task 027, and minimum Docker host versions in Task 017.
 These SHA-256 values identify the documents the decision approves, at commit
 `802293b`.
 
+Applying G0-4 afterwards changed `docs/licensing-policy.md` and
+`manifest/license-matrix.json` only in `LIC-001`'s owner, condition, and gate,
+the matrix revision, and a closing note in the policy.
+
 | File | SHA-256 |
 |---|---|
 | `docs/course-policy.md` | `9857ae8d629b122a157dacad36eee12cc295aa0ec601758acd282860764a74c5` |
@@ -71,4 +78,25 @@ These SHA-256 values identify the documents the decision approves, at commit
 
 ## Decision
 
-Pending. The maintainer's answer is recorded here verbatim with its date.
+Accepted on 2026-10-18. The agent asked: "Do you accept Gate 0 with these
+conditions, plus the two-track plan?" The table it showed listed G0-1 as the
+Xiaomi 5 V/3 A adapter for now, G0-2 as `setfacl` or a reboot, G0-3 as solved by
+the UART adapter on USB-A, and G0-4 and G0-5 unchanged. The two-track plan runs
+the board track from Task 008 alongside the build track of Tasks 016, 017, and
+019.
+
+The maintainer answered:
+
+> 1. I accept
+> 2. both options
+
+The second answer replied to "Should the image keep BeagleBoard's kernel
+package, or must the kernel also be built from source?" It is recorded in
+[Task 035](../../../tasks/035-reproducible-image-builder.md): the image builder
+supports both.
+
+The maintainer had earlier written "I do not have barrel-jack, I will power up
+the board via my Xiaomi adapter that delivers 5V and 3A, 15W it should be enough
+for now, and I will connect UART to USB A port via converter." After the UART
+attempts failed, the maintainer reconnected the board's USB-C to the PC and
+wrote "connected via usb c continue". G0-1 and G0-3 above record that state.

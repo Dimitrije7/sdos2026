@@ -2,25 +2,22 @@
 
 ## Status
 
-in-progress
+done
 
-## Handoff
+## Completion evidence
 
-- Updated: 2026-10-18, claude.
-- State: The Gate 0 record is prepared with a conditional-go recommendation
-  and waits for the maintainer's decision.
-- Done: [`release/evidence/gate-0/gate-0-record.md`](../release/evidence/gate-0/gate-0-record.md)
-  holds the evidence index, the observed bench, conditions G0-1 to G0-5,
-  alternatives, and baseline hashes at commit `802293b`.
-- Next:
-  1. Record the maintainer's answer verbatim in the gate record and here.
-  2. If accepted: move `LIC-001`'s gate as in G0-4, set Task 008 to `ready`,
-     and complete this task.
-  3. If any baseline file changes before the decision, recompute its hash in
-     the record.
-- Decisions: pending. Asked 2026-10-18 whether to accept conditional go with
-  conditions G0-1 to G0-5.
-- Verification: the baseline hashes were computed at commit `802293b`.
+- [`release/evidence/gate-0/gate-0-record.md`](../release/evidence/gate-0/gate-0-record.md)
+  maps every Phase 0 deliverable to evidence, names conditions G0-1 to G0-5
+  with owners, and freezes the baseline by SHA-256 at commit `802293b`.
+- Decision, 2026-10-18, quoted in the record: "1. I accept" to the conditional
+  go and the two-track plan, and "2. both options" to the kernel question,
+  recorded in [Task 035](035-reproducible-image-builder.md).
+- G0-4 is applied: license matrix revision 5 gates `LIC-001` on publication of
+  any TI-derived artifact, owned by Task 019.
+- Open conditions carried forward: G0-1 power and G0-3 the J3 debug cable,
+  both owned by the maintainer.
+- Verification: `python3 ci/validate_licenses.py` and
+  `python3 ci/validate_versions.py` pass.
 
 ## Depends on
 

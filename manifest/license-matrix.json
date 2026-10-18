@@ -2,7 +2,7 @@
   "$schema": "./schemas/license-matrix.schema.json",
   "schema_version": "1.0.0",
   "matrix_id": "sdos-third-party-license-policy",
-  "revision": 4,
+  "revision": 5,
   "updated": "2026-10-18",
   "decision_status": "accepted",
   "policy": {
@@ -1406,9 +1406,9 @@
     {
       "id": "LIC-001",
       "description": "The exact selected PSDK, compiler, and optimized-library archives must be acquired without accepting terms in this repository and their shipped manifests must be reconciled path by path.",
-      "owner": "Task 004 for the record; Task 005 for the maintainer's confirmation of exact no-cost terms",
-      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, and included license texts, then record the maintainer's acceptance of the exact no-cost terms and approval of the classified acquisition and redistribution uses.",
-      "gate": "Gate 0"
+      "owner": "Task 004 recorded the pins and Task 005 the maintainer's acceptance of the exact no-cost terms; Task 019 owns the path-by-path inventory",
+      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, and included license texts, then record the maintainer's acceptance of the exact no-cost terms and approval of the classified acquisition and redistribution uses. Versions, URLs, hashes, and the acceptance are recorded; the installed inventories and license texts remain.",
+      "gate": "Before any TI-derived artifact is published; moved from Gate 0 by the accepted Gate 0 condition G0-4"
     },
     {
       "id": "LIC-003",

@@ -27,6 +27,15 @@ image without maintaining a hand-edited master card.
 - Add static partition/filesystem/package/configuration tests and dry runs.
 - Fit main/nightly GitHub-hosted runner storage, memory, and time budgets.
 
+## Maintainer decision
+
+On 2026-10-18 the agent asked "Should the image keep BeagleBoard's kernel
+package, or must the kernel also be built from source?" and the maintainer
+answered "both options". The builder therefore supports two kernel sources
+selected by one input: the default installs BeagleBoard's pinned kernel
+package, and the second builds the same kernel version from pinned source with
+the matching configuration. Both variants must pass the same image tests.
+
 ## Out of scope
 
 Embedding secrets, mutable downloads, undocumented live edits, or publishing an
