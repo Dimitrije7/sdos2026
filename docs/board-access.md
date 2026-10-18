@@ -7,8 +7,8 @@ Code: [`tests/target/sdos_board/`](../tests/target/sdos_board/)
 
 Agents use this tool to find and identify the bench hardware connected to the
 development PC: the USB-UART adapter, the microSD reader, and the board on the
-network. It never writes to a device. Later tasks that flash a card or change
-board state call its guards first and then request the maintainer's approval.
+network. Every command except `flash` is read-only. `flash` writes one pinned
+image to one card, only after the maintainer approves that exact card.
 
 ## Safety rules the tool enforces
 
@@ -27,6 +27,10 @@ board state call its guards first and then request the maintainer's approval.
   returns the record that the approval request must quote.
 - **Capture is receive-only.** The UART is opened read-only, so capture cannot
   type into the board's console.
+- **Flashing repeats every check.** `flash` reruns the write-target check,
+  requires `--confirm` to repeat the approved by-id, verifies the downloaded
+  file against the manifest, opens the card exclusively so the kernel refuses a
+  mounted one, and reads the whole image back to compare its SHA-256.
 
 ## Supported bench connections
 
@@ -107,6 +111,21 @@ Capture the serial console until the login prompt or a time limit:
 python3 -m tests.target.sdos_board capture --uart <by-id name> --out <dir> --until 'login:' --seconds 300
 ```
 
+Write a pinned image to an approved card. The maintainer runs this with `sudo`,
+because writing a block device needs root, after unmounting the card's
+partitions:
+
+```sh
+udisksctl unmount -b /dev/disk/by-id/<card by-id>-part1
+sudo python3 -m tests.target.sdos_board --json <evidence>/flash.json flash \
+  --id <card by-id> --confirm <card by-id> \
+  --input <manifest image id> --image <downloaded .img.xz>
+```
+
+It prints progress to standard error and the result record to standard output.
+Exit status 0 means written and verified, 1 means the write or read-back failed
+and the card must not be booted, and 3 means a check refused before writing.
+
 Capture writes three files to the output directory:
 
 | File | Content |
@@ -132,6 +151,8 @@ output to a file.
 | `reader-without-by-id` | udev created no `usb-*` link | Reconnect the reader directly to the PC, not through a hub |
 | `reader-placeholder-serial` | The reader fails the identity check | Use a reader with a unique serial before any flashing |
 | `partitions are mounted` | The desktop auto-mounted the card | The flashing task unmounts only after approval of that exact target |
+| `--confirm must repeat` | The confirmation names a different card | Repeat the by-id from the approval record exactly |
+| `read-back ... expected` | The card returned different data | Do not boot the card; replace it and flash again |
 | `does not accept SSH` | The board is off, still booting, or on another network | Check the serial console log for the boot stage and the address |
 | `match no recorded fingerprint` | A different board or a reflashed image answered | Confirm the board identity before trusting the session |
 

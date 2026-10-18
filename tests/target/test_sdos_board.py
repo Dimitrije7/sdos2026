@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import lzma
 import os
 import tempfile
 import threading
@@ -12,7 +14,7 @@ import unittest
 from pathlib import Path
 
 from tests.target.sdos_board import __main__ as cli
-from tests.target.sdos_board import guards, network, serial_capture
+from tests.target.sdos_board import flash, guards, network, serial_capture
 from tests.target.sdos_board.discovery import FixtureHost, discover, is_placeholder_serial
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures"
@@ -219,6 +221,52 @@ class SerialCaptureTests(unittest.TestCase):
         metadata, out = self.run_capture([b"partial output without newline"], seconds=0.8)
         self.assertEqual(metadata["stop_reason"], "time-limit")
         self.assertIn("[partial] partial output", (out / "console.log").read_text())
+
+
+class FlashTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.dir = Path(self.tmp.name)
+        self.payload = os.urandom(3 * 1024 * 1024 + 17)
+        self.image = self.dir / "card.img.xz"
+        with lzma.open(self.image, "wb") as handle:
+            handle.write(self.payload)
+        self.target = self.dir / "card.bin"
+        self.target.write_bytes(b"old image" * 1000)
+        self.sha = hashlib.sha256(self.payload).hexdigest()
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_write_and_readback_match_the_manifest_hash(self) -> None:
+        result = flash.write_image(self.image, str(self.target), self.sha, len(self.payload))
+        self.assertEqual(result["readback_sha256"], self.sha)
+        self.assertEqual(self.target.read_bytes()[: len(self.payload)], self.payload)
+
+    def test_wrong_image_content_fails(self) -> None:
+        with self.assertRaisesRegex(flash.FlashError, "manifest expects"):
+            flash.write_image(self.image, str(self.target), "0" * 64, len(self.payload))
+
+    def test_confirmation_must_repeat_the_target(self) -> None:
+        discovery = bench("bench-ok.json")
+        with self.assertRaisesRegex(guards.BoardAccessError, "--confirm must repeat"):
+            flash.authorize(discovery, OK_READER, "usb-Other_Reader-0:0")
+        self.assertEqual(flash.authorize(discovery, OK_READER, OK_READER)["by_id"], OK_READER)
+
+    def test_mounted_card_is_refused_before_confirmation(self) -> None:
+        with self.assertRaisesRegex(guards.BoardAccessError, "mounted"):
+            flash.authorize(bench("bench-sd-slot.json"), "mmc-SC32G_0x1a2b3c4d", "mmc-SC32G_0x1a2b3c4d")
+
+    def test_manifest_image_has_expanded_hash(self) -> None:
+        image = flash.manifest_image("beagle.bbai64-debian-13.7-iot-2026-10-09")
+        self.assertEqual(image["expanded_size"], 10737418240)
+        with self.assertRaises(flash.FlashError):
+            flash.manifest_image("beagle.bbai64-iot-2026-10-09-bmap")
+
+    def test_cli_refuses_flash_from_a_fixture(self) -> None:
+        argv = ["--fixture", str(FIXTURES / "bench-ok.json"), "flash", "--id", OK_READER,
+                "--confirm", OK_READER, "--input", "x", "--image", str(self.image)]
+        self.assertEqual(cli.main(argv), 3)
 
 
 class CliTests(unittest.TestCase):

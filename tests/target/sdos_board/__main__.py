@@ -5,12 +5,13 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from . import guards, network, serial_capture
+from . import flash, guards, network, serial_capture
 from .discovery import Discovery, FixtureHost, HostView, LiveHost, discover
 
 
@@ -90,6 +91,37 @@ def cmd_capture(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_flash(args: argparse.Namespace) -> int:
+    if args.fixture:
+        raise guards.BoardAccessError("flash acts on the live host only; remove --fixture")
+    record = flash.authorize(run_discovery(args), args.id, args.confirm)
+    image = flash.manifest_image(args.input)
+    if args.image.name != image["file_name"]:
+        raise guards.BoardAccessError(f"{args.image.name} is not the manifest file {image['file_name']}")
+    print(f"checking {args.image.name}", file=sys.stderr, flush=True)
+    actual = flash.sha256_file(args.image)
+    if actual != image["sha256"]:
+        raise guards.BoardAccessError(f"{args.image} has SHA-256 {actual}; the manifest pins {image['sha256']}")
+    report: dict[str, Any] = {"target": record, "input": image, "result": "failed"}
+    try:
+        report.update(
+            flash.write_image(
+                args.image,
+                f"/dev/disk/by-id/{record['by_id']}",
+                image["expanded_sha256"],
+                image["expanded_size"],
+            )
+        )
+        report["result"] = "written-and-verified"
+    except (OSError, flash.FlashError) as exc:
+        report["error"] = str(exc)
+    emit(report, args)
+    owner = os.environ.get("SUDO_UID"), os.environ.get("SUDO_GID")
+    if args.json and all(owner):
+        os.chown(args.json, int(owner[0]), int(owner[1]))
+    return 0 if report["result"] == "written-and-verified" else 1
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="python3 -m tests.target.sdos_board", description=__doc__)
     parser.add_argument("--fixture", type=Path, help="read a recorded host listing instead of this machine")
@@ -121,6 +153,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--seconds", type=float)
     sub.add_argument("--until", help="stop after a line matching this regular expression")
     sub.set_defaults(handler=cmd_capture)
+
+    sub = commands.add_parser("flash", help="write a pinned image to an approved card and verify it")
+    sub.add_argument("--id", required=True, help="exact /dev/disk/by-id name of the card")
+    sub.add_argument("--confirm", required=True, help="the same by-id, repeated as the approval")
+    sub.add_argument("--input", required=True, help="manifest input id of the image")
+    sub.add_argument("--image", type=Path, required=True, help="downloaded image file")
+    sub.set_defaults(handler=cmd_flash)
     return parser.parse_args(argv)
 
 
