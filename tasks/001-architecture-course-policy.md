@@ -2,7 +2,7 @@
 
 ## Status
 
-ready
+done
 
 ## Depends on
 
@@ -48,3 +48,17 @@ Record accepted choices as ADRs or an authoritative project-policy document.
 
 Review the decision records against every Phase 0 policy bullet and link them
 from the plan or manifest.
+
+## Completion evidence
+
+- [`docs/course-policy.md`](../docs/course-policy.md) records accepted policies
+  P-001 through P-006 and the named Gate 0 blockers that remain open.
+- [`docs/research/task-001-policy-evidence.md`](../docs/research/task-001-policy-evidence.md)
+  holds the primary-source evidence and the alternatives considered.
+- [`docs/bringup-plan.md`](../docs/bringup-plan.md) links the policy from
+  Phase 0, Section 6.8, and Section 6.10.
+- Decision, 2026-10-18: asked whether the maintainer accepts P-001 through
+  P-006, including public student forks and the provisional performance
+  targets, with the institution organization and Tasks 002–005 evidence
+  remaining Gate 0 blockers. The maintainer answered "I accept, continue".
+  Recovered from the Codex session transcript during the first agent handoff.

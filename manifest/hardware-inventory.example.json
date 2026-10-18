@@ -1,0 +1,21 @@
+{
+  "$schema": "./schemas/hardware-inventory.schema.json",
+  "schema_version": "1.0.0",
+  "inventory_id": "sdos-unobserved-template",
+  "recorded_at": "2026-10-18T00:00:00Z",
+  "location": {
+    "site": "unrecorded",
+    "room": "unrecorded"
+  },
+  "planned_stations": 0,
+  "stations": [],
+  "assets": [],
+  "unresolved": [
+    {
+      "id": "inventory.awaiting-hardware",
+      "description": "No physical lab inventory was connected or observed during Task 002.",
+      "owner": "task-007",
+      "unblock_condition": "The maintainer connects the reference board and media; the agent records discovered identities and capabilities without inferring absent assets."
+    }
+  ]
+}

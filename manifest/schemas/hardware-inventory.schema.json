@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sdos:schema:hardware-inventory:1.0.0",
+  "title": "SDOS observed lab hardware inventory",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "inventory_id",
+    "recorded_at",
+    "location",
+    "planned_stations",
+    "stations",
+    "assets",
+    "unresolved"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "inventory_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]+$"
+    },
+    "recorded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["site", "room"],
+      "properties": {
+        "site": {
+          "type": "string",
+          "minLength": 1
+        },
+        "room": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "planned_stations": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "stations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/station"
+      }
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unresolved"
+      }
+    }
+  },
+  "$defs": {
+    "station": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["station_id", "status"],
+      "properties": {
+        "station_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]+$"
+        },
+        "status": {
+          "enum": ["planned", "ready", "unavailable", "retired"]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "identification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["availability", "method"],
+      "properties": {
+        "availability": {
+          "enum": ["recorded", "unavailable", "not-applicable"]
+        },
+        "method": {
+          "enum": [
+            "asset-tag",
+            "board-eeprom",
+            "manufacturer-serial",
+            "usb-serial",
+            "block-by-id",
+            "manual-label",
+            "not-applicable"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "recorded"
+              }
+            }
+          },
+          "then": {
+            "required": ["value"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "availability": {
+                "const": "unavailable"
+              }
+            }
+          },
+          "then": {
+            "required": ["reason"]
+          }
+        }
+      ]
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "asset_id",
+        "bom_item_id",
+        "category",
+        "status"
+      ],
+      "properties": {
+        "asset_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]+$"
+        },
+        "bom_item_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]+$"
+        },
+        "category": {
+          "enum": [
+            "board",
+            "power_supply",
+            "cooling",
+            "storage",
+            "card_reader",
+            "uart",
+            "ethernet",
+            "recovery_media"
+          ]
+        },
+        "status": {
+          "enum": ["planned", "ordered", "present", "unavailable", "retired"]
+        },
+        "assigned_station": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]+$"
+        },
+        "manufacturer": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "part_number": {
+          "type": "string",
+          "minLength": 1
+        },
+        "condition": {
+          "enum": ["new", "serviceable", "damaged", "unknown"]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "identification": {
+          "$ref": "#/$defs/identification"
+        },
+        "observed_capabilities": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]+$"
+          },
+          "additionalProperties": {
+            "type": ["string", "number", "integer", "boolean"]
+          }
+        },
+        "acceptance_results": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_.-]+$"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "present"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "manufacturer",
+              "model",
+              "condition",
+              "observed_at",
+              "identification",
+              "observed_capabilities",
+              "acceptance_results"
+            ]
+          }
+        }
+      ]
+    },
+    "unresolved": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "description", "owner", "unblock_condition"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]+$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unblock_condition": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

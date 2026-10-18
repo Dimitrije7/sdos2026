@@ -2,7 +2,7 @@
 
 ## Status
 
-ready
+done
 
 ## Depends on
 
@@ -46,3 +46,22 @@ provides a recommended BOM first.
 
 Validate the BOM fields and links; distinguish required, recommended, and spare
 equipment.
+
+## Completion evidence
+
+- [`docs/hardware-bom.md`](../docs/hardware-bom.md) records the supported bench,
+  quantity formulas, candidate models, and qualification boundaries.
+- [`manifest/hardware-bom.json`](../manifest/hardware-bom.json) and the two
+  schemas under [`manifest/schemas/`](../manifest/schemas/) provide the
+  versioned machine contract for later tasks.
+- [`ci/validate_hardware.py`](../ci/validate_hardware.py) validates BOM and
+  inventory structure, cross-references, stable identities, acceptance results,
+  readiness, quantity plans, and source URLs.
+- [`ci/test_validate_hardware.py`](../ci/test_validate_hardware.py) exercises a
+  complete synthetic inventory and the missing-identity, unsafe-reader,
+  failed-check, unknown-check, and missing-category failure paths.
+- [`docs/research/task-002-hardware-bom-evidence.md`](../docs/research/task-002-hardware-bom-evidence.md)
+  holds the primary-source research and clearly separates published facts,
+  course recommendations, and observations that require connected hardware.
+- No physical hardware was observed or claimed. The example inventory remains
+  empty and assigns connected discovery to Task 007.

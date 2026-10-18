@@ -1,0 +1,758 @@
+{
+  "$schema": "./schemas/hardware-bom.schema.json",
+  "schema_version": "1.0.0",
+  "bom_id": "sdos-ai64-reference-bench",
+  "revision": 1,
+  "updated": "2026-10-18",
+  "applies_to": {
+    "board": "BeagleBone AI-64",
+    "soc": "Texas Instruments TDA4VM/J721E",
+    "course_release": "2026-candidate"
+  },
+  "items": [
+    {
+      "id": "board.ai64",
+      "category": "board",
+      "requirement_level": "required",
+      "description": "BeagleBone AI-64 board with its supplied heatsink, a recorded stable identity, and no visible connector or PCB damage.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 2
+        }
+      },
+      "technical_minimum": {
+        "product": "BeagleBone AI-64",
+        "soc": "TDA4VM/J721E",
+        "memory_gb": 4,
+        "heatsink_required": true
+      },
+      "recommended": {
+        "product": "BeagleBone AI-64",
+        "soc": "TDA4VM/J721E",
+        "memory_gb": 4,
+        "heatsink_required": true,
+        "asset_tag_required": true,
+        "eeprom_identity_recorded": true,
+        "soc_revision_recorded": true
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "BeagleBoard.org Foundation",
+          "model": "BeagleBone AI-64",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/01-introduction.html",
+          "notes": "The sole reference board. Record the PCB revision and SoC silicon revision separately for every observed unit."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "board.model",
+          "method": "both",
+          "criterion": "The physical marking and discovered board identity identify a BeagleBone AI-64."
+        },
+        {
+          "id": "board.condition",
+          "method": "manual",
+          "criterion": "The supplied heatsink is present and the PCB, power, microSD, Ethernet, fan, and selected UART connectors have no visible damage."
+        },
+        {
+          "id": "board.identity",
+          "method": "automatic",
+          "criterion": "A stable asset ID, board EEPROM serial and revision, and live SoC revision are recorded; missing exported fields are explicitly unavailable rather than inferred."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "board_identity",
+          "source": "Board EEPROM name, serial number, and revision exposed by the running system",
+          "limitations": "The EEPROM access path is image and kernel dependent; the PCB revision does not identify the SoC silicon revision."
+        },
+        {
+          "field": "soc_identity",
+          "source": "/sys/devices/soc* machine, family, soc_id, revision, and serial_number attributes",
+          "limitations": "Individual sysfs attributes can be absent and must be recorded as unavailable."
+        },
+        {
+          "field": "device_tree_model",
+          "source": "/sys/firmware/devicetree/base/model and compatible",
+          "limitations": "Device-tree identity describes the selected DTB and is corroborating evidence, not a unique asset identity."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "The BeagleBone AI-64 uses a TDA4VM, has 4 GB LPDDR4, 16 GB eMMC, microSD, two 3.3 V debug UARTs, Gigabit Ethernet, a fan connector, and a supplied heatsink.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/01-introduction.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The board EEPROM format includes board name, revision, and serial number.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/03-design-and-specifications.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "Linux defines SoC machine, family, serial_number, soc_id, and revision attributes under sysfs when a platform exports them.",
+          "url": "https://www.kernel.org/doc/html/latest/admin-guide/abi-testing-files.html#abi-file-testing-sysfs-devices-soc",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "power.5v4a",
+      "category": "power_supply",
+      "requirement_level": "required",
+      "description": "Dedicated regulated 5 V, center-positive supply with at least 4 A rated output and a connector physically qualified on the reference board.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 2
+        }
+      },
+      "technical_minimum": {
+        "output_voltage_v": 5,
+        "continuous_current_a": 4,
+        "regulated": true,
+        "barrel_polarity": "center-positive"
+      },
+      "recommended": {
+        "output_voltage_v": 5,
+        "continuous_current_a": 4,
+        "regulated": true,
+        "barrel_polarity": "center-positive",
+        "dedicated_per_station": true,
+        "loaded_qualification_required": true
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "Adafruit",
+          "model": "5V 4A (4000mA) switching power supply",
+          "part_number": "1466",
+          "url": "https://www.adafruit.com/product/1466",
+          "notes": "Candidate dedicated supply with 5.5 mm OD/2.1 mm ID center-positive plug. Physical fit and loaded stability must pass before fleet purchase because the board documentation does not publish barrel dimensions."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "power.label",
+          "method": "manual",
+          "criterion": "The supply label states regulated 5 V DC output at 4 A or greater; no higher-voltage-only supply is accepted."
+        },
+        {
+          "id": "power.polarity",
+          "method": "manual",
+          "criterion": "Barrel polarity is center-positive and connector fit is secure on the sampled board."
+        },
+        {
+          "id": "power.loaded",
+          "method": "both",
+          "criterion": "The board remains powered without reset or undervoltage indication under the qualification workload with the selected fan and normal bench peripherals."
+        }
+      ],
+      "automatic_discovery": [],
+      "evidence": [
+        {
+          "claim": "The board requires a 5 V supply and detailed BeagleBoard guidance specifies more than 3 A; attached peripherals can increase demand.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/03-design-and-specifications.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "BeagleBoard documents at least 5 V/3 A through a matching center-positive barrel connector or USB-C for the AI-64.",
+          "url": "https://docs.beagleboard.org/accessories/power-supplies.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The candidate supply is specified as regulated 5 V/4 A with a center-positive barrel plug.",
+          "url": "https://www.adafruit.com/product/1466",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "cooling.active",
+      "category": "cooling",
+      "requirement_level": "required",
+      "description": "Active forced-air assembly for the supplied heatsink, electrically and mechanically qualified on the reference board and used for all course workloads and measurements.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 2
+        }
+      },
+      "technical_minimum": {
+        "supply_voltage_v": 5,
+        "forced_air_over_heatsink": true,
+        "secure_mounting": true
+      },
+      "recommended": {
+        "supply_voltage_v": 5,
+        "forced_air_over_heatsink": true,
+        "secure_mounting": true,
+        "wire_count": 4,
+        "tachometer": true,
+        "pwm_control": true,
+        "connector_qualified": true
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "Noctua",
+          "model": "NF-A4x10 5V PWM",
+          "url": "https://www.noctua.at/en/products/nf-a4x10-5v-pwm/specifications",
+          "notes": "Candidate 40 x 40 x 10 mm, 5 V, four-wire PWM/tach fan. It is not fleet-qualified until its mounting, board-side harness, header load, startup, tachometer, PWM behavior, and thermal result pass the listed checks."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "cooling.electrical",
+          "method": "manual",
+          "criterion": "The assembly is wired for the observed board revision with GND, 5 V, tachometer, and PWM on the verified pins and stays within the qualified header or external-supply current limit."
+        },
+        {
+          "id": "cooling.mechanical",
+          "method": "manual",
+          "criterion": "The fan is securely mounted, directs air across the supplied heatsink, clears cables and moving parts, and cannot short the board."
+        },
+        {
+          "id": "cooling.operation",
+          "method": "both",
+          "criterion": "The fan starts reliably at power-on; tachometer and PWM response are observed when board-header control is used, or an approved always-on external-power limitation is recorded."
+        },
+        {
+          "id": "cooling.temperature",
+          "method": "automatic",
+          "criterion": "The assembly meets the project temperature and non-throttling envelope under the later sustained qualification workload."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "fan_speed",
+          "source": "Kernel hwmon or platform fan tachometer interface when exported by the selected image",
+          "limitations": "The board documentation does not establish the final Linux fan driver or sysfs path; visual or instrumented observation remains required if no tachometer interface is exported."
+        },
+        {
+          "field": "soc_temperature",
+          "source": "Kernel thermal-zone interfaces",
+          "limitations": "Temperature does not prove airflow or fan identity; sensor mapping and throttling thresholds must be captured with the selected kernel."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "The board includes a heatsink and exposes a PWM-controllable four-pin fan connector.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/01-introduction.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The revision-B1 schematic identifies the four fan signals as GND, 5 V, tachometer, and PWM.",
+          "url": "https://github.com/beagleboard/beaglebone-ai-64/blob/main/hw/BeagleBone_AI-64_Rev_B1_SCH_220602.pdf",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The candidate fan is a 5 V, four-wire PWM/tachometer model with a 0.07 A maximum input current.",
+          "url": "https://www.noctua.at/en/products/nf-a4x10-5v-pwm/specifications",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "storage.working",
+      "category": "storage",
+      "requirement_level": "required",
+      "description": "Traceable, genuine microSD media used as the station working card and accepted by capacity, endurance, identity, and scratch write/read/hash checks.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "spares": {
+          "fraction_of_recommended": 0.2,
+          "minimum_total": 2
+        }
+      },
+      "technical_minimum": {
+        "capacity_gb": 32,
+        "form_factor": "microSDHC or microSDXC",
+        "speed_class": "Class 10 or U1",
+        "traceable_source": true
+      },
+      "recommended": {
+        "capacity_gb": 64,
+        "form_factor": "microSDXC",
+        "speed_class": "Class 10/U1 or better",
+        "traceable_source": true,
+        "application_class": "A1 or better",
+        "high_endurance": true,
+        "post_image_free_space_percent": 20
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "Kingston",
+          "model": "High-Endurance microSD 64 GB",
+          "part_number": "SDCE/64GB",
+          "url": "https://www.kingston.com/datasheets/sdce_en.pdf",
+          "notes": "Reference 64 GB UHS-I U1/Class 10/A1 high-endurance media. Purchase only through a traceable source and qualify actual samples."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "storage.identity",
+          "method": "both",
+          "criterion": "Manufacturer, model, nominal and observed capacity, kernel-exposed CID/serial when available, purchase source, and asset label are recorded without relying on /dev/sdX enumeration."
+        },
+        {
+          "id": "storage.capacity",
+          "method": "automatic",
+          "criterion": "Observed capacity is at least 32 GB and the final course image later leaves at least the frozen free-space margin."
+        },
+        {
+          "id": "storage.endurance",
+          "method": "manual",
+          "criterion": "The exact product family has a manufacturer endurance specification and meets Class 10/U1 or better."
+        },
+        {
+          "id": "storage.scratch",
+          "method": "automatic",
+          "criterion": "A destructive scratch-card full-device write/read verification passes before the card enters service; the exact target requires separate destructive approval."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "block_identity",
+          "source": "udev properties, /dev/disk/by-id links, and explicitly selected lsblk columns",
+          "command": "udevadm settle && lsblk --json --bytes --output NAME,PATH,TYPE,SIZE,MODEL,SERIAL,TRAN,RM,MOUNTPOINTS",
+          "limitations": "USB storage serials and by-id links are optional; a block name alone is never a stable or sufficient flashing identity."
+        },
+        {
+          "field": "media_identity",
+          "source": "Kernel MMC CID, CSD, name, serial, and capacity attributes when the card is installed in the board",
+          "limitations": "Availability and path depend on the kernel, reader path, and whether the card is connected through native MMC or USB."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "The board supports microSD as a boot source and supports larger-capacity cards.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/03-design-and-specifications.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "SDHC spans more than 2 GB through 32 GB and SDXC spans more than 32 GB through 2 TB.",
+          "url": "https://www.sdcard.org/developers/sd-standard-overview/capacity-sd-sdhc-sdxc-sduc/",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The reference Kingston card is specified as 64 GB, UHS-I U1/Class 10/A1 high-endurance media.",
+          "url": "https://www.kingston.com/datasheets/sdce_en.pdf",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "reader.microsd",
+      "category": "card_reader",
+      "requirement_level": "required",
+      "description": "Linux-compatible USB microSD reader that exposes media as a removable block device and passes the exact-target identity and scratch-media tests.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 0,
+          "per_lab": 1,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 0.25,
+          "per_lab": 0,
+          "minimum_total": 2
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 1
+        }
+      },
+      "technical_minimum": {
+        "host_os": "Linux",
+        "media": "microSDHC and microSDXC",
+        "removable_block_device": true,
+        "usb_speed": "USB 2.0 or better"
+      },
+      "recommended": {
+        "host_os": "Linux",
+        "media": "microSDHC, microSDXC, UHS-I, and UHS-II",
+        "removable_block_device": true,
+        "usb_speed": "USB 3.x",
+        "unique_usb_serial": true,
+        "stable_by_id": true,
+        "single_slot": true
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "Kingston",
+          "model": "MobileLite Plus microSD Reader",
+          "part_number": "MLPM",
+          "url": "https://www.kingston.com/en/memory-card-readers/mobilelite-plus-microsd-reader",
+          "notes": "Transport-compatible candidate with Linux support. The manufacturer does not promise a unique USB or storage serial, so sampled units must pass the stable-identity acceptance check before automated flashing."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "reader.transport",
+          "method": "automatic",
+          "criterion": "Linux enumerates one inserted card as exactly one new whole removable USB block device with the expected capacity and no mounted filesystems before a write."
+        },
+        {
+          "id": "reader.identity",
+          "method": "automatic",
+          "criterion": "The sampled reader exposes a non-placeholder unique serial and stable /dev/disk/by-id link; duplicate or missing identities fail automated-flashing acceptance."
+        },
+        {
+          "id": "reader.path",
+          "method": "automatic",
+          "criterion": "A /dev/disk/by-path link is recorded as a secondary physical-port check and is never substituted for a unique reader identity when benches can be recabled."
+        },
+        {
+          "id": "reader.scratch",
+          "method": "automatic",
+          "criterion": "Read and separately approved scratch-media write/read/hash tests complete without I/O errors or disconnects."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "usb_identity",
+          "source": "udev USB vendor, product, serial, and stable device links",
+          "limitations": "A catalogue model does not prove that every unit exposes a unique serial; identities must be sampled and checked for duplicates."
+        },
+        {
+          "field": "block_target",
+          "source": "A before/after udev and lsblk comparison after udev settles",
+          "limitations": "Discovery stays read-only and does not authorize writing; Task 007 must refuse ambiguous, mounted, or unstably identified targets."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "The candidate reader supports microSDHC/microSDXC, UHS-I/UHS-II, USB 3.2 Gen 1, and Linux.",
+          "url": "https://www.kingston.com/en/memory-card-readers/mobilelite-plus-microsd-reader",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "Upstream lsblk documentation warns that default output can change and recommends explicit columns and udev settling for recently added devices.",
+          "url": "https://github.com/util-linux/util-linux/blob/master/lsblk-cmd/lsblk.8.adoc",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "Systemd persistent-storage rules create by-id links from supplied device serial properties and by-path links from connection topology.",
+          "url": "https://github.com/systemd/systemd/blob/main/rules.d/60-persistent-storage.rules.in",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "uart.console",
+      "category": "uart",
+      "requirement_level": "required",
+      "description": "Genuine 3.3 V USB-to-TTL serial adapter with a stable USB identity and a revision-qualified, keyed three-wire GND/TX/RX board harness.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 0,
+          "per_lab": 1,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 0.25,
+          "per_lab": 0,
+          "minimum_total": 2
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 1
+        }
+      },
+      "technical_minimum": {
+        "signal_level_v": 3.3,
+        "baud": 115200,
+        "data_bits": 8,
+        "parity": "none",
+        "stop_bits": 1,
+        "hardware_handshake": false
+      },
+      "recommended": {
+        "signal_level_v": 3.3,
+        "baud": 115200,
+        "data_bits": 8,
+        "parity": "none",
+        "stop_bits": 1,
+        "hardware_handshake": false,
+        "unique_usb_serial": true,
+        "keyed_three_wire_harness": true,
+        "vcc_disconnected": true
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "FTDI",
+          "model": "TTL-232R-3V3",
+          "part_number": "TTL-232R-3V3",
+          "url": "https://ftdichip.com/wp-content/uploads/2023/07/DS_TTL-232R_CABLES.pdf",
+          "notes": "Reference 3.3 V UART cable with a factory-programmed unique USB serial. Its six-pin 0.1-inch termination requires a separately qualified three-wire board adapter, and its 5 V VCC wire must remain disconnected."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "uart.electrical",
+          "method": "manual",
+          "criterion": "Adapter UART I/O is 3.3 V TTL; adapter TX connects to board RX, adapter RX to board TX, and GND to GND with VCC, RTS, and CTS disconnected."
+        },
+        {
+          "id": "uart.harness",
+          "method": "manual",
+          "criterion": "The keyed, strain-relieved harness physically fits the observed board revision and its verified pin order is recorded; 1.25 mm and 1.5 mm connector descriptions are not treated as interchangeable."
+        },
+        {
+          "id": "uart.identity",
+          "method": "automatic",
+          "criterion": "USB vendor, product, unique serial, and stable device link are recorded and remain stable across reconnects."
+        },
+        {
+          "id": "uart.console",
+          "method": "automatic",
+          "criterion": "The selected Linux console produces valid 115200 8N1 output from power-on without hardware handshaking or framing errors."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "usb_identity",
+          "source": "udev USB vendor, product, serial, and stable serial-device links",
+          "limitations": "USB identity does not prove 3.3 V signaling, wiring, connector fit, or that the observed port is the selected Linux console."
+        },
+        {
+          "field": "console_output",
+          "source": "Timestamped serial capture at 115200 8N1",
+          "limitations": "Successful capture is image and port dependent and does not authorize board power or storage changes."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "The board exposes two three-pin 3.3 V TTL debug UARTs with TX/RX only, and the documented console settings are 115200 8N1 without handshaking.",
+          "url": "https://docs.beagleboard.org/accessories/cables.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The board design documentation identifies the UART header signals as GND, RXD, and TXD.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/03-design-and-specifications.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The reference adapter uses 3.3 V UART I/O, has a factory-programmed unique USB serial, and also exposes a 5 V VCC wire.",
+          "url": "https://ftdichip.com/wp-content/uploads/2023/07/DS_TTL-232R_CABLES.pdf",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The revision-B1 schematic names the board connector B3B-ZR, which conflicts with the current cable guide's 1.25 mm PicoBlade description and requires physical qualification.",
+          "url": "https://github.com/beagleboard/beaglebone-ai-64/blob/main/hw/BeagleBone_AI-64_Rev_B1_SCH_220602.pdf",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "ethernet.station-link",
+      "category": "ethernet",
+      "requirement_level": "required",
+      "description": "One Cat5e-or-better patch lead and one reachable 100/1000BASE-T network port per station, with link, address, route, and SSH behavior recorded as site facts.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 1,
+          "per_lab": 0,
+          "minimum_total": 1
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 2
+        }
+      },
+      "technical_minimum": {
+        "connector": "RJ45",
+        "minimum_link_mbps": 100,
+        "workstation_route": true,
+        "ssh_reachable": true
+      },
+      "recommended": {
+        "connector": "RJ45",
+        "minimum_link_mbps": 1000,
+        "workstation_route": true,
+        "ssh_reachable": true,
+        "cable_category": "Cat5e or better",
+        "documented_switch_port": true,
+        "recorded_address_policy": true
+      },
+      "supported_examples": [],
+      "acceptance_checks": [
+        {
+          "id": "ethernet.physical",
+          "method": "manual",
+          "criterion": "Patch lead is Cat5e or better, latches securely, has no visible damage, and terminates at the recorded switch or network port."
+        },
+        {
+          "id": "ethernet.link",
+          "method": "automatic",
+          "criterion": "Carrier is present, the negotiated rate is at least 100 Mbit/s and preferably 1000 Mbit/s, and reconnect restores the link."
+        },
+        {
+          "id": "ethernet.network",
+          "method": "automatic",
+          "criterion": "Permanent/current MAC, IP addressing method and address, route from the agent workstation, and SSH host identity are recorded and pass reachability checks."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "link_state",
+          "source": "Kernel network interface attributes and ethtool link information",
+          "limitations": "Negotiated link state does not identify cable make, physical route, VLAN, DHCP policy, firewall policy, or spare switch capacity."
+        },
+        {
+          "field": "network_identity",
+          "source": "Interface permanent/current MAC, assigned address, route, neighbor state, and SSH host key",
+          "limitations": "Addressing and reachability are site-dependent and must be observed in the target lab."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "The BeagleBone AI-64 exposes a Gigabit Ethernet RJ45 interface.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/01-introduction.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "BeagleBoard documents a standard 100 Mbit/s Ethernet cable as sufficient for basic connectivity.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/02-quick-start.html",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    },
+    {
+      "id": "recovery.golden-microsd",
+      "category": "recovery_media",
+      "requirement_level": "required",
+      "description": "Dedicated, labeled, normally offline high-endurance microSD containing a hash-verified course recovery image that cold-boots a reference board through the documented boot-button path.",
+      "quantity": {
+        "technical_minimum": {
+          "per_station": 0,
+          "per_lab": 1,
+          "minimum_total": 1
+        },
+        "recommended": {
+          "per_station": 0.25,
+          "per_lab": 0,
+          "minimum_total": 2
+        },
+        "spares": {
+          "fraction_of_recommended": 0.1,
+          "minimum_total": 1
+        }
+      },
+      "technical_minimum": {
+        "capacity_gb": 32,
+        "boot_path": "microSD boot-button override",
+        "image_sha256_recorded": true,
+        "cold_boot_verified": true
+      },
+      "recommended": {
+        "capacity_gb": 64,
+        "boot_path": "microSD boot-button override",
+        "image_sha256_recorded": true,
+        "cold_boot_verified": true,
+        "high_endurance": true,
+        "normally_offline": true,
+        "human_asset_label": true,
+        "canonical_image_stored_separately": true
+      },
+      "supported_examples": [
+        {
+          "manufacturer": "Kingston",
+          "model": "High-Endurance microSD 64 GB",
+          "part_number": "SDCE/64GB",
+          "url": "https://www.kingston.com/datasheets/sdce_en.pdf",
+          "notes": "Use the same qualified high-endurance family as working media, but dedicate and label the recovery card and normally keep it offline."
+        }
+      ],
+      "acceptance_checks": [
+        {
+          "id": "recovery.identity",
+          "method": "both",
+          "criterion": "Card asset ID, manufacturer, model, capacity, media identity when exported, state, and compatible board revisions are recorded."
+        },
+        {
+          "id": "recovery.image",
+          "method": "automatic",
+          "criterion": "Canonical image URL/build identity and SHA-256, write timestamp, writing tool identity, target stable identity, and post-write verification result match the release record."
+        },
+        {
+          "id": "recovery.boot",
+          "method": "both",
+          "criterion": "The card cold-boots a reference board through the boot-button microSD path and reports the expected image identity without modifying eMMC."
+        },
+        {
+          "id": "recovery.storage",
+          "method": "manual",
+          "criterion": "After verification the card is labeled, marked sealed or checked-out in inventory, and stored offline with its canonical image and hash available separately."
+        }
+      ],
+      "automatic_discovery": [
+        {
+          "field": "media_identity",
+          "source": "The same udev, stable block link, lsblk, and native MMC identity sources used for working media",
+          "limitations": "Discovery cannot establish image correctness or authorize a write; a separate exact-target approval and post-write verification are required."
+        },
+        {
+          "field": "image_identity",
+          "source": "The booted image's immutable build metadata and the release SHA-256 manifest",
+          "limitations": "Image identity is accepted only after a cold microSD boot; filesystem contents observed through a reader alone do not prove bootability."
+        }
+      ],
+      "evidence": [
+        {
+          "claim": "Holding the boot button while removing and reapplying power selects microSD boot and provides the documented eMMC update/recovery path.",
+          "url": "https://docs.beagleboard.org/boards/beaglebone/ai-64/03-design-and-specifications.html",
+          "checked_on": "2026-10-18"
+        },
+        {
+          "claim": "The reference Kingston card is specified as 64 GB high-endurance media suitable for repeated image use.",
+          "url": "https://www.kingston.com/datasheets/sdce_en.pdf",
+          "checked_on": "2026-10-18"
+        }
+      ]
+    }
+  ]
+}
