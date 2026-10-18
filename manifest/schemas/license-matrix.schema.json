@@ -1,0 +1,423 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sdos:schema:license-matrix:1.0.0",
+  "title": "SDOS third-party license and distribution matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "matrix_id",
+    "revision",
+    "updated",
+    "decision_status",
+    "policy",
+    "artifacts",
+    "blockers"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "matrix_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]+$"
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "decision_status": {
+      "enum": ["proposed", "accepted"]
+    },
+    "policy": {
+      "$ref": "#/$defs/policy"
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/artifact"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/blocker"
+      }
+    }
+  },
+  "$defs": {
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unknown_permission",
+        "fork_pr_secrets",
+        "public_payload_rule",
+        "license_acceptance_rule",
+        "release_evidence"
+      ],
+      "properties": {
+        "unknown_permission": {
+          "const": "prohibited-until-resolved"
+        },
+        "fork_pr_secrets": {
+          "const": false
+        },
+        "public_payload_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "license_acceptance_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "release_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "canonical_url",
+        "license_urls",
+        "version_rule",
+        "integrity_rule"
+      ],
+      "properties": {
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "canonical_url": {
+          "$ref": "#/$defs/https_url"
+        },
+        "license_urls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/https_url"
+          },
+          "uniqueItems": true
+        },
+        "version_rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "integrity_rule": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "license": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "expression",
+        "conclusion",
+        "checked_on",
+        "obligations"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "open-source",
+            "mixed",
+            "proprietary",
+            "service-terms",
+            "unresolved"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conclusion": {
+          "type": "string",
+          "minLength": 1
+        },
+        "checked_on": {
+          "type": "string",
+          "format": "date"
+        },
+        "obligations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "conditions"],
+      "properties": {
+        "status": {
+          "enum": [
+            "allowed",
+            "conditional",
+            "prohibited",
+            "unresolved",
+            "not-applicable"
+          ]
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "operations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "download",
+        "install",
+        "ci_use",
+        "cache",
+        "student_access",
+        "source_redistribution",
+        "binary_redistribution",
+        "public_container",
+        "course_image",
+        "release"
+      ],
+      "properties": {
+        "download": {
+          "$ref": "#/$defs/operation"
+        },
+        "install": {
+          "$ref": "#/$defs/operation"
+        },
+        "ci_use": {
+          "$ref": "#/$defs/operation"
+        },
+        "cache": {
+          "$ref": "#/$defs/operation"
+        },
+        "student_access": {
+          "$ref": "#/$defs/operation"
+        },
+        "source_redistribution": {
+          "$ref": "#/$defs/operation"
+        },
+        "binary_redistribution": {
+          "$ref": "#/$defs/operation"
+        },
+        "public_container": {
+          "$ref": "#/$defs/operation"
+        },
+        "course_image": {
+          "$ref": "#/$defs/operation"
+        },
+        "release": {
+          "$ref": "#/$defs/operation"
+        }
+      }
+    },
+    "handling": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lane",
+        "acquisition",
+        "credentials_required",
+        "license_acceptance_required",
+        "repository_payload"
+      ],
+      "properties": {
+        "lane": {
+          "enum": [
+            "public-pr",
+            "trusted-github",
+            "institution-controlled",
+            "staff-only",
+            "excluded"
+          ]
+        },
+        "acquisition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "credentials_required": {
+          "type": "boolean"
+        },
+        "license_acceptance_required": {
+          "type": "boolean"
+        },
+        "repository_payload": {
+          "enum": ["source", "recipe-only", "none"]
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "category",
+        "purpose",
+        "source",
+        "license",
+        "components",
+        "operations",
+        "handling",
+        "blocker_ids",
+        "notes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_.-]+$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "ti-sdk",
+            "ti-toolchain",
+            "ti-library",
+            "ti-firmware",
+            "board-image",
+            "base-image",
+            "os-package-set",
+            "runtime",
+            "build-tool",
+            "test-tool",
+            "quality-tool",
+            "debug-tool",
+            "standard",
+            "service"
+          ]
+        },
+        "purpose": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "license": {
+          "$ref": "#/$defs/license"
+        },
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/component"
+          }
+        },
+        "operations": {
+          "$ref": "#/$defs/operations"
+        },
+        "handling": {
+          "$ref": "#/$defs/handling"
+        },
+        "blocker_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^LIC-[0-9]{3}$"
+          },
+          "uniqueItems": true
+        },
+        "notes": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "component": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "role",
+        "expression",
+        "source_url",
+        "license_url"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_url": {
+          "$ref": "#/$defs/https_url"
+        },
+        "license_url": {
+          "$ref": "#/$defs/https_url"
+        }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "description",
+        "owner",
+        "unblock_condition",
+        "gate"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^LIC-[0-9]{3}$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "unblock_condition": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gate": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "https_url": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    }
+  }
+}

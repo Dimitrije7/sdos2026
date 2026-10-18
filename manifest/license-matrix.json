@@ -1,0 +1,1360 @@
+{
+  "$schema": "./schemas/license-matrix.schema.json",
+  "schema_version": "1.0.0",
+  "matrix_id": "sdos-third-party-license-policy",
+  "revision": 1,
+  "updated": "2026-10-18",
+  "decision_status": "proposed",
+  "policy": {
+    "unknown_permission": "prohibited-until-resolved",
+    "fork_pr_secrets": false,
+    "public_payload_rule": "Git, public OCI images, public CI caches, and public release artifacts may contain only exact components whose applicable license permits that distribution and whose required notices, source, and device-use conditions are satisfied.",
+    "license_acceptance_rule": "Only an authorized person may accept terms for the institution. CI recipes may consume a recorded authorization but must not silently accept terms, transfer acceptance to students, or expose acceptance state or credentials to fork jobs.",
+    "release_evidence": [
+      "exact artifact version, canonical URL, and SHA-256",
+      "upstream and installed component manifests",
+      "SPDX SBOM for the actual distributed filesystem or archive",
+      "complete license and attribution bundle",
+      "corresponding-source or source-offer evidence where required",
+      "post-link firmware component and runtime-library inventory",
+      "institutional approval for every non-open or ambiguous component"
+    ]
+  },
+  "artifacts": [
+    {
+      "id": "ti.psdk-rtos-j721e",
+      "name": "TI Processor SDK RTOS J721E and PDK",
+      "category": "ti-sdk",
+      "purpose": "Pinned J721E/TDA4VM platform, IPC, FreeRTOS, build support, headers, libraries, and device firmware used to build all DSP targets.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://www.ti.com/tool/PROCESSOR-SDK-J721E",
+        "license_urls": [
+          "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        ],
+        "version_rule": "Use Processor SDK RTOS J721E 11.02.01.03 as the candidate baseline and its declared C6000 CGT 8.3.7/C7000 CGT 5.0.0.LTS pair; Task 004 records archive hashes, manifest IDs, and component versions before acquisition. Do not follow latest.",
+        "integrity_rule": "Verify the recorded SHA-256 before installation and compare the installed file/component manifest with the pinned upstream manifest."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "NOASSERTION",
+        "conclusion": "The SDK is not one licensed work. Its manifest contains BSD-3-Clause and MIT components plus TI Text/TSPA and other file-specific terms; every included path follows its own row and included license.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "preserve the complete SDK manifest and included license texts",
+          "retain BSD and MIT notices for redistributed components",
+          "apply TI-device-only, no-reverse-engineering, and unmodified-binary conditions to applicable TI Text/TSPA files",
+          "exclude any component whose exact terms were not classified"
+        ]
+      },
+      "components": [
+        {
+          "name": "PDK",
+          "role": "J721E platform drivers, IPC support, build metadata, examples, and libraries",
+          "expression": "BSD-3-Clause AND other file-specific licenses",
+          "source_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+          "license_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        },
+        {
+          "name": "TIFS and PKA firmware",
+          "role": "TI system firmware consumed by the platform boot and security stack",
+          "expression": "LicenseRef-TI-Text-File",
+          "source_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+          "license_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        }
+      ],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "Fetch only the pinned upstream archive after an authorized institutional acceptance record exists."},
+        "install": {"status": "conditional", "conditions": "Install only from the verified archive in an authorized environment and retain the installed manifest."},
+        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove authorized unattended use on GitHub-hosted runners without secrets or acceptance in fork jobs."},
+        "cache": {"status": "unresolved", "conditions": "No GitHub or institutional cache until the exact archive terms, access boundary, and fork isolation are approved."},
+        "student_access": {"status": "conditional", "conditions": "Students use TI's own distribution and accept presented terms, or receive only exact components whose included license permits institutional redistribution."},
+        "source_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted source path under its exact included license with notices and TI-device restrictions where applicable."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Redistribute only an allowlisted binary whose exact included license permits it, normally unmodified and for TI-device use, with the license and notices."},
+        "public_container": {"status": "prohibited", "conditions": "The aggregate SDK is excluded from public OCI layers even when individual components are redistributable."},
+        "course_image": {"status": "conditional", "conditions": "Only file-level-cleared runtime or firmware components may enter the course image; development SDK content is excluded."},
+        "release": {"status": "conditional", "conditions": "Release only cleared outputs and components covered by the post-link inventory, notice bundle, and institutional approval."}
+      },
+      "handling": {
+        "lane": "institution-controlled",
+        "acquisition": "Checksummed upstream download or approved private cache after the exact package terms are recorded.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "notes": "The whole archive remains default-deny. A permissive PDK headline does not relicense TI firmware, optimized libraries, compiler payloads, or third-party exceptions."
+    },
+    {
+      "id": "ti.psdk-linux-j721e",
+      "name": "TI Processor SDK Linux J721E",
+      "category": "ti-sdk",
+      "purpose": "Compatibility reference and documented Gate 2 fallback; it is not the selected BeagleBone AI-64 course-image base.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-jacinto7/latest/exports/docs/devices/J7_Family/linux/Release_Specific_Release_Notes.html",
+        "license_urls": [
+          "https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-jacinto7/latest/exports/docs/linux/Overview_GPLv3_Disclaimer.html"
+        ],
+        "version_rule": "Do not acquire for the baseline. If Gate 2 selects this fallback, Task 004 must pin the matching J721E version, manifest, sources, hashes, and firmware closure before use.",
+        "integrity_rule": "Verify upstream archive hashes and reconcile the installed manifest, package database, source archives, and generated filesystem SBOM."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "NOASSERTION",
+        "conclusion": "The SDK and target filesystem combine GPL, LGPL, permissive, and proprietary components; no blanket redistribution conclusion applies.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain the exact installed software manifest",
+          "satisfy notices and corresponding-source duties per component",
+          "preserve proprietary firmware terms",
+          "generate an SBOM from the actual filesystem"
+        ]
+      },
+      "components": [
+        {
+          "name": "Linux target and host package sets",
+          "role": "Fallback kernel, boot, root filesystem, host tools, and sources",
+          "expression": "NOASSERTION",
+          "source_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-jacinto7/latest/exports/docs/devices/J7_Family/linux/Release_Specific_Release_Notes.html",
+          "license_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-linux-jacinto7/latest/exports/docs/linux/Overview_GPLv3_Disclaimer.html"
+        }
+      ],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "Download only if the Gate 2 fallback is selected and the exact release manifest is available."},
+        "install": {"status": "conditional", "conditions": "Install only in an isolated evaluation environment with the exact manifest preserved."},
+        "ci_use": {"status": "unresolved", "conditions": "A selected fallback needs the same Task 005 unattended-use and resource proof as the RTOS SDK."},
+        "cache": {"status": "unresolved", "conditions": "Caching awaits exact package terms and a source/notice retention design."},
+        "student_access": {"status": "conditional", "conditions": "Students receive only a fully cleared image or use TI's upstream distribution under its terms."},
+        "source_redistribution": {"status": "conditional", "conditions": "Redistribute source per each component license and keep the exact build recipes and patches."},
+        "binary_redistribution": {"status": "unresolved", "conditions": "The exact installed manifest and corresponding-source plan must close before distributing an SDK image."},
+        "public_container": {"status": "prohibited", "conditions": "Do not place the aggregate SDK in the public toolchain container."},
+        "course_image": {"status": "prohibited", "conditions": "The accepted baseline uses the BeagleBoard image unless Gate 2 records a new architecture decision."},
+        "release": {"status": "unresolved", "conditions": "A fallback release requires component-level license closure, SBOM, notices, and sources."}
+      },
+      "handling": {
+        "lane": "excluded",
+        "acquisition": "No baseline acquisition; preserve only official links until the documented fallback is selected.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-001", "LIC-002", "LIC-003"],
+      "notes": "TI's GPLv3 development-image warning is not a substitute for a file-level distribution analysis."
+    },
+    {
+      "id": "ti.c6000-cgt",
+      "name": "TI C6000 Code Generation Tools",
+      "category": "ti-toolchain",
+      "purpose": "Compile and link C66x_0 and C66x_1 FreeRTOS and bare-metal firmware with the compiler version declared by the selected PSDK.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://www.ti.com/tool/C6000-CGT",
+        "license_urls": [
+          "https://software-dl.ti.com/codegen/esd/cgt_public_sw/C6000/8.3.15/C6000_Code_Generation_Tools_8.3.15_manifest.html"
+        ],
+        "version_rule": "Use the candidate SDK-declared C6000 CGT 8.3.7, including its installer hash, shipped manifest, and RTS SPDX data; a current standalone manifest is evidence of the license model, not a substitute. A different version requires compatibility proof across both C66x cores and both runtime profiles.",
+        "integrity_rule": "Verify the installer SHA-256 and compare every installed path with the shipped compiler manifest and RTS SPDX inventory."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "LicenseRef-TI-Text-File AND BSL-1.0 AND other bundled terms",
+        "conclusion": "The compiler binary and runtime tree carry TI Text/TSPA and bundled permissive or file-specific terms. The project elects not to redistribute the compiler even where exact terms may allow an unmodified TI-device-use copy.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain the complete compiler manifest and RTS SPDX data",
+          "preserve all notices and included licenses",
+          "use TI-restricted material only in connection with TI devices",
+          "do not reverse engineer or modify binary-only portions"
+        ]
+      },
+      "components": [
+        {
+          "name": "C6000 compiler and host tools",
+          "role": "C/C++ compiler, assembler, linker, archiver, and support binaries",
+          "expression": "LicenseRef-TI-Text-File AND BSL-1.0 AND other bundled terms",
+          "source_url": "https://www.ti.com/tool/C6000-CGT",
+          "license_url": "https://software-dl.ti.com/codegen/esd/cgt_public_sw/C6000/8.3.15/C6000_Code_Generation_Tools_8.3.15_manifest.html"
+        },
+        {
+          "name": "C6000 runtime support libraries",
+          "role": "Target runtime objects linked into C66x firmware",
+          "expression": "NOASSERTION",
+          "source_url": "https://www.ti.com/tool/C6000-CGT",
+          "license_url": "https://software-dl.ti.com/codegen/esd/cgt_public_sw/C6000/8.3.15/C6000_Code_Generation_Tools_8.3.15_manifest.html"
+        }
+      ],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
+        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded institutional authorization."},
+        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove fork-safe unattended use and historical-version availability on GitHub-hosted runners."},
+        "cache": {"status": "unresolved", "conditions": "No GitHub cache or private mirror until exact terms and access controls are approved."},
+        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless institutional redistribution is separately approved."},
+        "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
+        "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes the compiler installer and installed compiler binaries from releases and shared toolchain images."},
+        "public_container": {"status": "prohibited", "conditions": "No public OCI layer contains the compiler or installer."},
+        "course_image": {"status": "not-applicable", "conditions": "Host compiler tools do not belong in the AArch64 course image."},
+        "release": {"status": "conditional", "conditions": "Firmware output may ship only after its linked runtime objects are classified in the post-link inventory."}
+      },
+      "handling": {
+        "lane": "institution-controlled",
+        "acquisition": "Checksummed upstream download on an authorized ephemeral runner or approved access-controlled cache.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "notes": "Task 004 must use the SDK-declared compiler rather than silently upgrading to the newest standalone C6000 release."
+    },
+    {
+      "id": "ti.c7000-cgt",
+      "name": "TI C7000 Code Generation Tools",
+      "category": "ti-toolchain",
+      "purpose": "Compile and link C71x_0 FreeRTOS and bare-metal firmware with the compiler version declared by the selected PSDK.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://www.ti.com/tool/C7000-CGT",
+        "license_urls": [
+          "https://software-dl.ti.com/codegen/esd/cgt_public_sw/C7000/5.0.1.LTS/C7000_Code_Generation_Tools_5.0.1.LTS_manifest.html"
+        ],
+        "version_rule": "Use the candidate SDK-declared C7000 CGT 5.0.0.LTS, including installer hash, shipped manifest, and per-file RTS SPDX data; do not substitute latest. A different version requires compatibility proof on C71x_0 for both runtime profiles.",
+        "integrity_rule": "Verify installer SHA-256 and compare installed compiler paths and RTS files with the shipped manifest and SPDX inventory."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "LicenseRef-TI-Text-File AND BSL-1.0 AND BSD-3-Clause AND other bundled terms",
+        "conclusion": "The compiler binary uses TI Text terms while RTS and bundled code use TI Text plus permissive and other file-specific terms. The project elects not to redistribute compiler payloads.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain the full compiler manifest and RTS SPDX data",
+          "preserve notices and license texts",
+          "apply TI-device-use and unmodified-binary conditions where present",
+          "do not reverse engineer binary-only portions"
+        ]
+      },
+      "components": [
+        {
+          "name": "C7000 compiler and host tools",
+          "role": "C/C++ compiler, assembler, linker, archiver, and support binaries",
+          "expression": "LicenseRef-TI-Text-File AND BSL-1.0 AND other bundled terms",
+          "source_url": "https://www.ti.com/tool/C7000-CGT",
+          "license_url": "https://software-dl.ti.com/codegen/esd/cgt_public_sw/C7000/5.0.1.LTS/C7000_Code_Generation_Tools_5.0.1.LTS_manifest.html"
+        },
+        {
+          "name": "C7000 runtime support libraries",
+          "role": "Target runtime objects linked into C71x firmware",
+          "expression": "BSD-3-Clause AND MIT AND LicenseRef-TI-Text-File AND other per-file terms",
+          "source_url": "https://www.ti.com/tool/C7000-CGT",
+          "license_url": "https://software-dl.ti.com/codegen/esd/cgt_public_sw/C7000/5.0.1.LTS/C7000_Code_Generation_Tools_5.0.1.LTS_manifest.html"
+        }
+      ],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "An authorized actor or approved automation fetches the exact TI archive and records terms, URL, hash, and manifest."},
+        "install": {"status": "conditional", "conditions": "Install only from the verified archive under the recorded institutional authorization."},
+        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove fork-safe unattended use and historical-version availability on GitHub-hosted runners."},
+        "cache": {"status": "unresolved", "conditions": "No GitHub cache or private mirror until exact terms and access controls are approved."},
+        "student_access": {"status": "conditional", "conditions": "Students download from TI under presented terms unless institutional redistribution is separately approved."},
+        "source_redistribution": {"status": "prohibited", "conditions": "The project does not redistribute compiler source or reconstruct unavailable sources."},
+        "binary_redistribution": {"status": "prohibited", "conditions": "The project policy excludes installer and installed compiler binaries from releases and shared toolchain images."},
+        "public_container": {"status": "prohibited", "conditions": "No public OCI layer contains the compiler or installer."},
+        "course_image": {"status": "not-applicable", "conditions": "Host compiler tools do not belong in the AArch64 course image."},
+        "release": {"status": "conditional", "conditions": "Firmware output may ship only after linked runtime objects are classified in the post-link inventory."}
+      },
+      "handling": {
+        "lane": "institution-controlled",
+        "acquisition": "Checksummed upstream download on an authorized ephemeral runner or approved access-controlled cache.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "notes": "The current standalone compiler manifest confirms the mixed model; Task 004 must archive the manifest shipped with the SDK-declared version."
+    },
+    {
+      "id": "ti.c66x-dsplib",
+      "name": "TI C66x DSPLIB",
+      "category": "ti-library",
+      "purpose": "Optimized C66x vector, FIR, FFT, and supporting kernels for reference examples and performance comparisons.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+        "license_urls": [
+          "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        ],
+        "version_rule": "Use C66x DSPLIB 3.4.0 from the candidate PSDK manifest, record every included path, and hash the acquired source tree.",
+        "integrity_rule": "Compare installed DSPLIB files to the SDK manifest and preserve the BSD license with source and binary outputs."
+      },
+      "license": {
+        "class": "open-source",
+        "expression": "BSD-3-Clause",
+        "conclusion": "The current J721E manifest classifies C66x DSPLIB 3.4.0 source as BSD-3-Clause; the exact selected package must confirm the same conclusion.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain copyright, conditions, and disclaimer in source distributions",
+          "reproduce the notice in documentation or other materials with binary distributions",
+          "do not use contributor names for endorsement"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "Fetch from a separately published canonical source, or extract it during an authorized SDK acquisition and prove the exported tree contains only the BSD-classified paths."},
+        "install": {"status": "allowed", "conditions": "Install with its BSD notice and manifest."},
+        "ci_use": {"status": "conditional", "conditions": "May run in secret-free public PR jobs only after Task 004 publishes a hash-verified BSD-only source tree with its notice."},
+        "cache": {"status": "conditional", "conditions": "A public cache may contain only the audited BSD-only tree and must retain its notice and exact hash."},
+        "student_access": {"status": "conditional", "conditions": "Students may receive the audited BSD-only tree with its notice; otherwise they obtain it through the authorized TI acquisition path."},
+        "source_redistribution": {"status": "allowed", "conditions": "Retain the BSD notice, conditions, disclaimer, and non-endorsement term."},
+        "binary_redistribution": {"status": "allowed", "conditions": "Reproduce the BSD notice in accompanying documentation or materials."},
+        "public_container": {"status": "allowed", "conditions": "Include only the pinned verified files and license notice."},
+        "course_image": {"status": "conditional", "conditions": "Include only target runtime objects needed by shipped firmware and the BSD notice."},
+        "release": {"status": "allowed", "conditions": "Ship source or linked outputs with the required BSD notice and component manifest."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Pinned public source or cleared extraction from the verified SDK package.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-001"],
+      "notes": "The BSD conclusion does not by itself authorize copying unrelated files from the mixed SDK archive. If the acquired DSPLIB paths differ, the shipped manifest controls."
+    },
+    {
+      "id": "ti.c7x-optimized-libraries",
+      "name": "TI C7x DSPLIB, FFTLIB, and MMALIB",
+      "category": "ti-library",
+      "purpose": "Optimized C71x DSP, FFT, and matrix kernels used where the selected package and course distribution permit them.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+        "license_urls": [
+          "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        ],
+        "version_rule": "Pin every library version, delivered form, path, manifest, and hash from the selected PSDK; reconcile any component-page/manifest version discrepancy from the acquired files.",
+        "integrity_rule": "Verify package hashes and generate a per-file inventory separating supplied source, limited source, objects, examples, and documentation."
+      },
+      "license": {
+        "class": "proprietary",
+        "expression": "LicenseRef-TI-Text-File",
+        "conclusion": "Current manifests place the C7x optimized libraries under TI Text terms: supplied source and unmodified objects may be redistributed for TI-device use with notices, while unavailable source is not implied.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "restrict use and redistributed derivatives to TI devices",
+          "preserve copyright, full license, and disclaimer",
+          "redistribute binary-only files unmodified",
+          "do not reverse engineer binary-only files",
+          "do not imply that limited-source delivery includes unavailable source"
+        ]
+      },
+      "components": [
+        {
+          "name": "C7x DSPLIB",
+          "role": "Optimized vector and signal-processing kernels",
+          "expression": "LicenseRef-TI-Text-File",
+          "source_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+          "license_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        },
+        {
+          "name": "FFTLIB",
+          "role": "Optimized C7x FFT kernels",
+          "expression": "LicenseRef-TI-Text-File",
+          "source_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+          "license_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        },
+        {
+          "name": "MMALIB",
+          "role": "Optimized C7x matrix and related kernels, partly delivered as limited source and object",
+          "expression": "LicenseRef-TI-Text-File",
+          "source_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/docs/user_guide/sdk_components_j721e.html",
+          "license_url": "https://software-dl.ti.com/jacinto7/esd/processor-sdk-rtos-jacinto7/11_02_01_03/exports/docs/psdk_rtos/PROCESSOR_SDK_RTOS_J721E_manifest.html"
+        }
+      ],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "Fetch only exact pinned packages after institutional authorization and license capture."},
+        "install": {"status": "conditional", "conditions": "Install only in the authorized TI layer and retain each library manifest."},
+        "ci_use": {"status": "unresolved", "conditions": "Task 005 must prove public-fork execution does not expose restricted payloads or acceptance state."},
+        "cache": {"status": "unresolved", "conditions": "Cache only if exact terms and access boundaries are institutionally approved."},
+        "student_access": {"status": "conditional", "conditions": "Students obtain the package from TI or receive only a cleared TI-device-use subset with its full license."},
+        "source_redistribution": {"status": "conditional", "conditions": "Redistribute only supplied source and derivatives for TI-device use with the full license and notices."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Redistribute supplied objects unmodified for TI-device use with the full license and notices."},
+        "public_container": {"status": "prohibited", "conditions": "No C7x proprietary library payload enters the public OCI layer."},
+        "course_image": {"status": "conditional", "conditions": "Only linked firmware and required unmodified objects may enter the image after a post-link inventory and notice bundle."},
+        "release": {"status": "conditional", "conditions": "Release only a file-level-cleared TI-device-use bundle approved by the institutional licensing owner."}
+      },
+      "handling": {
+        "lane": "institution-controlled",
+        "acquisition": "Checksummed TI download or approved access-controlled cache.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-001", "LIC-002", "LIC-007"],
+      "notes": "The component page and aggregate manifest can disagree on displayed library versions; the acquired package and hashes decide."
+    },
+    {
+      "id": "ti.linux-firmware",
+      "name": "TI Linux firmware for J721E/TDA4VM",
+      "category": "ti-firmware",
+      "purpose": "Boot and runtime firmware required by Linux and board devices, including only the exact blobs needed by the selected Beagle image and DSP lifecycle.",
+      "source": {
+        "owner": "Texas Instruments and firmware contributors",
+        "canonical_url": "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware",
+        "license_urls": [
+          "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/WHENCE",
+          "https://git.ti.com/cgit/processor-firmware/ti-linux-firmware/plain/LICENSE-CRITERIA.md"
+        ],
+        "version_rule": "Pin a repository commit and enumerate each required blob with hash, WHENCE entry, and referenced license; never classify all firmware under one license.",
+        "integrity_rule": "Verify repository commit and every shipped blob hash against a generated allowlist and the image filesystem SBOM."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "NOASSERTION",
+        "conclusion": "The firmware repository requires unrestricted downstream redistribution for admitted blobs, but each blob remains governed by the license referenced from WHENCE.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "map every included blob to its WHENCE entry and license",
+          "preserve required notices and license texts",
+          "keep binary-only blobs unmodified where required",
+          "honor device-use and no-reverse-engineering restrictions where present"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Fetch the pinned public repository commit or exact distribution package."},
+        "install": {"status": "conditional", "conditions": "Install only allowlisted blobs with their license mapping."},
+        "ci_use": {"status": "allowed", "conditions": "Static image and manifest checks may run in secret-free public jobs."},
+        "cache": {"status": "conditional", "conditions": "Cache only the pinned allowlisted blobs with their WHENCE and license files."},
+        "student_access": {"status": "conditional", "conditions": "Students may receive blobs whose referenced license permits redistribution, with the required terms."},
+        "source_redistribution": {"status": "not-applicable", "conditions": "Binary-only firmware has no corresponding source unless the per-blob record says otherwise."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Redistribute each blob only under its WHENCE-referenced terms with required notices."},
+        "public_container": {"status": "not-applicable", "conditions": "Target firmware does not belong in the public host-tool container."},
+        "course_image": {"status": "conditional", "conditions": "Include only the pinned per-blob-cleared set and its license bundle."},
+        "release": {"status": "conditional", "conditions": "Ship the per-blob manifest, hashes, WHENCE mapping, and licenses with the image or firmware bundle."}
+      },
+      "handling": {
+        "lane": "trusted-github",
+        "acquisition": "Pinned public repository or distribution package with per-blob allowlist.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-007"],
+      "notes": "Repository admission criteria support redistribution but do not erase the conditions in each blob's referenced license."
+    },
+    {
+      "id": "freertos.kernel",
+      "name": "FreeRTOS kernel",
+      "category": "runtime",
+      "purpose": "Maintained RTOS runtime target for C66x_0, C66x_1, and C71x_0 course firmware.",
+      "source": {
+        "owner": "Amazon Web Services and contributors",
+        "canonical_url": "https://github.com/FreeRTOS/FreeRTOS-Kernel",
+        "license_urls": [
+          "https://github.com/FreeRTOS/FreeRTOS-Kernel/blob/main/LICENSE.md"
+        ],
+        "version_rule": "Pin one source commit compatible with the selected PSDK and record any TI port files under their own licenses.",
+        "integrity_rule": "Verify commit and archive hash; scan the selected portable and TI port paths for license exceptions."
+      },
+      "license": {
+        "class": "open-source",
+        "expression": "MIT",
+        "conclusion": "The upstream kernel is MIT; vendor port or SDK integration files retain their separately recorded terms.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "include the MIT copyright and permission notice in copies or substantial portions",
+          "classify vendor port files separately"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Fetch the pinned public commit and verify its hash."},
+        "install": {"status": "allowed", "conditions": "Install with the MIT notice."},
+        "ci_use": {"status": "allowed", "conditions": "May run in secret-free public PR jobs."},
+        "cache": {"status": "allowed", "conditions": "Cache the pinned source with its MIT notice."},
+        "student_access": {"status": "allowed", "conditions": "Students may receive and modify the source with the MIT notice."},
+        "source_redistribution": {"status": "allowed", "conditions": "Include the MIT notice."},
+        "binary_redistribution": {"status": "allowed", "conditions": "Include the MIT notice with firmware distributions."},
+        "public_container": {"status": "allowed", "conditions": "Include only pinned source and the MIT notice."},
+        "course_image": {"status": "conditional", "conditions": "Ship only selected firmware outputs and their complete component notices."},
+        "release": {"status": "allowed", "conditions": "Include the MIT notice and separately classified vendor-port terms."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Pinned public source archive or Git commit.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": [],
+      "notes": "The separately selected TI port and platform glue remain governed by their own SDK paths and licenses."
+    },
+    {
+      "id": "beagle.debian-image",
+      "name": "BeagleBone AI-64 Debian image",
+      "category": "board-image",
+      "purpose": "Pinned upstream Linux filesystem and boot baseline transformed reproducibly into the course image.",
+      "source": {
+        "owner": "BeagleBoard.org Foundation, Debian, and package copyright holders",
+        "canonical_url": "https://github.com/beagleboard/distros/blob/main/os_list.json",
+        "license_urls": [
+          "https://raw.githubusercontent.com/beagleboard/sbom-archive/refs/heads/main/sbom/bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.syft.spdx.json.xz",
+          "https://www.debian.org/doc/debian-policy/ch-docs.html#copyright-information"
+        ],
+        "version_rule": "Use candidate image bbai64-debian-13.7-iot-v6.18-k3-arm64-2026-10-09-10gb.img.xz with compressed SHA-256 69796038e452c6c5e006031ecab995a0ec734a866176e37a0de38d43b35380cf and expanded SHA-256 4b8ca45a631693fc4b45a09d26f1d98fbc378d6de9e2a6c2715364fd0452ea3c; Task 004 records the immutable URL and all source revisions.",
+        "integrity_rule": "Verify both image hashes before use. Treat the published companion file as Syft native JSON regardless of its .spdx.json filename, then generate and validate a real SPDX SBOM from the frozen filesystem and after every transformation."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "NOASSERTION",
+        "conclusion": "The image is a mixed aggregate. Its published Syft inventory lists 4,161 artifacts and leaves 178 without detected licenses, including 24 Debian packages such as the kernel, U-Boot, firmware, and PRU compiler packages; it is not SPDX and is not release clearance.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain per-package copyright and license data",
+          "satisfy copyleft corresponding-source duties for the exact binaries",
+          "preserve firmware license files and device restrictions",
+          "resolve all 178 empty or ambiguous license results, beginning with the 24 Debian packages",
+          "generate a schema-valid SPDX document rather than trusting the companion filename",
+          "publish the transformation scripts, patches, configuration, SBOM, hashes, and notices",
+          "avoid unlicensed BeagleBoard trademark use"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Fetch only the catalog-pinned upstream image and companion Syft inventory and verify the recorded hashes."},
+        "install": {"status": "allowed", "conditions": "Use as a build input without modifying the archived original."},
+        "ci_use": {"status": "allowed", "conditions": "Static and image-builder jobs may consume the verified public image on trusted GitHub-hosted lanes."},
+        "cache": {"status": "conditional", "conditions": "Cache the immutable upstream archive only after aggregate redistribution review, with its Syft inventory, hashes, and source-location record; prefer the official immutable URL until then."},
+        "student_access": {"status": "allowed", "conditions": "Students may download the pinned upstream image directly; a course image waits for release closure."},
+        "source_redistribution": {"status": "conditional", "conditions": "Distribute project scripts and the corresponding source required by each included license."},
+        "binary_redistribution": {"status": "unresolved", "conditions": "Do not republish the upstream or transformed aggregate until the 178 unresolved inventory entries, every firmware license, and the corresponding-source plan are closed."},
+        "public_container": {"status": "not-applicable", "conditions": "The board image is not embedded in the public host-tool OCI image."},
+        "course_image": {"status": "conditional", "conditions": "Build and test privately from the pinned image; public distribution waits for the generated license manifest, valid SPDX SBOM, notice bundle, and source closure."},
+        "release": {"status": "unresolved", "conditions": "Gate 6 must resolve the 178 unknown-license inventory results and prove notices, corresponding source, firmware terms, valid SPDX, hashes, and provenance for the actual image."}
+      },
+      "handling": {
+        "lane": "trusted-github",
+        "acquisition": "Public immutable image URL and companion Syft inventory recorded in the BeagleBoard distribution catalog.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-003"],
+      "notes": "The companion filename ends in .syft.spdx.json.xz, but the decompressed document declares the Syft 16.1.11 schema and has an artifacts array rather than SPDX packages. The recommended first release distributes SDOS deltas and scripts over the official hash-pinned image; a complete derived image remains blocked until Gate 6."
+    },
+    {
+      "id": "linux.kernel",
+      "name": "Linux kernel and BeagleBone AI-64 device tree",
+      "category": "runtime",
+      "purpose": "Pinned K3 kernel, modules, UAPI headers, device tree, and build inputs for the board image and remoteproc/RPMsg host stack.",
+      "source": {
+        "owner": "Linux kernel copyright holders",
+        "canonical_url": "https://github.com/torvalds/linux",
+        "license_urls": [
+          "https://github.com/torvalds/linux/blob/master/COPYING"
+        ],
+        "version_rule": "Task 004 pins the exact Beagle kernel repository, commit, configuration, patches, DTB hash, compiler, and source archive corresponding to distributed binaries.",
+        "integrity_rule": "Verify source commit and archive hash, record config and patches, and reproduce kernel/module/DTB hashes from the pinned build."
+      },
+      "license": {
+        "class": "open-source",
+        "expression": "GPL-2.0-only WITH Linux-syscall-note",
+        "conclusion": "The kernel is GPL-2.0-only with documented exceptions such as the Linux syscall note; individual files can carry more specific SPDX expressions.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "preserve copyright and license notices",
+          "provide complete corresponding source for distributed GPL kernel binaries and modules",
+          "retain build configuration and project patches",
+          "respect per-file SPDX expressions"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Fetch the pinned public source commit and verify its archive hash."},
+        "install": {"status": "allowed", "conditions": "Install build outputs while retaining the exact source, config, patches, and notices."},
+        "ci_use": {"status": "allowed", "conditions": "Public secret-free jobs may build, inspect, and test the kernel artifacts."},
+        "cache": {"status": "allowed", "conditions": "Cache immutable source and build inputs with hashes and GPL notices."},
+        "student_access": {"status": "allowed", "conditions": "Students may receive source and binaries under the applicable GPL terms."},
+        "source_redistribution": {"status": "allowed", "conditions": "Preserve GPL notices and project modifications."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Accompany binary distribution with a compliant corresponding-source mechanism."},
+        "public_container": {"status": "conditional", "conditions": "Build tools or headers may enter a container only with their applicable notices and source compliance."},
+        "course_image": {"status": "allowed", "conditions": "Include the pinned kernel/modules/DTBs with notices and corresponding-source evidence."},
+        "release": {"status": "conditional", "conditions": "Publish binaries only with the exact corresponding source, config, patches, notices, hashes, and provenance."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Pinned public Git commit and source archive.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": [],
+      "notes": "The selected Beagle fork and any out-of-tree module must be added to Task 004 rather than assumed to share this upstream conclusion."
+    },
+    {
+      "id": "ubuntu.22.04-oci",
+      "name": "Ubuntu 22.04 x86-64 OCI base and archive packages",
+      "category": "base-image",
+      "purpose": "Pinned base for oss-base, dev, CI, documentation, and licensed TI build layers.",
+      "source": {
+        "owner": "Canonical, Ubuntu, Debian, and package copyright holders",
+        "canonical_url": "https://hub.docker.com/_/ubuntu",
+        "license_urls": [
+          "https://ubuntu.com/legal/intellectual-property-policy",
+          "https://packages.ubuntu.com/jammy/"
+        ],
+        "version_rule": "Task 004/017 pins the multi-architecture image digest, amd64 manifest digest, apt snapshot, package name/version set, and all downloaded artifact hashes.",
+        "integrity_rule": "Resolve the image by digest, use a frozen package snapshot, retain package copyright/source metadata, and generate an installed SPDX SBOM."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "NOASSERTION",
+        "conclusion": "The Ubuntu image is an aggregate whose installed packages retain their own licenses; Canonical trademark and service terms do not replace package license obligations.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "inventory every installed package and license",
+          "retain license, copyright, and attribution files",
+          "satisfy corresponding-source duties for distributed copyleft packages",
+          "pin and archive package source locations",
+          "avoid implying Canonical endorsement or using restricted marks"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Pull the pinned public OCI digest and frozen package indexes."},
+        "install": {"status": "allowed", "conditions": "Install only the explicit package lock and retain license metadata."},
+        "ci_use": {"status": "allowed", "conditions": "May run on public GitHub-hosted jobs with no restricted TI payload in the open targets."},
+        "cache": {"status": "conditional", "conditions": "Cache only immutable public layers and packages with source/license metadata."},
+        "student_access": {"status": "allowed", "conditions": "Students may pull the public digest and receive the open project layers."},
+        "source_redistribution": {"status": "conditional", "conditions": "Redistribute component source under each package license and preserve notices."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Publish an installed license manifest and satisfy every package's notice and source obligations."},
+        "public_container": {"status": "conditional", "conditions": "Allowed only after the exact installed package closure, notices, source plan, SBOM, and vulnerability checks pass."},
+        "course_image": {"status": "not-applicable", "conditions": "The x86-64 host base is separate from the AArch64 board image."},
+        "release": {"status": "conditional", "conditions": "Release OCI images by digest with SBOM, notices, source locations, checksums, and provenance."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Public OCI registry and frozen Ubuntu archive snapshot.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-005"],
+      "notes": "Task 017 closes the actual package set; adding a package without updating the SBOM/license manifest is a gate failure."
+    },
+    {
+      "id": "oss.build-test-quality-tools",
+      "name": "Open build, test, quality, security, and supply-chain tool set",
+      "category": "os-package-set",
+      "purpose": "All named non-TI tools planned for compilation, testing, formatting, analysis, documentation, security, license checks, SBOMs, and provenance.",
+      "source": {
+        "owner": "Upstream projects and package maintainers",
+        "canonical_url": "https://packages.ubuntu.com/jammy/",
+        "license_urls": [
+          "https://reuse.software/faq/"
+        ],
+        "version_rule": "Task 004/017 pins every tool version, source revision, package hash, transitive runtime dependency, and OCI-layer digest; components added later require a new matrix entry or component record.",
+        "integrity_rule": "Use pinned distro/source artifacts, verify hashes, retain upstream licenses and notices, and reconcile the container SBOM with the declared component list."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "NOASSERTION",
+        "conclusion": "The named tools use open-source licenses, but the distributable container conclusion depends on the exact pinned binaries and transitive package closure.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain component license and attribution files",
+          "provide corresponding source or source offers for copyleft binaries where required",
+          "record exact versions and hashes",
+          "generate and review the installed dependency license manifest"
+        ]
+      },
+      "components": [
+        {
+          "name": "CMake and CTest",
+          "role": "Configure, build orchestration, test runner, and packaging support",
+          "expression": "BSD-3-Clause",
+          "source_url": "https://gitlab.kitware.com/cmake/cmake",
+          "license_url": "https://gitlab.kitware.com/cmake/cmake/-/blob/master/Copyright.txt"
+        },
+        {
+          "name": "Ninja",
+          "role": "Deterministic local and CI build executor",
+          "expression": "Apache-2.0",
+          "source_url": "https://github.com/ninja-build/ninja",
+          "license_url": "https://github.com/ninja-build/ninja/blob/master/COPYING"
+        },
+        {
+          "name": "GCC, gcov, and GCC sanitizers",
+          "role": "Host compiler, diagnostics, coverage, and dynamic analysis",
+          "expression": "GPL-3.0-or-later WITH GCC-exception-3.1 AND other component licenses",
+          "source_url": "https://gcc.gnu.org/git.html",
+          "license_url": "https://gcc.gnu.org/onlinedocs/gcc/Copying.html"
+        },
+        {
+          "name": "LLVM and Clang tool suite",
+          "role": "Clang compiler, clang-format, clang-tidy, Static Analyzer, sanitizers, llvm-cov, and related runtime tools",
+          "expression": "Apache-2.0 WITH LLVM-exception",
+          "source_url": "https://github.com/llvm/llvm-project",
+          "license_url": "https://github.com/llvm/llvm-project/blob/main/LICENSE.TXT"
+        },
+        {
+          "name": "Python",
+          "role": "Portable validation, tooling, documentation, and test scripts",
+          "expression": "PSF-2.0",
+          "source_url": "https://www.python.org/downloads/source/",
+          "license_url": "https://docs.python.org/3/license.html"
+        },
+        {
+          "name": "Unity and CMock",
+          "role": "Embedded C unit tests and mocks",
+          "expression": "MIT",
+          "source_url": "https://github.com/ThrowTheSwitch/Unity",
+          "license_url": "https://github.com/ThrowTheSwitch/Unity/blob/master/LICENSE.txt"
+        },
+        {
+          "name": "GoogleTest and GoogleMock",
+          "role": "C++ unit tests and mocks",
+          "expression": "BSD-3-Clause",
+          "source_url": "https://github.com/google/googletest",
+          "license_url": "https://github.com/google/googletest/blob/main/LICENSE"
+        },
+        {
+          "name": "lcov",
+          "role": "Coverage report aggregation and HTML output",
+          "expression": "GPL-2.0-or-later",
+          "source_url": "https://github.com/linux-test-project/lcov",
+          "license_url": "https://github.com/linux-test-project/lcov/blob/master/COPYING"
+        },
+        {
+          "name": "lizard",
+          "role": "Complexity measurement and trend reporting",
+          "expression": "MIT",
+          "source_url": "https://github.com/terryyin/lizard",
+          "license_url": "https://github.com/terryyin/lizard/blob/master/LICENSE.txt"
+        },
+        {
+          "name": "ShellCheck and shfmt",
+          "role": "Shell analysis and formatting",
+          "expression": "GPL-3.0-or-later AND BSD-3-Clause",
+          "source_url": "https://github.com/koalaman/shellcheck",
+          "license_url": "https://github.com/koalaman/shellcheck/blob/master/LICENSE"
+        },
+        {
+          "name": "cmake-format",
+          "role": "CMake format and lint checks",
+          "expression": "GPL-3.0-or-later",
+          "source_url": "https://github.com/cheshirekow/cmake_format",
+          "license_url": "https://github.com/cheshirekow/cmake_format/blob/master/LICENSE"
+        },
+        {
+          "name": "yamllint and markdownlint-cli2",
+          "role": "YAML and Markdown validation",
+          "expression": "GPL-3.0-or-later AND MIT",
+          "source_url": "https://github.com/DavidAnson/markdownlint-cli2",
+          "license_url": "https://github.com/DavidAnson/markdownlint-cli2/blob/main/LICENSE"
+        },
+        {
+          "name": "hadolint and Trivy",
+          "role": "Container policy lint and vulnerability/misconfiguration scanning",
+          "expression": "GPL-3.0-only AND Apache-2.0",
+          "source_url": "https://github.com/aquasecurity/trivy",
+          "license_url": "https://github.com/aquasecurity/trivy/blob/main/LICENSE"
+        },
+        {
+          "name": "actionlint and zizmor",
+          "role": "GitHub Actions syntax, correctness, and security analysis",
+          "expression": "MIT",
+          "source_url": "https://github.com/rhysd/actionlint",
+          "license_url": "https://github.com/rhysd/actionlint/blob/main/LICENSE.txt"
+        },
+        {
+          "name": "gitleaks",
+          "role": "Repository and artifact secret scanning",
+          "expression": "MIT",
+          "source_url": "https://github.com/gitleaks/gitleaks",
+          "license_url": "https://github.com/gitleaks/gitleaks/blob/master/LICENSE"
+        },
+        {
+          "name": "REUSE and SPDX tooling",
+          "role": "Source-file licensing policy and generated dependency license manifests",
+          "expression": "GPL-3.0-or-later AND Apache-2.0",
+          "source_url": "https://github.com/fsfe/reuse-tool",
+          "license_url": "https://github.com/fsfe/reuse-tool/blob/main/LICENSES/GPL-3.0-or-later.txt"
+        },
+        {
+          "name": "Syft",
+          "role": "SPDX SBOM generation for containers, filesystems, and release payloads",
+          "expression": "Apache-2.0",
+          "source_url": "https://github.com/anchore/syft",
+          "license_url": "https://github.com/anchore/syft/blob/main/LICENSE"
+        }
+      ],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Fetch only pinned public artifacts from the allowlist and verify hashes."},
+        "install": {"status": "allowed", "conditions": "Install the explicit lock and retain package licenses and notices."},
+        "ci_use": {"status": "allowed", "conditions": "May run in secret-free public PR jobs."},
+        "cache": {"status": "allowed", "conditions": "Cache only immutable public artifacts with hashes and source/license metadata."},
+        "student_access": {"status": "allowed", "conditions": "Students may receive the pinned open tool set with its notices."},
+        "source_redistribution": {"status": "conditional", "conditions": "Follow each component's notices, source, modification, and copyleft conditions."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Publish only with the exact component/license manifest and any required corresponding source."},
+        "public_container": {"status": "conditional", "conditions": "Allowed after Task 017 closes the installed SBOM, notices, source plan, scan, and reproducibility checks."},
+        "course_image": {"status": "not-applicable", "conditions": "Host quality tools are excluded from the minimal board image unless a later task separately justifies and classifies one."},
+        "release": {"status": "conditional", "conditions": "OCI/tool bundles require SBOM, notices, source obligations, hashes, and provenance."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Pinned public Ubuntu packages or upstream release archives.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-005"],
+      "notes": "Composite component rows summarize tools that share handling. Task 017 must split any component whose exact package terms differ from this conclusion."
+    },
+    {
+      "id": "link-checker.selection",
+      "name": "Documentation link checker",
+      "category": "quality-tool",
+      "purpose": "Validate local and external links in project documentation without silently selecting an unreviewed dependency.",
+      "source": {
+        "owner": "To be selected by Task 004",
+        "canonical_url": "https://github.com/lycheeverse/lychee",
+        "license_urls": [
+          "https://github.com/lycheeverse/lychee/blob/master/LICENSE-MIT"
+        ],
+        "version_rule": "Task 004 selects and pins the implementation, version, source revision, artifact hash, transitive dependencies, and license. The Lychee links are candidate evidence only, not a selection.",
+        "integrity_rule": "Do not download or execute a candidate until Task 004 records its immutable release, hashes, dependencies, and license conclusion."
+      },
+      "license": {
+        "class": "unresolved",
+        "expression": "NOASSERTION",
+        "conclusion": "The bring-up plan requires link checking but does not name an implementation; no dependency or redistribution conclusion exists until Task 004 selects one.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "select from an official source and record the exact license",
+          "inventory transitive runtime dependencies",
+          "retain all required notices and corresponding source"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "unresolved", "conditions": "Task 004 must select the product and version before acquisition."},
+        "install": {"status": "unresolved", "conditions": "Installation waits for a pinned package and dependency license review."},
+        "ci_use": {"status": "unresolved", "conditions": "CI use waits for the selected tool's terms, integrity record, and network behavior review."},
+        "cache": {"status": "prohibited", "conditions": "Do not cache an unselected payload."},
+        "student_access": {"status": "unresolved", "conditions": "Student distribution waits for the selected tool's exact license closure."},
+        "source_redistribution": {"status": "unresolved", "conditions": "No source artifact has been selected."},
+        "binary_redistribution": {"status": "unresolved", "conditions": "No binary artifact has been selected."},
+        "public_container": {"status": "prohibited", "conditions": "Do not add an unselected tool to public OCI layers."},
+        "course_image": {"status": "not-applicable", "conditions": "The host documentation checker is excluded from the board image."},
+        "release": {"status": "unresolved", "conditions": "Release inclusion waits for Task 004 selection and Task 017 package closure."}
+      },
+      "handling": {
+        "lane": "excluded",
+        "acquisition": "No acquisition until Task 004 selects a candidate.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "none"
+      },
+      "blocker_ids": ["LIC-005"],
+      "notes": "A candidate URL is recorded only to make the research reproducible. It does not authorize adding Lychee or any other checker."
+    },
+    {
+      "id": "cppcheck.open-source",
+      "name": "Cppcheck and the open-source MISRA add-on",
+      "category": "quality-tool",
+      "purpose": "Portable C/C++ static analysis and the qualified MISRA-oriented rule-ID subset, without proprietary rule text.",
+      "source": {
+        "owner": "Cppcheck project contributors",
+        "canonical_url": "https://github.com/danmar/cppcheck",
+        "license_urls": [
+          "https://github.com/danmar/cppcheck/blob/main/COPYING"
+        ],
+        "version_rule": "Task 004 pins one release/commit and hash; Task 024 generates the exact native/add-on checker capability manifest for that pin.",
+        "integrity_rule": "Verify source/release hash, build reproducibly, retain GPL source correspondence, and hash the executed add-on files."
+      },
+      "license": {
+        "class": "open-source",
+        "expression": "GPL-3.0-or-later",
+        "conclusion": "Cppcheck and its open add-ons are GPL-3.0-or-later. The add-on does not grant or contain MISRA guideline text.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain GPL notices",
+          "provide complete corresponding source for distributed binaries",
+          "keep proprietary MISRA text outside Git, containers, logs, reports, and artifacts",
+          "describe results as MISRA-oriented checks rather than compliance"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Fetch the pinned public source or release artifact and verify its hash."},
+        "install": {"status": "allowed", "conditions": "Install with GPL notices and corresponding-source metadata."},
+        "ci_use": {"status": "allowed", "conditions": "Run the open checker and project-owned rule-ID map without loading proprietary guideline text."},
+        "cache": {"status": "allowed", "conditions": "Cache only the open pinned build and license/source metadata."},
+        "student_access": {"status": "allowed", "conditions": "Students may receive and run the open checker under GPL terms."},
+        "source_redistribution": {"status": "allowed", "conditions": "Redistribute under GPL-3.0-or-later with notices."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Provide corresponding source and GPL notices."},
+        "public_container": {"status": "conditional", "conditions": "Include the pinned binary only with GPL notices and corresponding-source evidence."},
+        "course_image": {"status": "not-applicable", "conditions": "Static-analysis tooling runs on the host/CI layer, not the board image."},
+        "release": {"status": "conditional", "conditions": "Tool containers need GPL notices, corresponding source, SBOM, and hash."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Pinned public source or release archive.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": [],
+      "notes": "The enforced subset is derived from project-owned rule IDs and qualified fixtures, not copied proprietary guideline wording."
+    },
+    {
+      "id": "misra.c2012-materials",
+      "name": "MISRA C:2012, Amendments 1–3, and licensed headline text",
+      "category": "standard",
+      "purpose": "Lawful staff reference for the accepted MISRA-oriented policy, rule interpretation, classifications, and deviation review.",
+      "source": {
+        "owner": "The MISRA Consortium Limited",
+        "canonical_url": "https://www.misra.org.uk/",
+        "license_urls": [
+          "https://forum.misra.org.uk/showthread.php?tid=1551",
+          "https://www.misra.org.uk/app/uploads/2021/06/MISRA-Compliance-2020.pdf"
+        ],
+        "version_rule": "Institutional access must cover MISRA C:2012 and the accepted Amendments 1, 2, and 3; record the licensed edition, permitted users, and any separate permission to load headline text into Cppcheck.",
+        "integrity_rule": "Keep purchase/license records outside Git and record only document identity and access scope in the project evidence."
+      },
+      "license": {
+        "class": "proprietary",
+        "expression": "LicenseRef-MISRA-Proprietary",
+        "conclusion": "The standard and guideline text are proprietary. MISRA states that loading headline text into a tool can require a separate organizational license; the project may publish rule IDs and its own controls, not copied rule wording.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "limit access to licensed users and scope",
+          "do not commit or redistribute guideline or headline text",
+          "do not emit proprietary text into CI logs, reports, caches, or artifacts",
+          "obtain explicit permission before loading headline text into a shared tool workflow"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "Only a licensed staff user acquires the materials through the authorized channel."},
+        "install": {"status": "conditional", "conditions": "Store only in institution-approved staff access under the purchased license scope."},
+        "ci_use": {"status": "prohibited", "conditions": "Public or shared CI never loads proprietary MISRA text; it uses project-owned rule IDs and messages."},
+        "cache": {"status": "prohibited", "conditions": "No GitHub cache, OCI layer, project mirror, or general student cache may contain the text."},
+        "student_access": {"status": "prohibited", "conditions": "The course does not redistribute standards text to students; licensed institutional access must explicitly cover any student use."},
+        "source_redistribution": {"status": "prohibited", "conditions": "Do not redistribute the document or extracted text."},
+        "binary_redistribution": {"status": "prohibited", "conditions": "Do not redistribute document files or tool data containing extracted text."},
+        "public_container": {"status": "prohibited", "conditions": "No proprietary MISRA material enters public containers."},
+        "course_image": {"status": "prohibited", "conditions": "No proprietary MISRA material enters the board image."},
+        "release": {"status": "prohibited", "conditions": "Release only project-authored rule IDs, enforcement mappings, deviations, and truthful scope wording."}
+      },
+      "handling": {
+        "lane": "staff-only",
+        "acquisition": "Institutional purchase or confirmed existing access, with separate tool-use permission if headline text is loaded.",
+        "credentials_required": true,
+        "license_acceptance_required": true,
+        "repository_payload": "none"
+      },
+      "blocker_ids": ["LIC-004"],
+      "notes": "The open PR gate remains functional without the text; licensed staff access is needed to govern the accepted guideline classifications and interpretation."
+    },
+    {
+      "id": "docker.oss-engine",
+      "name": "Docker CLI, Moby Engine, BuildKit, and Compose",
+      "category": "build-tool",
+      "purpose": "Tier 1 workstation and GitHub-hosted container build/run interface shared by local development and CI.",
+      "source": {
+        "owner": "Docker, Moby, and project contributors",
+        "canonical_url": "https://github.com/moby/moby",
+        "license_urls": [
+          "https://github.com/moby/moby/blob/master/LICENSE"
+        ],
+        "version_rule": "Task 004/017 pins minimum and tested CLI, Engine, BuildKit, Buildx, and Compose versions plus image-builder frontend digests.",
+        "integrity_rule": "Install from the supported OS repository or verified upstream packages and record versions and package hashes in the clean-host report."
+      },
+      "license": {
+        "class": "open-source",
+        "expression": "Apache-2.0",
+        "conclusion": "The named open engine/build components use Apache-2.0 at their project roots; transitive packages remain subject to their own licenses.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain Apache license and NOTICE files where present",
+          "mark modified files when distributing derivatives",
+          "inventory transitive packages separately"
+        ]
+      },
+      "components": [
+        {
+          "name": "BuildKit",
+          "role": "Pinned multi-stage OCI build execution",
+          "expression": "Apache-2.0",
+          "source_url": "https://github.com/moby/buildkit",
+          "license_url": "https://github.com/moby/buildkit/blob/master/LICENSE"
+        },
+        {
+          "name": "Docker CLI",
+          "role": "Stable local and CI command interface",
+          "expression": "Apache-2.0",
+          "source_url": "https://github.com/docker/cli",
+          "license_url": "https://github.com/docker/cli/blob/master/LICENSE"
+        },
+        {
+          "name": "Docker Compose",
+          "role": "Development, test, and optional board-access profiles",
+          "expression": "Apache-2.0",
+          "source_url": "https://github.com/docker/compose",
+          "license_url": "https://github.com/docker/compose/blob/main/LICENSE"
+        }
+      ],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "Install pinned open packages from verified repositories."},
+        "install": {"status": "allowed", "conditions": "Retain package licenses and record versions."},
+        "ci_use": {"status": "allowed", "conditions": "May run in public PR jobs on GitHub-hosted runners."},
+        "cache": {"status": "allowed", "conditions": "Cache open binaries and public layers with hashes and provenance."},
+        "student_access": {"status": "allowed", "conditions": "Tier 1 students may install the open engine components under Apache-2.0."},
+        "source_redistribution": {"status": "allowed", "conditions": "Retain Apache notices and modification markings."},
+        "binary_redistribution": {"status": "conditional", "conditions": "Include applicable Apache license and NOTICE material."},
+        "public_container": {"status": "not-applicable", "conditions": "The engine builds and runs containers and need not be embedded in project images."},
+        "course_image": {"status": "not-applicable", "conditions": "The board image does not require the host container engine."},
+        "release": {"status": "not-applicable", "conditions": "The project publishes requirements and recipes rather than repackaging the engine."
+        }
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Supported operating-system packages or verified upstream packages.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": [],
+      "notes": "Docker Desktop is a separate service-terms artifact and is not covered by this open-source conclusion."
+    },
+    {
+      "id": "docker.desktop",
+      "name": "Docker Desktop for the Tier 2 Windows host path",
+      "category": "service",
+      "purpose": "Conditional Windows 11 x86-64 container host for the Tier 2 student workflow after technical and licensing qualification.",
+      "source": {
+        "owner": "Docker, Inc.",
+        "canonical_url": "https://www.docker.com/products/docker-desktop/",
+        "license_urls": [
+          "https://www.docker.com/legal/docker-subscription-service-agreement/"
+        ],
+        "version_rule": "The Tier 2 qualification records the tested Docker Desktop version and the institution/student eligibility under the then-current subscription terms.",
+        "integrity_rule": "Use Docker's signed distribution and record the installed version; do not mirror the installer."
+      },
+      "license": {
+        "class": "service-terms",
+        "expression": "LicenseRef-Docker-Subscription-Service-Agreement",
+        "conclusion": "Docker Desktop access depends on its subscription terms and user/organization eligibility; the open Moby license does not license the Desktop product as a whole.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "confirm educational, personal, or organizational eligibility before declaring Tier 2 support",
+          "do not redistribute the installer",
+          "do not treat open engine licenses as Desktop product terms"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {"status": "conditional", "conditions": "Each eligible user obtains Docker Desktop from Docker's distribution channel."},
+        "install": {"status": "conditional", "conditions": "The user or institution accepts the applicable subscription terms."},
+        "ci_use": {"status": "not-applicable", "conditions": "GitHub-hosted Linux CI does not use Docker Desktop."},
+        "cache": {"status": "prohibited", "conditions": "The project does not cache or mirror the Desktop installer."},
+        "student_access": {"status": "unresolved", "conditions": "Tier 2 remains conditional until cohort and institution eligibility are confirmed."},
+        "source_redistribution": {"status": "not-applicable", "conditions": "The proprietary Desktop product is not redistributed as source."},
+        "binary_redistribution": {"status": "prohibited", "conditions": "The project links to Docker's installer and does not redistribute it."},
+        "public_container": {"status": "not-applicable", "conditions": "Docker Desktop is a host product, not a project OCI layer."},
+        "course_image": {"status": "not-applicable", "conditions": "Docker Desktop does not enter the board image."},
+        "release": {"status": "not-applicable", "conditions": "No Desktop payload is included in course releases."}
+      },
+      "handling": {
+        "lane": "excluded",
+        "acquisition": "Direct per-user download after eligibility is confirmed.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "none"
+      },
+      "blocker_ids": ["LIC-008"],
+      "notes": "This does not block the Tier 1 Ubuntu path or Gate 0 baseline."
+    },
+    {
+      "id": "github.actions-services",
+      "name": "GitHub Actions, CodeQL, Dependabot, and pinned action source",
+      "category": "service",
+      "purpose": "Public-repository CI orchestration, dependency updates, code scanning, artifact attestations, and release automation on GitHub-hosted runners.",
+      "source": {
+        "owner": "GitHub, action authors, and contributors",
+        "canonical_url": "https://docs.github.com/en/site-policy/github-terms/github-terms-of-service",
+        "license_urls": [
+          "https://docs.github.com/en/site-policy/github-terms/github-terms-for-additional-products-and-features"
+        ],
+        "version_rule": "Repository workflows pin every third-party action by full commit SHA and record its readable release and source license; GitHub-hosted service terms are rechecked before the CI baseline is frozen.",
+        "integrity_rule": "Resolve action SHAs from canonical repositories, verify source/license, use least-privilege permissions, and include action revisions in provenance."
+      },
+      "license": {
+        "class": "service-terms",
+        "expression": "LicenseRef-GitHub-Terms AND per-action open-source licenses",
+        "conclusion": "Hosted service use follows GitHub's account and additional-product terms; action code keeps its own source license and is pinned separately.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "use least-privilege tokens and no fork secrets",
+          "pin third-party actions by full commit SHA",
+          "record each action license and source revision",
+          "exclude restricted TI caches and credentials from untrusted workflows"
+        ]
+      },
+      "components": [
+        {
+          "name": "GitHub CodeQL Action",
+          "role": "Public-repository security analysis orchestration",
+          "expression": "MIT",
+          "source_url": "https://github.com/github/codeql-action",
+          "license_url": "https://github.com/github/codeql-action/blob/main/LICENSE"
+        },
+        {
+          "name": "GitHub-maintained workflow actions",
+          "role": "Checkout, cache, artifacts, attestations, and dependency automation selected by later workflow tasks",
+          "expression": "NOASSERTION",
+          "source_url": "https://github.com/actions",
+          "license_url": "https://docs.github.com/en/actions"
+        }
+      ],
+      "operations": {
+        "download": {"status": "allowed", "conditions": "GitHub fetches pinned public action source by full commit SHA."},
+        "install": {"status": "not-applicable", "conditions": "Hosted services and actions run ephemerally under workflow control."},
+        "ci_use": {"status": "allowed", "conditions": "Public PR jobs use read-only least privilege, no stored secrets, and no restricted TI cache."},
+        "cache": {"status": "conditional", "conditions": "Cache only public redistributable content; later workflow tasks validate scope and poisoning boundaries."},
+        "student_access": {"status": "allowed", "conditions": "Students use repository workflows under the accepted public fork model and GitHub account terms."},
+        "source_redistribution": {"status": "not-applicable", "conditions": "The project references pinned action source rather than redistributing GitHub services."},
+        "binary_redistribution": {"status": "not-applicable", "conditions": "Hosted service binaries are not course artifacts."},
+        "public_container": {"status": "not-applicable", "conditions": "Hosted services are not embedded in the project container."},
+        "course_image": {"status": "not-applicable", "conditions": "Hosted services do not enter the board image."},
+        "release": {"status": "conditional", "conditions": "Release evidence records workflow/action SHAs, permissions, attestations, and applicable action notices."}
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "GitHub-hosted service and full-SHA-pinned public action repositories.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": ["LIC-006"],
+      "notes": "The automatically issued read-only fork token is not a stored credential. Any selected non-GitHub action needs its own matrix component before use."
+    },
+    {
+      "id": "ti.rpmsg-char-library",
+      "name": "TI rpmsg-char user-space library",
+      "category": "runtime",
+      "purpose": "Candidate Linux user-space wrapper over the kernel rpmsg_char interface, linked by libsdos_dsp and shipped in the course image if Task 027 selects it over the direct kernel interface.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://git.ti.com/cgit/rpmsg/ti-rpmsg-char",
+        "license_urls": [
+          "https://dr-download.ti.com/software-development/software-development-kit-sdk/MD-U6uMjOroyO/11.02.01.03/ProcessorSDKLinux_J721E_11_02_01_manifest.html"
+        ],
+        "version_rule": "Use ti-rpmsg-char 0.6.10 at commit 057b1a2492, the revision declared by the Processor SDK Linux J721E 11.02.01.03 manifest; Task 004 records the full commit ID and archive hash. Do not follow the master branch.",
+        "integrity_rule": "Verify the full commit ID and archive hash, then confirm the LICENSE file and per-file SPDX headers at that commit before first use."
+      },
+      "license": {
+        "class": "open-source",
+        "expression": "BSD-3-Clause",
+        "conclusion": "TI's J721E 11.02.01.03 Linux SDK manifest classifies libti-rpmsg-char0, libti-rpmsg-char-dev, libti-rpmsg-char-staticdev, and ti-rpmsg-char-examples 0.6.10 as BSD-3-Clause. The upstream LICENSE file could not be fetched during the audit because git.ti.com timed out.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "retain the BSD-3-Clause copyright notice and disclaimer in source and binary distributions",
+          "confirm the license file at the pinned commit before first use",
+          "do not use TI's name to endorse derived products"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {
+          "status": "allowed",
+          "conditions": "Fetch the pinned public commit from TI's Git server and verify its hash."
+        },
+        "install": {
+          "status": "allowed",
+          "conditions": "Install or cross-build from the pinned source with the BSD notice."
+        },
+        "ci_use": {
+          "status": "conditional",
+          "conditions": "May run in secret-free public PR jobs after Task 004 pins the commit and confirms its license file."
+        },
+        "cache": {
+          "status": "conditional",
+          "conditions": "Cache only the pinned source or build output with its BSD notice and hash."
+        },
+        "student_access": {
+          "status": "allowed",
+          "conditions": "Students may receive the source and headers with the BSD notice."
+        },
+        "source_redistribution": {
+          "status": "allowed",
+          "conditions": "Include the BSD-3-Clause notice."
+        },
+        "binary_redistribution": {
+          "status": "allowed",
+          "conditions": "Include the BSD-3-Clause notice and disclaimer in accompanying documentation."
+        },
+        "public_container": {
+          "status": "conditional",
+          "conditions": "Include only the pinned, license-confirmed build with its notice."
+        },
+        "course_image": {
+          "status": "conditional",
+          "conditions": "Include only if Task 027 selects the library, with its notice in the image license bundle."
+        },
+        "release": {
+          "status": "conditional",
+          "conditions": "Include only the selected build with its notice and SBOM entry."
+        }
+      },
+      "handling": {
+        "lane": "public-pr",
+        "acquisition": "Pinned public Git commit from git.ti.com, with no account or license acceptance.",
+        "credentials_required": false,
+        "license_acceptance_required": false,
+        "repository_payload": "recipe-only"
+      },
+      "blocker_ids": [
+        "LIC-005"
+      ],
+      "notes": "The plan allows wrapping either this library or the upstream kernel rpmsg_char interface; Task 027 decides. The same manifest lists libti-rpmsg-dma under TI-TFL, which is a separate artifact and is not admitted by this row."
+    },
+    {
+      "id": "ti.code-composer-studio",
+      "name": "TI Code Composer Studio and XDS debug support",
+      "category": "debug-tool",
+      "purpose": "Optional maintainer IDE and JTAG debugger for firmware diagnosis; ordinary student labs must not require it.",
+      "source": {
+        "owner": "Texas Instruments",
+        "canonical_url": "https://www.ti.com/tool/CCSTUDIO",
+        "license_urls": [
+          "https://software-dl.ti.com/ccs/esd/documents/users_guide_ccs_20.1.0/ccs_legal.html",
+          "https://software-dl.ti.com/ccs/esd/documents/users_guide_ccs_20.1.0/ccs_overview.html"
+        ],
+        "version_rule": "The maintainer notes record the tested CCS version and its shipped third-party manifest; the project never installs it automatically.",
+        "integrity_rule": "Use TI's distribution and record the installed version; do not mirror the installer."
+      },
+      "license": {
+        "class": "mixed",
+        "expression": "LicenseRef-TI-TSPA AND LicenseRef-CCS-Third-Party-Manifest",
+        "conclusion": "TI documents no license fee. Its limited license, headed Technology Software Publicly Available, permits use and conditional redistribution only with TI devices, prohibits reverse engineering, and leaves bundled third-party software under the licenses in the CCS manifest.",
+        "checked_on": "2026-10-18",
+        "obligations": [
+          "each user accepts the terms shown at installation",
+          "use only with TI devices",
+          "do not redistribute the installer or installed tree"
+        ]
+      },
+      "components": [],
+      "operations": {
+        "download": {
+          "status": "conditional",
+          "conditions": "Each maintainer downloads from TI and accepts the terms shown at installation."
+        },
+        "install": {
+          "status": "conditional",
+          "conditions": "Install on a maintainer workstation only."
+        },
+        "ci_use": {
+          "status": "not-applicable",
+          "conditions": "CI and the PR gateway never use CCS or JTAG."
+        },
+        "cache": {
+          "status": "prohibited",
+          "conditions": "The project does not cache or mirror CCS."
+        },
+        "student_access": {
+          "status": "conditional",
+          "conditions": "Students may obtain CCS from TI themselves; no lab requires it."
+        },
+        "source_redistribution": {
+          "status": "not-applicable",
+          "conditions": "The project redistributes no CCS source."
+        },
+        "binary_redistribution": {
+          "status": "prohibited",
+          "conditions": "The project links to TI's download and does not redistribute CCS, although its license permits conditional redistribution."
+        },
+        "public_container": {
+          "status": "prohibited",
+          "conditions": "CCS never enters a project OCI layer."
+        },
+        "course_image": {
+          "status": "not-applicable",
+          "conditions": "CCS is a workstation tool and never enters the board image."
+        },
+        "release": {
+          "status": "not-applicable",
+          "conditions": "No CCS payload is included in course releases."
+        }
+      },
+      "handling": {
+        "lane": "excluded",
+        "acquisition": "Direct per-maintainer download from TI.",
+        "credentials_required": false,
+        "license_acceptance_required": true,
+        "repository_payload": "none"
+      },
+      "blocker_ids": [],
+      "notes": "XDS probe drivers ship with CCS and follow the same handling. Probe hardware is a hardware-BOM concern, not a license-matrix artifact."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "LIC-001",
+      "description": "The exact selected PSDK, compiler, and optimized-library archives must be acquired without accepting terms in this repository and their shipped manifests must be reconciled path by path.",
+      "owner": "Task 004 with the institution's authorized TI license owner",
+      "unblock_condition": "Record exact versions, URLs, hashes, manifest IDs, installed component inventories, included license texts, and written approval of the classified acquisition and redistribution uses.",
+      "gate": "Gate 0"
+    },
+    {
+      "id": "LIC-002",
+      "description": "Official documentation does not prove that the historical TI compiler pair and PSDK can be acquired and used unattended on GitHub-hosted runners without credentials, implicit per-job acceptance, or restricted-cache exposure to fork code.",
+      "owner": "Task 005",
+      "unblock_condition": "Produce redacted GitHub-hosted logs for both compiler families showing authorized non-interactive acquisition/use, no secrets or accepted-license state in fork jobs, measured resource use, and the approved cache policy.",
+      "gate": "Gate 0"
+    },
+    {
+      "id": "LIC-003",
+      "description": "The candidate Beagle image is a mixed-license aggregate. Its published 4,161-artifact Syft inventory is not SPDX and leaves 178 artifacts without detected licenses, including 24 Debian packages; the transformed filesystem, notices, corresponding source, and firmware closure do not exist yet.",
+      "owner": "Tasks 035–037",
+      "unblock_condition": "Resolve every empty or ambiguous inventory result, generate a valid SPDX filesystem/package SBOM, and provide the per-component license manifest, notice bundle, corresponding-source evidence, firmware allowlist, hashes, and reproducible build provenance before publishing an image.",
+      "gate": "Gate 6 release publication"
+    },
+    {
+      "id": "LIC-004",
+      "description": "The repository has no recorded institutional entitlement for MISRA C:2012 plus Amendments 1–3 or for shared tool use of headline text.",
+      "owner": "Maintainer and institution licensing/procurement owner",
+      "unblock_condition": "Name the institutionally authorized license owner and record either existing lawful staff access covering the accepted documents or approval to obtain it; obtain separate MISRA permission before loading headline text into shared tooling.",
+      "gate": "Gate 0 for policy ownership; Task 024 before any text-assisted check"
+    },
+    {
+      "id": "LIC-005",
+      "description": "The open container package closure and transitive licenses are not frozen until the version manifest and OSS container exist.",
+      "owner": "Tasks 004 and 017",
+      "unblock_condition": "Pin all package versions/hashes and approve the generated installed SBOM, notices, corresponding-source plan, vulnerability scan, and public OCI contents.",
+      "gate": "Task 017 completion"
+    },
+    {
+      "id": "LIC-006",
+      "description": "The exact set of workflow actions and their source licenses is not selected yet.",
+      "owner": "Tasks 018 and 025",
+      "unblock_condition": "Record every action repository, full commit SHA, readable release, license, required permissions, and inclusion in workflow provenance.",
+      "gate": "PR gateway and complete CI lanes"
+    },
+    {
+      "id": "LIC-007",
+      "description": "No final firmware ELF, linked runtime-library closure, or course-image firmware allowlist exists from which to prove release permissions and notices.",
+      "owner": "Tasks 020–022 and 037",
+      "unblock_condition": "Generate a post-link component inventory for every core/runtime variant, map every TI runtime/library/firmware file to its exact license, and approve the release notice and TI-device-use bundle.",
+      "gate": "Firmware package and Gate 6 release publication"
+    },
+    {
+      "id": "LIC-008",
+      "description": "Tier 2 Docker Desktop eligibility has not been confirmed for the institution and student cohort under the current subscription terms.",
+      "owner": "Task 034 Tier 2 host qualification",
+      "unblock_condition": "Record the applicable educational/personal/organization eligibility and validate the Windows clean-host workflow without redistributing Docker Desktop.",
+      "gate": "Tier 2 support claim; does not block Tier 1 or Gate 0"
+    }
+  ]
+}

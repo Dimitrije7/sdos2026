@@ -176,6 +176,22 @@ Tasks:
 - Define performance targets for three representative kernels: vector gain,
   FIR, and FFT.
 
+The accepted host, student/runtime, repository, language, MISRA-oriented, and
+performance policies are recorded in
+[`docs/course-policy.md`](course-policy.md). Its named Gate 0 blockers remain
+open until their owning tasks provide evidence.
+
+The reference bench, quantity formulas, qualification checks, and structured
+inventory contract are recorded in
+[`docs/hardware-bom.md`](hardware-bom.md). The example inventory remains empty
+until connected hardware is observed.
+
+The proposed public/open layer, controlled TI layer, release allowlist, and
+MISRA-material handling are recorded in
+[`docs/licensing-policy.md`](licensing-policy.md). That policy becomes
+authoritative after its Task 003 maintainer decision; its named blockers remain
+fail-closed inputs to later tasks.
+
 Deliverables:
 
 - requirements document;
@@ -771,6 +787,10 @@ Firmware code targets MISRA C:2012 plus relevant amendments. C++ host tooling
 uses an explicit project standard based on compiler warnings, clang-tidy,
 CERT-oriented checks, and reviewed safe-C++ rules.
 
+The accepted language modes, initial checked rule-ID subset, deviation process,
+and permitted public wording are defined in
+[`docs/course-policy.md`](course-policy.md#p-005--misra-oriented-policy-and-deviations).
+
 The open-source Cppcheck MISRA add-on is useful but partial. MISRA rule text is
 proprietary and is not shipped by Cppcheck or this repository. Therefore:
 
@@ -809,6 +829,9 @@ Do not use `pull_request_target` to check out and execute PR code. PR workflows
 use read-only permissions and GitHub-hosted ephemeral workers.
 
 ### 6.10 Student workflow and documentation
+
+The supported-host tiers, supplied-runtime boundary, and fork/PR submission
+model are defined in [`docs/course-policy.md`](course-policy.md).
 
 The documented happy path is:
 
