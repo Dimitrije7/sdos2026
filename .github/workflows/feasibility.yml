@@ -1,0 +1,101 @@
+# Task 005: measure whether TI toolchains and the image approach fit
+# GitHub-hosted runners. Probes read every pin from manifest/versions.json and
+# upload only JSON summaries; no TI payload is cached or uploaded.
+name: Task 005 feasibility
+
+on:
+  push:
+    branches:
+      - "feasibility/**"
+  pull_request:
+    paths:
+      - ".github/workflows/feasibility.yml"
+      - "ci/feasibility/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: feasibility-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  boundary:
+    name: Token and identity boundary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Probe token write access and OIDC
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: ci/feasibility/boundary_probe.sh "$RUNNER_TEMP/boundary.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: feasibility-boundary
+          path: ${{ runner.temp }}/boundary.json
+          retention-days: 30
+
+  ti-cgt:
+    name: TI ${{ matrix.family }} compiler
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - family: c6000
+            input: ti.c6000-cgt-8.3.7
+          - family: c7000
+            input: ti.c7000-cgt-5.0.0.lts
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install, compile, and measure
+        env:
+          INPUT_ID: ${{ matrix.input }}
+          FAMILY: ${{ matrix.family }}
+        run: ci/feasibility/ti_cgt_probe.sh "$INPUT_ID" "$FAMILY" "$RUNNER_TEMP/ti-$FAMILY.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: feasibility-ti-${{ matrix.family }}
+          path: ${{ runner.temp }}/ti-${{ matrix.family }}.json
+          retention-days: 30
+
+  psdk:
+    name: TI SDK stream extraction
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Stream, extract, and measure
+        run: ci/feasibility/psdk_probe.sh "$RUNNER_TEMP/psdk.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: feasibility-psdk
+          path: ${{ runner.temp }}/psdk.json
+          retention-days: 30
+
+  image:
+    name: Image delta on arm64
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install image tools
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends bmap-tools device-tree-compiler
+      - name: Expand, inspect, install a probe package, and measure
+        run: ci/feasibility/image_probe.sh "$RUNNER_TEMP/image.json"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: feasibility-image
+          path: ${{ runner.temp }}/image.json
+          retention-days: 30

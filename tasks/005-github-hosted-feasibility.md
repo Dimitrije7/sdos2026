@@ -2,8 +2,39 @@
 
 ## Status
 
-ready
+in-progress
 
+## Handoff
+
+- Updated: 2026-10-18, claude.
+- State: Probes and workflow are written, linted, and committed locally. Not
+  yet run. Running them waits on two maintainer decisions.
+- Done:
+  - Pre-run facts in
+    [`docs/research/task-005-feasibility.md`](../docs/research/task-005-feasibility.md):
+    anonymous TI downloads, runner limits, image sizes, and zero repository
+    secrets with a read-only default token.
+  - [`.github/workflows/feasibility.yml`](../.github/workflows/feasibility.yml),
+    four probes under [`ci/feasibility/`](../ci/feasibility/), and
+    [`ci/manifest_pin.py`](../ci/manifest_pin.py).
+- Next:
+  1. Record the maintainer's answers to the decisions below.
+  2. If allowed: push branch `feasibility/task-005` without touching `main`,
+     watch the run with `gh run watch`, and download the four JSON artifacts.
+  3. Archive the run URL, job timings, and summaries under
+     `release/evidence/task-005/`. Fill the Measurements and Recommendation
+     sections of the research note, then complete the task.
+  4. If an install fails, for example the 32-bit C6000 installer needing
+     i386 libraries, fix the probe and rerun before concluding.
+- Decisions, asked 2026-10-18 and pending:
+  1. May project automation, including fork pull-request jobs, download and
+     install the pinned TI compilers and SDK under the terms shipped in each
+     package, with the maintainer as the accepting party?
+  2. May the agent push branch `feasibility/task-005`, which publishes the
+     local commits to the public repository, and run the workflow?
+- Verification, 2026-10-18: ShellCheck v0.10.0, actionlint 1.7.12, and
+  zizmor 1.30.1 in auditor mode reported no findings. Bash syntax checks
+  passed for every probe.
 ## Depends on
 
 003 and 004.
