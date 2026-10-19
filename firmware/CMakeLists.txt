@@ -8,7 +8,10 @@ if(SDOS_PRODUCT STREQUAL "firmware")
   if(SDOS_CORE MATCHES "^c66x")
     set(family_sources c66x/src/entry.c c66x/src/c66x.c)
   else()
-    set(family_sources c71x/src/c71x.c)
+    # The event service table is assembly: its exception entries run before
+    # any stack can be trusted (vectors.asm).
+    enable_language(ASM)
+    set(family_sources c71x/src/c71x.c c71x/src/vectors.asm)
   endif()
   set(runtime_sources runtime/${SDOS_RTOS}/main.c)
   sdos_add_ti_firmware(sdos_firmware SOURCES

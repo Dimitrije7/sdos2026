@@ -31,7 +31,7 @@ says so and gives the reason.
 | SM-2a | **C66x L2 page protection.** Every 16 KiB page of usable L2 gets explicit attributes: the L2 code zone read-only and executable, the rest writable and never executable. No other bus master (the A72, the other DSPs, DMA) may access this core's L2 at all. | `c66x.c` | The access is blocked and recorded; the monitor enters the safe state, naming the address and the master |
 | SM-3 | **Protection self-tests.** At start, the C66x writes into MSMC and into its own L2 code zone, each writing back the value it read; both must be refused and recorded. A read of the other C66x's memory is traced for the record. | `c66x.c` | A refusal that does not happen withholds the protection capability in HELLO; the board suites check it |
 | SM-4 | **Read-only page tables.** After start, the C71x maps its own MMU tables read-only. | `c71x.c` | Exception on any write |
-| SM-5 | **Stack guards.** Each guarded stack is filled with 0xA5. On the C71x its lowest page becomes read-only after start; on both families the monitor requires its lowest 256 bytes to keep the fill. Peak use is reported. | [`monitor.c`](../firmware/common/platform/src/monitor.c) | C66x: safe state, fault `stack`. C71x: the overflow is stopped, but the core hangs without a record, see [residual risks](#residual-risks) |
+| SM-5 | **Stack guards.** Each guarded stack is filled with 0xA5. On the C71x its lowest page becomes read-only after start, and exceptions run on a 16 KiB stack of their own: the firmware installs its own vector table ([`vectors.asm`](../firmware/c71x/src/vectors.asm)) whose exception entries switch stacks before storing anything, so an overflow into the guard can be recorded. On both families the monitor requires the lowest 256 bytes to keep the fill. Peak use is reported. | [`monitor.c`](../firmware/common/platform/src/monitor.c), `c71x.c` | Safe state, fault `stack`; on the C71x the core halts and `dspctl recover` restarts it |
 | SM-6 | **Image integrity.** After linking, [`firmware_postlink.py`](../ci/firmware_postlink.py) writes a CRC-32C record of every read-only loaded segment into the ELF. The firmware checks the whole image at start, then 16 KiB per monitor period. This covers code, constants, and load/run copies such as the FIR in L2. | `monitor.c`, [`safety.c`](../firmware/common/safety/src/safety.c) | Safe state, fault `integrity` |
 | SM-7 | **No C heap.** Builds link with `-heap 0`, and the post-link step refuses `malloc()` and its relatives. FreeRTOS's own heap may change only during start-up. | linker files, `monitor.c` | Build failure; at run time, safe state with fault `heap` |
 | SM-8 | **Write xor execute.** No loaded segment is both writable and executable. Code lies only in the code zone or local L2, and nothing writable lies in a read-only zone. | `firmware_postlink.py`, [`firmware_elf.py`](../ci/firmware_elf.py) | Build failure |
@@ -124,8 +124,8 @@ because they are usually consequences. A restart clears it.
 | Code | Name | Raised when | Address | Detail |
 |---|---|---|---|---|
 | 1 | integrity | a read-only range differs from its CRC | start of the range | range index; bit 31 set: the record itself is missing or damaged |
-| 2 | stack | a stack reached its guard | base of the stack | index of the stack |
-| 3 | protection | the MPAX or MMU could not be configured, or a C66x protection register differs from its snapshot | the register, for a changed one | 1: MPAX segment 1 does not cover the carve-out; 2: too many segments; 0x400 + segment, or 0x500 + L2 page, for a changed register; other values count failed MMU mappings |
+| 2 | stack | a stack reached its guard | C66x: base of the stack; C71x: the faulting address in the guard page | C66x: index of the stack; C71x: IERR and IESR |
+| 3 | protection | the MPAX or MMU could not be configured, or a C66x protection register differs from its snapshot | the register, for a changed one | 1: MPAX segment 1 does not cover the carve-out; 2: too many segments; 0x400 + segment, or 0x500 + L2 page, for a changed register. C71x: 0x100 the page tables, 0x200 a stack guard, 0x300 the L2 split could not be mapped; 0x700 the vector table is not 2 MiB-aligned; 0x701 the vector base register did not take it; other values count failed MMU mappings |
 | 4 | access | the protection blocked an access | the faulting address | C66x: XMPFSR, or for an L2 page fault bit 16 set and L2MPFSR (bits 9 to 15 name the master); C71x: IERR and IESR |
 | 5 | exception | the C71x raised another exception | the faulting instruction | IERR and IESR |
 | 6 | watchdog | a RUN ran past 2 s (FreeRTOS) | | algorithm id |
@@ -203,7 +203,7 @@ firmware reported, and restarts the core.
 | read Linux's memory | not detected (reads pass the XMC) | access, halted |
 | write into the code zone | access | access, halted |
 | execute from the data zone | stopped heartbeat | access, halted |
-| recurse into the stack guard | stack | not recorded; the core hangs (open) |
+| recurse into the stack guard | stack | stack, halted |
 | never return | FreeRTOS: watchdog, halted; bare metal: stopped heartbeat | watchdog, halted |
 | run 5 ms on a 1 ms budget | deadline missed | deadline missed |
 | change read-only data the CRC record covers | integrity | integrity |
@@ -214,8 +214,9 @@ firmware reported, and restarts the core.
 
 The table is the board result of 2026-10-19 for every core and runtime
 ([evidence](../release/evidence/task-042/)); every case recovered with
-`dspctl recover`, except the C71x stack case, which needs a board reboot.
-The stack case runs last for that reason.
+`dspctl recover`. The C71x stack case hung the core until the firmware got
+its own exception stack; it has been recorded and recovered since
+([evidence](../release/evidence/task-042/20261019T164820Z/)).
 
 The test firmware also carries one diagnostic that injects nothing:
 `dspctl run <dsp> 0xfa00000d - -` reads every region of the SoC firewalls on
@@ -257,12 +258,12 @@ Each of these needs hardware, a decision, or both:
 - **C66x reads.** The C66x XMC does not refuse reads outside the MPAX grants,
   so a C66x can read Linux's and the other cores' memory. That is a
   confidentiality gap, not interference: writes, which corrupt, are refused.
-- **C71x stack overflow.** TI's C7x exception entry runs the handler on the
-  faulting stack, so an overflow into the guard page faults again inside the
-  handler and the core hangs: the overflow is contained but neither reported
-  nor recoverable without a reboot. Fixing it needs an exception stack of its
-  own, which means changing TI's exception entry. Until then the stacks are
-  sized with room to spare (peak use is reported).
+- **C71x stack overflow past the guard.** The guard is one 4 KiB page. A
+  function whose frame is larger than that (a big local array) can move the
+  stack pointer past the guard and write below it without touching it; on
+  the C71x that is other data in the carve-out. Keep large buffers static;
+  peak use is reported. Faults inside the exception handler itself, which
+  runs on its own unguarded 16 KiB stack, are not recorded.
 - **Device windows.** They are derived from the PDK sources the firmware
   links and confirmed on the board by the course smoke test and every
   fault-injection run (2026-10-19). A peripheral a driver needs that the list
@@ -297,5 +298,5 @@ On the board, 2026-10-19 (Tasks 021 and 042):
   smoke test passes twice in a row
   ([evidence](../release/evidence/task-021/));
 - every fault-injection case behaves as the table above states, and every
-  core recovers after its fault except the C71x stack case
+  core recovers after its fault
   ([evidence](../release/evidence/task-042/)).

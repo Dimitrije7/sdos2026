@@ -87,6 +87,10 @@ SECTIONS
      * and 2 MiB for the C7x vector base registers. */
     .vecs                 : {} > DDR_CODE, align = 0x400000
     .secure_vecs          : {} > DDR_CODE, align = 0x200000
+    /* MANDATORY: the firmware's own table (vectors.asm), installed at start;
+     * its exception entries switch to the exception stack, so a stack overflow
+     * is recorded. 2 MiB-aligned like .secure_vecs; the firmware checks it. */
+    .sdos.vecs            : {} > DDR_CODE, align = 0x200000
     .text                 : {} > DDR_CODE
 
     #include "c71x_runtime.cmd"

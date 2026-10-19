@@ -107,6 +107,7 @@ source are in the manifest.
 | `.hwi_vect` or `.csl_vect` 1 KiB-aligned (C66x) | The interrupt vector table is installed through ISTP |
 | `.neardata`, `.rodata`, `.bss` grouped (C66x) | Near data is addressed relative to the data page pointer within one window |
 | `.vecs` 4 MiB- and `.secure_vecs` 2 MiB-aligned (C71x) | TI's validated layout for the C7x vector base registers; kept until proven unnecessary |
+| `.sdos.vecs` 2 MiB-aligned in the code zone (C71x) | The firmware's own vector table, installed at start, whose exception entries switch to an exception stack ([`vectors.asm`](../firmware/c71x/src/vectors.asm)); the firmware refuses a misaligned one. With the entry point and TI's two tables that is four aligned slots, so a code region of 8 MiB fits them in one order only ([`c71x_0_ddr.cmd`](../firmware/linker/examples/c71x_0_ddr.cmd) fixes it with a `GROUP`) |
 | `.stack` 128 KiB-aligned, task stacks 8 KiB-aligned (C71x) | TI's C7x interrupt handling and FreeRTOS port require it |
 | C71x MMU tables `NOINIT` | They are written before C initialization runs |
 | Segments within loadable regions, no two overlapping | remoteproc copies every loadable segment to its address |

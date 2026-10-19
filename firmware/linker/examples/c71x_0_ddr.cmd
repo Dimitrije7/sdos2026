@@ -20,9 +20,10 @@
 
 MEMORY
 {
-    /* The code region must hold three aligned slots: the 2 MiB-aligned entry
-     * point and the 4 MiB- and 2 MiB-aligned vector tables. Below 8 MiB that
-     * does not fit, which the linker reports as an alignment failure. */
+    /* The code region must hold four aligned slots: the 2 MiB-aligned entry
+     * point, the firmware's 2 MiB-aligned vector table, and TI's 4 MiB- and
+     * 2 MiB-aligned vector tables. Below 8 MiB that does not fit, which the
+     * linker reports as an alignment failure. */
     DDR_DATA   (RW) : origin = SDOS_DDR_ORIGIN,            length = 0x00500000
     DDR_RODATA (R)  : origin = SDOS_DDR_ORIGIN + 0x500000, length = 0x00100000
     DDR_META   (RW) : origin = SDOS_DDR_ORIGIN + 0x600000, length = 0x00100000
@@ -43,9 +44,14 @@ SECTIONS
     .resource_table : {} > DDR_META, align = 0x1000
     .tracebuf       : {} > DDR_META, align = 0x400
     .sdos.integrity : {} > DDR_META, align = 0x8
-    .text:_c_int00_secure : {} > DDR_CODE, align = 0x200000
-    .vecs           : {} > DDR_CODE, align = 0x400000
-    .secure_vecs    : {} > DDR_CODE, align = 0x200000
+    /* 8 MiB holds the four slots in one order only, so the group fixes it. */
+    GROUP : > DDR_CODE, align = 0x200000
+    {
+        .text:_c_int00_secure : align = 0x200000
+        .sdos.vecs            : align = 0x200000   /* the firmware's own table */
+        .vecs                 : align = 0x400000
+        .secure_vecs          : align = 0x200000
+    }
     .text           : {} > DDR_CODE
     .sdos.fir_text  : { *libsdos_fir_q15.a<*>(.text) } > DDR_CODE,
                       RUN_START(sdos_fir_run_start), LOAD_START(sdos_fir_load_start), SIZE(sdos_fir_run_size)

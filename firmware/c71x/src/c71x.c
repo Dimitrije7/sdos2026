@@ -17,7 +17,8 @@
  * Every other address, including Linux's memory and the other cores', is
  * unmapped and faults. After start-up the page tables become read-only and
  * the lowest page of every guarded stack becomes read-only, so an overflow
- * faults instead of corrupting what lies below. */
+ * faults instead of corrupting what lies below. Exceptions run on a stack of
+ * their own (vectors.asm), so an overflow is recorded like any other fault. */
 #include <c7x.h>
 
 #include <ti/osal/CacheP.h>
@@ -75,6 +76,19 @@ static const sdos_span pool = {SDOS_C71X_0_DMA_POOL_BASE,
 /* InitMmu runs before C initialization, so its result goes through memory C
  * initialization does not touch. */
 static volatile uint32_t mmu_status __attribute__((section(".sdos.noinit")));
+
+/* The exception stack and the event service table that switches to it
+ * (vectors.asm). The handler, the fault record, and the halt that follows run
+ * here, so they work when the stack that faulted is the guard page. */
+#define EXCEPTION_STACK_SIZE 0x4000u
+#define VECTORS_ALIGN 0x200000u /* as TI's .secure_vecs, which runs from such a base */
+static uint8_t exception_stack[EXCEPTION_STACK_SIZE] __attribute__((aligned(64)));
+extern char *const sdos_exception_stack_top;
+extern volatile uint64_t sdos_exception_sp;
+char *const sdos_exception_stack_top = (char *)exception_stack + EXCEPTION_STACK_SIZE - 64u;
+volatile uint64_t sdos_exception_sp; /* the stack pointer at the last exception */
+extern char sdos_vectors[];
+static char *const vectors = sdos_vectors;
 
 typedef enum kind { DEVICE, LOCAL, LOCAL_CODE, LOCAL_DATA, CODE, RODATA, DATA, UNCACHED } kind;
 
@@ -157,7 +171,8 @@ void InitMmu(void)
 }
 
 /* After an exception the core cannot safely continue: record and halt. A
- * page fault inside a stack's guard page is a stack overflow. */
+ * page fault inside a stack's guard page, or taken with the stack pointer
+ * there, is a stack overflow. */
 /* Exceptions record the fault, then leave exception context into
  * exception_halted, which idles. A C71x idling inside its exception handler
  * could not be powered off by Linux (board, Task 021); one idling in normal
@@ -169,8 +184,8 @@ static void exception_hook(void)
     uint64_t iesr = __IESR;
     uint32_t info = (uint32_t)(ierr & 0xFFFFu) | ((uint32_t)(iesr & 0xFFFFu) << 16);
     if ((ierr & IERR_PAGE_FAULT) != 0u) {
-        sdos_monitor_record_fatal(sdos_monitor_guarded(iear) >= 0 ? SDOS_FAULT_STACK : SDOS_FAULT_ACCESS, iear,
-                                  info);
+        int overflow = sdos_monitor_guarded(iear) >= 0 || sdos_monitor_guarded(sdos_exception_sp) >= 0;
+        sdos_monitor_record_fatal(overflow ? SDOS_FAULT_STACK : SDOS_FAULT_ACCESS, iear, info);
     } else {
         sdos_monitor_record_fatal(SDOS_FAULT_EXCEPTION, Exception_Module_state.nrp, info);
     }
@@ -241,6 +256,15 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
     uint64_t tables_end = ((uintptr_t)mmu_tables_end + PAGE - 1u) & ~(uint64_t)(PAGE - 1u);
 
     Exception_registerHooks(&hooks);
+    if ((uintptr_t)vectors % VECTORS_ALIGN != 0u) {
+        sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, (uintptr_t)vectors, 0x700u);
+        return 0u;
+    }
+    __ESTP_S = (uintptr_t)vectors; /* TI's startup set its own table; the stacks are not yet guarded */
+    if (__ESTP_S != (uintptr_t)vectors) {
+        sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, (uintptr_t)vectors, 0x701u);
+        return 0u;
+    }
     if (mmu_status != MMU_OK) {
         sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, 0u, mmu_status);
         sdos_trace("mmu: %lu mappings failed; protection incomplete", (unsigned long)mmu_status);
@@ -258,6 +282,8 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
                "L2 code 0x%08lx..0x%08lx read-only, page tables 0x%08lx..0x%08lx read-only",
                (unsigned long)SDOS_C71X_0_MMIO_COUNT, (unsigned long)(uintptr_t)zone_l2code_start,
                (unsigned long)(uintptr_t)zone_l2code_end, (unsigned long)tables, (unsigned long)(tables_end - 1u));
+    sdos_trace("exceptions: vectors at 0x%08lx, own %lu KiB stack", (unsigned long)(uintptr_t)vectors,
+               (unsigned long)(EXCEPTION_STACK_SIZE / 1024u));
     return SDOS_CAP_PROTECTION;
 }
 

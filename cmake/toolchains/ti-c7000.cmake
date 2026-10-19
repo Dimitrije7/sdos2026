@@ -15,11 +15,13 @@ if(NOT _root OR NOT EXISTS "${_root}/bin/cl7x")
 endif()
 
 set(CMAKE_C_COMPILER "${_root}/bin/cl7x")
+set(CMAKE_ASM_COMPILER "${_root}/bin/cl7x")
 set(CMAKE_AR "${_root}/bin/ar7x")
 # Target flags match the compile proven by Task 005.
 # --silicon_errata_i2117 works around C7x erratum i2117; TI builds every C7x
 # library with it, so all C7x code here does too.
 set(CMAKE_C_FLAGS_INIT "-mv7100 --c99 --silicon_errata_i2117 -I${_root}/include")
+set(CMAKE_ASM_FLAGS_INIT "-mv7100 --silicon_errata_i2117")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 set(SDOS_TI_ROOT "${_root}" CACHE INTERNAL "TI compiler install directory")
 set(SDOS_PRODUCT firmware CACHE STRING "" FORCE)

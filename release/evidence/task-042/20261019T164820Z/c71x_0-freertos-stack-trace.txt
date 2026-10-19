@@ -1,0 +1,10 @@
+  region     0 bytes, 128-byte alignment
+dspctl: run: c71x_0 did not answer within 2000 ms (timeout)
+[0.018] mmu: only this core's memory and 7 device windows mapped; code read-only, data not executable, L2 code 0x64800000..0x64804000 read-only, page tables 0
+[0.018] exceptions: vectors at 0xa8400000, own 16 KiB stack
+[0.021] FAULT INJECTION BUILD: for the connected-board suite only, never for course use
+[0.022] monitor: 2 guarded stacks, kernel heap frozen; ready
+[0.513] FAULT stack at 0x00000000a8d60f80, info 0x80f0001: safe state, RUN refused until restart
+{"name": "c71x_0", "state": "halted", "fault": "stack", "fault_info": 135200769, "fault_address": 2832600960, "heartbeat": 22, "uptime_ms": 513, "stack_margin": 44264, "integrity_passes": 2, "deadline_misses": 0}
+  region     0 bytes, 128-byte alignment
+{"name": "c71x_0", "state": "ok", "fault": "none", "fault_info": 0, "fault_address": 0, "heartbeat": 22, "uptime_ms": 502, "stack_margin": 44264, "integrity_passes": 2, "deadline_misses": 0}

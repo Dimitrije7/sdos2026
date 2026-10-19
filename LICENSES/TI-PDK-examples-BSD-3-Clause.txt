@@ -7,7 +7,11 @@ code (PDK 11.02.01.08, ti/drv/ipc/examples/common/src):
   firmware/common/platform/src/resource_table.c  resource table layout (ipc_rsctable.h)
   firmware/runtime/baremetal/mailbox_poll.c  mailbox poll loop (ipc_mailbox.c)
 
-Copyright (c) 2017-2021 Texas Instruments Incorporated
+and of this file, which follows PDK code in ti/csl/arch/c7x/src:
+
+  firmware/c71x/src/vectors.asm             event service table (Hwi_disp_always.asm)
+
+Copyright (c) 2016-2023 Texas Instruments Incorporated
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

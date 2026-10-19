@@ -1,0 +1,568 @@
+{
+  "schema": "sdos-fault-injection/1",
+  "core": "c71x_0",
+  "runtime": "baremetal",
+  "firmware": "sdos-c71x_0-baremetal-fi.xe71",
+  "captured_utc": "2026-10-19T16:51:21Z",
+  "ssh_exit": 0,
+  "loaded": true,
+  "cases": {
+    "write_foreign": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "read_foreign": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "write_code": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "exec_data": {
+      "outcome": "access",
+      "expected": [
+        "access",
+        "exception"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "hang": {
+      "outcome": "watchdog",
+      "expected": [
+        "watchdog"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "overrun": {
+      "outcome": "deadline",
+      "expected": [
+        "deadline"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "corrupt_image": {
+      "outcome": "integrity",
+      "expected": [
+        "integrity"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "heap": {
+      "outcome": "unsupported",
+      "expected": [
+        "unsupported"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "write_l2_code": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "read_shared": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "rewrite_protection": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "stack": {
+      "outcome": "stack",
+      "expected": [
+        "stack"
+      ],
+      "detected": true,
+      "recovered": true
+    }
+  },
+  "restored": true,
+  "steps": {
+    "load": {
+      "output": [
+        "loaded /tmp/sdos-smoke/sdos-c71x_0-baremetal-fi.xe71"
+      ],
+      "status": 0
+    },
+    "write_foreign:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "write_foreign:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "write_foreign:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 134610945, \"fault_address\": 2802843648, \"heartbeat\": 0, \"uptime_ms\": 21, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_foreign:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 134610945, \"fault_address\": 2802843648, \"heartbeat\": 0, \"uptime_ms\": 21, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_foreign:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 1, \"uptime_ms\": 38, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "read_foreign:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "read_foreign:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "read_foreign:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 2147483648, \"heartbeat\": 1, \"uptime_ms\": 45, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_foreign:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 2147483648, \"heartbeat\": 1, \"uptime_ms\": 45, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_foreign:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 18, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "write_code:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "write_code:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "write_code:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135135233, \"fault_address\": 2820669440, \"heartbeat\": 1, \"uptime_ms\": 40, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_code:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135135233, \"fault_address\": 2820669440, \"heartbeat\": 1, \"uptime_ms\": 40, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_code:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "exec_data:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "exec_data:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "exec_data:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 5177345, \"fault_address\": 2831451776, \"heartbeat\": 0, \"uptime_ms\": 28, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "exec_data:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 5177345, \"fault_address\": 2831451776, \"heartbeat\": 0, \"uptime_ms\": 28, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "exec_data:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "hang:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "hang:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "hang:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"watchdog\", \"fault_info\": 4194304006, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 2025, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "hang:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"watchdog\", \"fault_info\": 4194304006, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 2025, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "hang:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "overrun:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "overrun:run": {
+      "output": [
+        "dspctl: run: c71x_0 refused the request: deadline missed (deadline missed)"
+      ],
+      "status": 1
+    },
+    "overrun:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 50, \"uptime_ms\": 1018, \"stack_margin\": 65536, \"integrity_passes\": 6, \"deadline_misses\": 1}"
+      ],
+      "status": 0
+    },
+    "overrun:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 226, \"uptime_ms\": 4538, \"stack_margin\": 65536, \"integrity_passes\": 23, \"deadline_misses\": 1}"
+      ],
+      "status": 0
+    },
+    "overrun:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 18, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "corrupt_image:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "corrupt_image:run": {
+      "output": [
+        "0xfa000008: no data, 1127 DSP cycles"
+      ],
+      "status": 0
+    },
+    "corrupt_image:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"faulted\", \"fault\": \"integrity\", \"fault_info\": 10, \"fault_address\": 2831725056, \"heartbeat\": 50, \"uptime_ms\": 1018, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "corrupt_image:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"faulted\", \"fault\": \"integrity\", \"fault_info\": 10, \"fault_address\": 2831725056, \"heartbeat\": 226, \"uptime_ms\": 4538, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "corrupt_image:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 18, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "heap:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "heap:run": {
+      "output": [
+        "dspctl: run: c71x_0 refused the request: unknown algorithm (unknown algorithm)"
+      ],
+      "status": 1
+    },
+    "heap:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 50, \"uptime_ms\": 1018, \"stack_margin\": 65536, \"integrity_passes\": 6, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "heap:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 225, \"uptime_ms\": 4518, \"stack_margin\": 65536, \"integrity_passes\": 23, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "heap:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "write_l2_code:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "write_l2_code:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "write_l2_code:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135200769, \"fault_address\": 1686110208, \"heartbeat\": 1, \"uptime_ms\": 45, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_l2_code:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135200769, \"fault_address\": 1686110208, \"heartbeat\": 1, \"uptime_ms\": 45, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_l2_code:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 1, \"uptime_ms\": 38, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "read_shared:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "read_shared:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "read_shared:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 1879179264, \"heartbeat\": 0, \"uptime_ms\": 31, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_shared:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 1879179264, \"heartbeat\": 0, \"uptime_ms\": 31, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_shared:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "rewrite_protection:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "rewrite_protection:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "rewrite_protection:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135200769, \"fault_address\": 2831728640, \"heartbeat\": 0, \"uptime_ms\": 24, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "rewrite_protection:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135200769, \"fault_address\": 2831728640, \"heartbeat\": 0, \"uptime_ms\": 24, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "rewrite_protection:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "stack:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "stack:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "stack:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"stack\", \"fault_info\": 135200769, \"fault_address\": 2831945608, \"heartbeat\": 1, \"uptime_ms\": 40, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "stack:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"stack\", \"fault_info\": 135200769, \"fault_address\": 2831945608, \"heartbeat\": 1, \"uptime_ms\": 40, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "stack:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal FI",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 0, \"uptime_ms\": 17, \"stack_margin\": 4294967295, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "restored": {
+      "output": [
+        "offline sdos/c71x_0.xe71 sdos/c71x_0.xe71"
+      ],
+      "status": 0
+    }
+  },
+  "passed": true
+}

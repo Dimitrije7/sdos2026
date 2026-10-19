@@ -43,10 +43,9 @@ void sdos_protection_poll(sdos_runtime *runtime);
 void sdos_protection_report(void);
 /* After start-up: protect the lowest SDOS_GUARD_PAGE bytes of each stack
  * against writes (C71x MMU). FreeRTOS fills a task stack when it creates the
- * task, so the guard can only go up afterwards. Known gap (Task 042): TI's C7x
- * exception entry runs the handler on the faulting stack, so an overflow into
- * the guard faults again inside the handler and the core hangs; the fault is
- * contained but not reported. */
+ * task, so the guard can only go up afterwards. An overflow into the guard
+ * faults; the C71x exception entry first moves to its own stack, so the fault
+ * is recorded as SDOS_FAULT_STACK and the core halts recoverably. */
 void sdos_protection_guard(const sdos_stack *stacks, size_t count);
 #if defined(BUILD_C7X)
 #define SDOS_GUARD_PAGE 0x1000u

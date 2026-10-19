@@ -7,18 +7,18 @@ in-progress
 ## Handoff
 
 - Updated: 2026-10-19, claude.
-- State: board-proven on all three DSPs in both runtimes, with one
-  criterion open (C71x stack overflow, criterion 2). The C66x protection
-  registers are locked (SM-17). The SoC firewalls are surveyed: all open; a
-  run-time configuration of the C71x L2 firewall is written but waits for
-  the maintainer's approval to run on the board.
+- State: every acceptance criterion is board-proven on all three DSPs in
+  both runtimes. The C66x protection registers are locked (SM-17). The SoC
+  firewalls are surveyed: all open; a run-time configuration of the C71x L2
+  firewall is written but waits for the maintainer's approval to run on the
+  board. What remains are maintainer decisions.
 - Done: everything in the earlier handoffs (git history), and on the board
   on 2026-10-19
   ([evidence](../release/evidence/task-042/20261019T155359Z/)):
   - `course-smoke` passes on every core and runtime, twice in a row, with
     the MPLK lock in place.
   - `fault-injection` passes every case on C66x_0 and C66x_1 in both runtimes
-    and on the C71x in both runtimes, except the C71x stack case. The new
+    and on the C71x in both runtimes. The new
     `rewrite_protection` case is refused and recorded (`access`) on every
     core: by the MPLK lock on the C66x, by the read-only page tables on the
     C71x. Outcomes are tabulated in
@@ -32,6 +32,17 @@ in-progress
     TI's system firmware leaves them unowned, so DSP firmware may claim and
     program them through TI-SCI with no boot-chain change. Details, ids, and
     priv-ids in [`docs/safety.md`](../docs/safety.md#residual-risks).
+  - Criterion 2 (C71x stack overflow): TI's exception entry pushed onto the
+    stack that faulted and ran the handler there, so an overflow into the
+    guard page faulted again and hung the core. The firmware now installs
+    its own vector table at start
+    ([`vectors.asm`](../firmware/c71x/src/vectors.asm)), whose exception
+    entries switch to a 16 KiB exception stack before storing anything and
+    then enter TI's dispatcher unchanged. On the board the overflow is
+    recorded as `stack` at the guard page and `dspctl recover` restarts the
+    core, in both runtimes; `course-smoke` passes twice on the C71x and the
+    example DDR layout boots
+    ([evidence](../release/evidence/task-042/20261019T164820Z/)).
 - Next:
   1. Maintainer decision: let the C71x firmware claim firewall 264 at start
      and admit only its own priv-id (21) to its L2. The code is ready on the
@@ -44,16 +55,15 @@ in-progress
      one foreground region per DSP carve-out, owned by that DSP; the MCU path
      (1280) and the A72 (257) cannot be closed without cutting the device
      manager or the Linux loader off.
-  3. C71x stack overflow (criterion 2): the handler runs on the faulting
-     stack; it needs a separate exception stack, which means changing TI's
-     exception entry.
-  4. Maintainer decisions still open: RTI watchdogs through the ESM; the
+  3. Maintainer decisions still open: RTI watchdogs through the ESM; the
      MISRA subset (Task 024).
 - Decisions: on 2026-10-19 the maintainer asked for the MPLK lock and the
-  SoC firewalls after all pending board work.
+  SoC firewalls after all pending board work, then for the C71x exception
+  stack as the remaining fix that matters for students.
 - Verification, 2026-10-19: `course-smoke` (twice) and `fault-injection` on
-  the board, and the firewall survey on C66x_0 and C71x_0; evidence above;
-  `make quality`.
+  the board, and the firewall survey on C66x_0 and C71x_0; after the
+  exception stack, `fault-injection` and `course-smoke` (twice) again on the
+  C71x; evidence above; `make quality`.
 
 ## Depends on
 
