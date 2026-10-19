@@ -91,7 +91,7 @@ boundary, and the protection follows
 | Vring pool | read, write | read, write, uncached |
 | L2 code zone, `L2CODE` | read, execute; no other master (L2 page protection) | read, execute after start |
 | Rest of usable L2 | read, write; no other master | read, write |
-| Device windows | read, write, never execute: the six windows in [`dsp-cores.json`](../manifest/dsp-cores.json) | the same, device memory: five windows |
+| Device windows | read, write, never execute: the seven windows in [`dsp-cores.json`](../manifest/dsp-cores.json) | the same, device memory: seven windows |
 | Everything else: Linux's and the other cores' memory, MSMC, other peripherals | denied | unmapped |
 
 The device windows come from the PDK sources the firmware links, each with
@@ -102,13 +102,16 @@ its source in the manifest:
 | CorePac-local space below 256 MiB: L2, L1, interrupt controller, cache, XMC, RAT, interrupt router, DM timers | everything on the core | 0x00000000, 256 MiB | — |
 | DM timers | FreeRTOS tick | in the local window | 0x02400000, 2 MiB |
 | Interrupt router through the C66x RAT | Sciclient | 0x20AC0000 or 0x20AD0000, 4 KiB | — |
-| MCU NAVSS secure proxy configuration | Sciclient | 0x285B0000, 4 KiB | 0x28400000, 2 MiB |
-| MCU NAVSS secure proxy data and status | Sciclient | 0x2A380000, 1.5 MiB | 0x2A200000, 4 MiB |
+| MAIN NAVSS secure proxy configuration | Sciclient | 0x31140000, 4 KiB | 0x31000000, 2 MiB |
 | NAVSS mailboxes | IPC | 0x31F80000, 64 KiB | 0x31E00000, 2 MiB |
+| MAIN NAVSS secure proxy real-time, thread configuration, target data | Sciclient | 0x32400000, 0x32800000, 0x32C00000, 1 MiB each | the same bases, 2 MiB each |
 | CLEC interrupt controller | port, IPC, Sciclient | — | 0x78000000, 128 MiB |
 
 The C71x windows are rounded to whole 2 MiB MMU blocks, so they cost no page
-table.
+table. Sciclient on a DSP uses the MAIN NAVSS secure proxy; the MCU NAVSS one
+belongs to MCU R5F builds. The first board run granted the MCU one by mistake,
+and `Sciclient_init` failed: a missing window shows up as a start-up failure,
+never as access to something else.
 
 ## Fault codes
 

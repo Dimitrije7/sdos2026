@@ -1,0 +1,92 @@
+{
+  "schema": "sdos-dsp-ipc/1",
+  "core": "c66x_1",
+  "device": "4d81800000.dsp",
+  "captured_utc": "2026-10-19T09:50:45Z",
+  "kernel": "6.18.55-arm64-k3-r59",
+  "firmware": {
+    "input": "ti.ipc-echo-fw-j721e-c66xdsp2",
+    "file": "ipc_echo_test_c66xdsp_2_release_strip.xe66",
+    "sha256": "6c98c01d1f3d35b681c78677523198e286244d00e6ea18456436cae2852e265d"
+  },
+  "plan": {
+    "device": "4d81800000.dsp",
+    "firmware": "sdos/ti-ipc/ipc_echo_test_c66xdsp_2_release_strip.xe66",
+    "service": "rpmsg_chrdev",
+    "endpoint": 14,
+    "count": 10,
+    "cycles": 2,
+    "payload": 200,
+    "reply_timeout": 2.0,
+    "start_timeout": 15.0,
+    "stop_timeout": 10.0
+  },
+  "agent_exit": 1,
+  "events": [
+    {
+      "ok": true,
+      "device": "4d81800000.dsp",
+      "remoteproc": "remoteproc1",
+      "state": "offline",
+      "firmware": "j7-c66_1-fw",
+      "event": "resolve",
+      "t": 357.328245
+    },
+    {
+      "ok": true,
+      "seconds": 0.0,
+      "event": "offline",
+      "t": 357.328591
+    },
+    {
+      "ok": true,
+      "firmware": "sdos/ti-ipc/ipc_echo_test_c66xdsp_2_release_strip.xe66",
+      "event": "load",
+      "t": 357.329047
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "state": "running",
+      "event": "start",
+      "t": 357.361024
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0012,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 357.362409
+    },
+    {
+      "cycle": 1,
+      "text": "IPC_echo_test (core : C66X_2) .....\n",
+      "event": "trace",
+      "t": 357.362696
+    },
+    {
+      "message": "OSError: [Errno 22] Invalid argument",
+      "event": "error",
+      "t": 357.393322
+    },
+    {
+      "state": "offline",
+      "firmware": "j7-c66_1-fw",
+      "event": "final",
+      "t": 357.400975
+    }
+  ],
+  "passed": false,
+  "checks": {
+    "resolved": true,
+    "loaded": true,
+    "started": false,
+    "rpmsg": false,
+    "echo": false,
+    "stopped": false,
+    "no_errors": false,
+    "left_offline": true
+  }
+}

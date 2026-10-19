@@ -33,6 +33,9 @@ uint32_t sdos_cycles_per_us(void);
  * stopping the CPU. Both return SDOS_CAP_PROTECTION when protection is on. */
 uint32_t sdos_protection_init(sdos_runtime *runtime);
 void sdos_protection_poll(sdos_runtime *runtime);
+/* Trace the protection hardware's raw state (segments, fault registers), for
+ * diagnosing a failed self-test or a start-up step the protection refused. */
+void sdos_protection_report(void);
 /* After start-up: protect the lowest SDOS_GUARD_PAGE bytes of each stack
  * against writes (C71x MMU). FreeRTOS fills a task stack when it creates the
  * task, so the guard can only go up afterwards. */

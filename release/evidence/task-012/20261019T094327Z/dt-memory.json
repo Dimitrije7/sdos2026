@@ -1,0 +1,564 @@
+{
+  "schema": "sdos-dt-memory/1",
+  "model": "BeagleBoard.org BeagleBone AI-64",
+  "memory": [
+    {
+      "base": "0x80000000",
+      "size": "0x80000000"
+    },
+    {
+      "base": "0x880000000",
+      "size": "0x80000000"
+    }
+  ],
+  "memreserve": [],
+  "reserved_memory": [
+    {
+      "node": "optee@9e800000",
+      "reg": [
+        {
+          "base": "0x9e800000",
+          "size": "0x1800000"
+        }
+      ],
+      "no_map": true,
+      "used_by": []
+    },
+    {
+      "node": "memory@a0000000",
+      "reg": [
+        {
+          "base": "0xa0000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41000000"
+      ]
+    },
+    {
+      "node": "memory@a0100000",
+      "reg": [
+        {
+          "base": "0xa0100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41000000"
+      ]
+    },
+    {
+      "node": "memory@a1000000",
+      "reg": [
+        {
+          "base": "0xa1000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41400000"
+      ]
+    },
+    {
+      "node": "memory@a1100000",
+      "reg": [
+        {
+          "base": "0xa1100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41400000"
+      ]
+    },
+    {
+      "node": "memory@a2000000",
+      "reg": [
+        {
+          "base": "0xa2000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5c00000"
+      ]
+    },
+    {
+      "node": "memory@a2100000",
+      "reg": [
+        {
+          "base": "0xa2100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5c00000"
+      ]
+    },
+    {
+      "node": "memory@a3000000",
+      "reg": [
+        {
+          "base": "0xa3000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5d00000"
+      ]
+    },
+    {
+      "node": "memory@a3100000",
+      "reg": [
+        {
+          "base": "0xa3100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5d00000"
+      ]
+    },
+    {
+      "node": "memory@a4000000",
+      "reg": [
+        {
+          "base": "0xa4000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5e00000"
+      ]
+    },
+    {
+      "node": "memory@a4100000",
+      "reg": [
+        {
+          "base": "0xa4100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5e00000"
+      ]
+    },
+    {
+      "node": "memory@a5000000",
+      "reg": [
+        {
+          "base": "0xa5000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5f00000"
+      ]
+    },
+    {
+      "node": "memory@a5100000",
+      "reg": [
+        {
+          "base": "0xa5100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5f00000"
+      ]
+    },
+    {
+      "node": "memory@a6000000",
+      "reg": [
+        {
+          "base": "0xa6000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d81800000"
+      ]
+    },
+    {
+      "node": "memory@a6100000",
+      "reg": [
+        {
+          "base": "0xa6100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d80800000"
+      ]
+    },
+    {
+      "node": "memory@a7000000",
+      "reg": [
+        {
+          "base": "0xa7000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d80800000"
+      ]
+    },
+    {
+      "node": "memory@a7100000",
+      "reg": [
+        {
+          "base": "0xa7100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d81800000"
+      ]
+    },
+    {
+      "node": "memory@a8000000",
+      "reg": [
+        {
+          "base": "0xa8000000",
+          "size": "0x100000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@64800000"
+      ]
+    },
+    {
+      "node": "memory@a8100000",
+      "reg": [
+        {
+          "base": "0xa8100000",
+          "size": "0xf00000"
+        }
+      ],
+      "compatible": [
+        "shared-dma-pool"
+      ],
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@64800000"
+      ]
+    },
+    {
+      "node": "memory@aa000000",
+      "reg": [
+        {
+          "base": "0xaa000000",
+          "size": "0x1c00000"
+        }
+      ],
+      "no_map": true,
+      "used_by": []
+    }
+  ],
+  "remote_cores": [
+    {
+      "device": "41000000.r5f",
+      "path": "/bus@100000/bus@28380000/r5fss@41000000/r5f@41000000",
+      "compatible": [
+        "ti,j721e-r5f"
+      ],
+      "firmware": "j7-mcu-r5f0_0-fw",
+      "status": "okay",
+      "local": {
+        "atcm": {
+          "base": "0x41000000",
+          "size": "0x8000"
+        },
+        "btcm": {
+          "base": "0x41010000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a0000000",
+        "memory@a0100000"
+      ]
+    },
+    {
+      "device": "41400000.r5f",
+      "path": "/bus@100000/bus@28380000/r5fss@41000000/r5f@41400000",
+      "compatible": [
+        "ti,j721e-r5f"
+      ],
+      "firmware": "j7-mcu-r5f0_1-fw",
+      "status": "okay",
+      "local": {
+        "atcm": {
+          "base": "0x41400000",
+          "size": "0x8000"
+        },
+        "btcm": {
+          "base": "0x41410000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a1000000",
+        "memory@a1100000"
+      ]
+    },
+    {
+      "device": "4d80800000.dsp",
+      "path": "/bus@100000/dsp@4d80800000",
+      "compatible": [
+        "ti,j721e-c66-dsp"
+      ],
+      "firmware": "j7-c66_0-fw",
+      "status": "okay",
+      "local": {
+        "l2sram": {
+          "base": "0x4d80800000",
+          "size": "0x48000"
+        },
+        "l1pram": {
+          "base": "0x4d80e00000",
+          "size": "0x8000"
+        },
+        "l1dram": {
+          "base": "0x4d80f00000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a7000000",
+        "memory@a6100000"
+      ]
+    },
+    {
+      "device": "4d81800000.dsp",
+      "path": "/bus@100000/dsp@4d81800000",
+      "compatible": [
+        "ti,j721e-c66-dsp"
+      ],
+      "firmware": "j7-c66_1-fw",
+      "status": "okay",
+      "local": {
+        "l2sram": {
+          "base": "0x4d81800000",
+          "size": "0x48000"
+        },
+        "l1pram": {
+          "base": "0x4d81e00000",
+          "size": "0x8000"
+        },
+        "l1dram": {
+          "base": "0x4d81f00000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a6000000",
+        "memory@a7100000"
+      ]
+    },
+    {
+      "device": "64800000.dsp",
+      "path": "/bus@100000/dsp@64800000",
+      "compatible": [
+        "ti,j721e-c71-dsp"
+      ],
+      "firmware": "j7-c71_0-fw",
+      "status": "okay",
+      "local": {
+        "l2sram": {
+          "base": "0x64800000",
+          "size": "0x80000"
+        },
+        "l1dram": {
+          "base": "0x64e00000",
+          "size": "0xc000"
+        }
+      },
+      "memory_region": [
+        "memory@a8000000",
+        "memory@a8100000"
+      ]
+    },
+    {
+      "device": "5c00000.r5f",
+      "path": "/bus@100000/r5fss@5c00000/r5f@5c00000",
+      "compatible": [
+        "ti,j721e-r5f"
+      ],
+      "firmware": "j7-main-r5f0_0-fw",
+      "status": "okay",
+      "local": {
+        "atcm": {
+          "base": "0x5c00000",
+          "size": "0x8000"
+        },
+        "btcm": {
+          "base": "0x5c10000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a2000000",
+        "memory@a2100000"
+      ]
+    },
+    {
+      "device": "5d00000.r5f",
+      "path": "/bus@100000/r5fss@5c00000/r5f@5d00000",
+      "compatible": [
+        "ti,j721e-r5f"
+      ],
+      "firmware": "j7-main-r5f0_1-fw",
+      "status": "okay",
+      "local": {
+        "atcm": {
+          "base": "0x5d00000",
+          "size": "0x8000"
+        },
+        "btcm": {
+          "base": "0x5d10000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a3000000",
+        "memory@a3100000"
+      ]
+    },
+    {
+      "device": "5e00000.r5f",
+      "path": "/bus@100000/r5fss@5e00000/r5f@5e00000",
+      "compatible": [
+        "ti,j721e-r5f"
+      ],
+      "firmware": "j7-main-r5f1_0-fw",
+      "status": "okay",
+      "local": {
+        "atcm": {
+          "base": "0x5e00000",
+          "size": "0x8000"
+        },
+        "btcm": {
+          "base": "0x5e10000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a4000000",
+        "memory@a4100000"
+      ]
+    },
+    {
+      "device": "5f00000.r5f",
+      "path": "/bus@100000/r5fss@5e00000/r5f@5f00000",
+      "compatible": [
+        "ti,j721e-r5f"
+      ],
+      "firmware": "j7-main-r5f1_1-fw",
+      "status": "okay",
+      "local": {
+        "atcm": {
+          "base": "0x5f00000",
+          "size": "0x8000"
+        },
+        "btcm": {
+          "base": "0x5f10000",
+          "size": "0x8000"
+        }
+      },
+      "memory_region": [
+        "memory@a5000000",
+        "memory@a5100000"
+      ]
+    }
+  ],
+  "srams": [
+    {
+      "node": "/bus@100000/bus@28380000/sram@41c00000",
+      "base": "0x41c00000",
+      "size": "0x100000",
+      "carveouts": []
+    },
+    {
+      "node": "/bus@100000/sram@70000000",
+      "base": "0x70000000",
+      "size": "0x7f0000",
+      "carveouts": [
+        {
+          "node": "atf-sram@0",
+          "base": "0x70000000",
+          "size": "0x20000"
+        }
+      ]
+    }
+  ]
+}

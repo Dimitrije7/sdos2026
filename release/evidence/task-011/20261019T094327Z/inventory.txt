@@ -1,0 +1,59 @@
+# boot_id f5cfe3ba-362a-4a3e-bddc-35cf23aa6204
+remoteproc0 4d80800000.dsp offline j7-c66_0-fw /sys/devices/platform/bus@100000/4d80800000.dsp/remoteproc/remoteproc0
+remoteproc1 4d81800000.dsp offline j7-c66_1-fw /sys/devices/platform/bus@100000/4d81800000.dsp/remoteproc/remoteproc1
+remoteproc2 64800000.dsp offline j7-c71_0-fw /sys/devices/platform/bus@100000/64800000.dsp/remoteproc/remoteproc2
+remoteproc3 41000000.r5f attached unknown /sys/devices/platform/bus@100000/bus@100000:bus@28380000/bus@100000:bus@28380000:r5fss@41000000/41000000.r5f/remoteproc/remoteproc3
+remoteproc5 5c00000.r5f offline j7-main-r5f0_0-fw /sys/devices/platform/bus@100000/bus@100000:r5fss@5c00000/5c00000.r5f/remoteproc/remoteproc5
+remoteproc6 5d00000.r5f offline j7-main-r5f0_1-fw /sys/devices/platform/bus@100000/bus@100000:r5fss@5c00000/5d00000.r5f/remoteproc/remoteproc6
+remoteproc7 5e00000.r5f offline j7-main-r5f1_0-fw /sys/devices/platform/bus@100000/bus@100000:r5fss@5e00000/5e00000.r5f/remoteproc/remoteproc7
+remoteproc8 5f00000.r5f offline j7-main-r5f1_1-fw /sys/devices/platform/bus@100000/bus@100000:r5fss@5e00000/5f00000.r5f/remoteproc/remoteproc8
+remoteproc9 b034000.pru offline j7-pru0_0-fw /sys/devices/platform/bus@100000/b000000.icssg/b034000.pru/remoteproc/remoteproc9
+remoteproc10 b004000.rtu offline j7-rtu0_0-fw /sys/devices/platform/bus@100000/b000000.icssg/b004000.rtu/remoteproc/remoteproc10
+remoteproc11 b00a000.txpru offline j7-txpru0_0-fw /sys/devices/platform/bus@100000/b000000.icssg/b00a000.txpru/remoteproc/remoteproc11
+remoteproc12 b038000.pru offline j7-pru0_1-fw /sys/devices/platform/bus@100000/b000000.icssg/b038000.pru/remoteproc/remoteproc12
+remoteproc13 b006000.rtu offline j7-rtu0_1-fw /sys/devices/platform/bus@100000/b000000.icssg/b006000.rtu/remoteproc/remoteproc13
+remoteproc14 b00c000.txpru offline j7-txpru0_1-fw /sys/devices/platform/bus@100000/b000000.icssg/b00c000.txpru/remoteproc/remoteproc14
+remoteproc15 b134000.pru offline j7-pru1_0-fw /sys/devices/platform/bus@100000/b100000.icssg/b134000.pru/remoteproc/remoteproc15
+remoteproc16 b104000.rtu offline j7-rtu1_0-fw /sys/devices/platform/bus@100000/b100000.icssg/b104000.rtu/remoteproc/remoteproc16
+remoteproc17 b10a000.txpru offline j7-txpru1_0-fw /sys/devices/platform/bus@100000/b100000.icssg/b10a000.txpru/remoteproc/remoteproc17
+remoteproc18 b138000.pru offline j7-pru1_1-fw /sys/devices/platform/bus@100000/b100000.icssg/b138000.pru/remoteproc/remoteproc18
+remoteproc19 b106000.rtu offline j7-rtu1_1-fw /sys/devices/platform/bus@100000/b100000.icssg/b106000.rtu/remoteproc/remoteproc19
+remoteproc20 b10c000.txpru offline j7-txpru1_1-fw /sys/devices/platform/bus@100000/b100000.icssg/b10c000.txpru/remoteproc/remoteproc20
+
+# rpmsg devices
+/sys/devices/platform/bus@100000/bus@100000:bus@28380000/bus@100000:bus@28380000:r5fss@41000000/41000000.r5f/remoteproc/remoteproc3/rproc-virtio.3.auto/virtio0/virtio0.rpmsg_chrdev.-1.14
+/sys/devices/platform/bus@100000/bus@100000:bus@28380000/bus@100000:bus@28380000:r5fss@41000000/41000000.r5f/remoteproc/remoteproc3/rproc-virtio.3.auto/virtio0/virtio0.rpmsg_ctrl.0.0
+/sys/devices/platform/bus@100000/bus@100000:bus@28380000/bus@100000:bus@28380000:r5fss@41000000/41000000.r5f/remoteproc/remoteproc3/rproc-virtio.3.auto/virtio0/virtio0.rpmsg_ns.53.53
+/sys/devices/platform/bus@100000/bus@100000:bus@28380000/bus@100000:bus@28380000:r5fss@41000000/41000000.r5f/remoteproc/remoteproc3/rproc-virtio.3.auto/virtio0/virtio0.ti.ipc4.ping-pong.-1.13
+
+# DSP firmware files in /lib/firmware
+none
+
+# units/packages naming DSP, remoteproc, rpmsg, edgeai, tidl, vision_apps
+none
+none
+
+# trace files (DSPs offline)
+/sys/kernel/debug/remoteproc/remoteproc0/:
+carveout_memories
+coredump
+crash
+name
+recovery
+resource_table
+
+/sys/kernel/debug/remoteproc/remoteproc1/:
+carveout_memories
+coredump
+crash
+name
+recovery
+resource_table
+
+/sys/kernel/debug/remoteproc/remoteproc2/:
+carveout_memories
+coredump
+crash
+name
+recovery
+resource_table

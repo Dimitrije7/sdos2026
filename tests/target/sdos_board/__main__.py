@@ -177,7 +177,7 @@ def cmd_dsp_ipc(args: argparse.Namespace) -> int:
 def cmd_course_smoke(args: argparse.Namespace) -> int:
     try:
         selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
-        results = course_smoke.run(args.host, args.key, args.out, selected)
+        results = course_smoke.run(args.host, args.key, args.out, selected, follow_kernel=True)
     except (ValueError, RuntimeError) as exc:
         print(f"course-smoke: {exc}", file=sys.stderr)
         return 1
@@ -191,7 +191,7 @@ def cmd_course_smoke(args: argparse.Namespace) -> int:
 def cmd_fault_injection(args: argparse.Namespace) -> int:
     try:
         selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
-        results = fault_injection.run(args.host, args.key, args.out, selected)
+        results = fault_injection.run(args.host, args.key, args.out, selected, follow_kernel=True)
     except (ValueError, RuntimeError) as exc:
         print(f"fault-injection: {exc}", file=sys.stderr)
         return 1

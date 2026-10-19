@@ -1,0 +1,18 @@
+BeagleBoard.org BeagleBone AI-64 | BeagleBoard.org Debian Trixie IOT Image 2026-10-09
+kernel Linux 6.18.55-arm64-k3-r59 #1 SMP PREEMPT_RT Sat Oct  3 20:19:12 UTC 2026 aarch64 | U-Boot 2026.10-gb4086bd599be | DTB 808c18b381bb
+
+PASS  ssh                  report collected over SSH
+PASS  remoteproc C66x_0    4d80800000.dsp is remoteproc0, state offline, firmware j7-c66_0-fw
+PASS  remoteproc C66x_1    4d81800000.dsp is remoteproc1, state offline, firmware j7-c66_1-fw
+PASS  remoteproc C71x_0    64800000.dsp is remoteproc2, state offline, firmware j7-c71_0-fw
+PASS  kernel features      all required options are y or m
+PASS  CMA                  CmaTotal 144 MiB
+PASS  reserved memory      20 nodes
+PASS  storage              root /dev/mmcblk1p3 (ext4) is read-write
+PASS  debugfs and tracefs  /sys/kernel/debug, /sys/kernel/tracing
+FAIL  time                 clock not synchronized; Timezone=Etc/UTC LocalRTC=no NTPSynchronized=no 2026-10-09T18:13:28Z
+PASS  temperature          hottest zone 36.9 C over 5 zones
+INFO  fan                  0 fan or PWM channels visible
+PASS  persistent logs      journal stored in /var/log/journal
+FAIL  ethernet             eth0 has no link
+PASS  failed units         none

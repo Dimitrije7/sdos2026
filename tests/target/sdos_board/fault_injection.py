@@ -25,7 +25,7 @@ from typing import Any, Sequence
 from ci import firmware_elf
 
 from .cores import Core
-from .course_smoke import EXTENSION, REMOTE_DIR, ROOT, RUNTIMES, Runner, _run, parse, upload
+from .course_smoke import EXTENSION, REMOTE_DIR, ROOT, RUNTIMES, TIMED_OUT, Runner, _run, kernel_log, parse, upload
 from .report import ssh_command
 
 SCHEMA = "sdos-fault-injection/1"
@@ -170,7 +170,7 @@ def evaluate(steps: dict[str, dict[str, Any]], core: Core, runtime: str) -> dict
 
 
 def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: Runner = _run,
-        build: Path = ROOT / "build") -> list[dict[str, Any]]:
+        build: Path = ROOT / "build", follow_kernel: bool = False) -> list[dict[str, Any]]:
     found = artifacts(build)
     problems = check_artifacts(found)
     if problems:
@@ -183,7 +183,8 @@ def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: R
             local = found[f"{core.name}-{runtime}"]
             remote = f"{REMOTE_DIR}/{local.name}"
             upload(host, key, local, remote, "0644", runner)
-            code, output = runner(ssh_command(host, key) + ["sh", "-s"], remote_script(core, remote).encode())
+            with kernel_log(host, key, out / f"{core.name}-{runtime}-kernel.txt", follow_kernel):
+                code, output = runner(ssh_command(host, key) + ["sh", "-s"], remote_script(core, remote).encode())
             steps = parse(output.decode("utf-8", errors="replace"))
             cases = evaluate(steps, core, runtime)
             restored = " ".join(steps.get("restored", {}).get("output", [])).split()
@@ -198,4 +199,6 @@ def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: R
                                 and all(c["detected"] and c["recovered"] for c in cases.values()))
             (out / f"{core.name}-{runtime}.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
             results.append(result)
+            if code == TIMED_OUT:
+                return results  # the board stopped answering: nothing later can run
     return results

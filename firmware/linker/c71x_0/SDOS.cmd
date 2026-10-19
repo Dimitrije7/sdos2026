@@ -40,6 +40,11 @@
  * PROTECTION: a multiple of 16 KiB, the L2 protection page on the C66x, kept
  * the same here. */
 #define L2CODE_LENGTH 0x4000
+/* MANDATORY: remoteproc cannot load into C71x L2. The J721E C71x has no local
+ * reset, so Linux loads the ELF while the module is held in reset, and an A72
+ * write to L2 then hangs the interconnect (seen on the board, Task 021). L2
+ * holds only NOLOAD data and run copies made at start-up (table(BINIT)). */
+#define SDOS_COEFFS_LOAD DDR_RODATA
 
 MEMORY
 {
@@ -107,7 +112,7 @@ SECTIONS
     .sdos.stack.main    : type = NOLOAD {} > DDR_DATA, align = 0x2000
     .sdos.stack.monitor : type = NOLOAD {} > DDR_DATA, align = 0x2000
     .sdos.stack.ipc     : type = NOLOAD {} > DDR_DATA, align = 0x2000
-    .sdos.runtime       : {} > L2SRAM
+    .sdos.runtime       : type = NOLOAD {} > L2SRAM   /* MANDATORY: not loadable, see above; zeroed by main() */
 
     #include "fir_memory.cmd"
     #include "buffers_memory.cmd"

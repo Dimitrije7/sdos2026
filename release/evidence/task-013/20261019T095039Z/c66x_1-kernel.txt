@@ -1,0 +1,9 @@
+[  357.332137] BeagleBone kernel: remoteproc remoteproc1: powering up 4d81800000.dsp
+[  357.332979] BeagleBone kernel: remoteproc remoteproc1: Booting fw image sdos/ti-ipc/ipc_echo_test_c66xdsp_2_release_strip.xe66, size 150300
+[  357.333518] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a6000000
+[  357.386255] BeagleBone kernel: virtio_rpmsg_bus virtio1: rpmsg host is online
+[  357.387260] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+[  357.387959] BeagleBone kernel: remoteproc remoteproc1: remote processor 4d81800000.dsp is now up
+[  357.394551] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel ti.ipc4.ping-pong addr 0xd
+[  357.395239] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel rpmsg_chrdev addr 0xe
+[  357.400200] BeagleBone kernel: remoteproc remoteproc1: stopped remote processor 4d81800000.dsp

@@ -1,5 +1,7 @@
 /* Course firmware entry under FreeRTOS: one task serves protocol requests and
  * a higher-priority monitor task supervises it (docs/safety.md). */
+#include <string.h>
+
 #include <ti/csl/csl_types.h>
 #include <ti/drv/sciclient/sciclient.h>
 #include <ti/osal/TaskP.h>
@@ -48,6 +50,7 @@ static void main_task(void *arg0, void *arg1)
     Sciclient_ConfigPrms_t config;
     TaskP_Params params;
     uint32_t capabilities;
+    int32_t status;
     (void)arg0;
     (void)arg1;
     runtime.cycles = sdos_cycles;
@@ -78,9 +81,11 @@ static void main_task(void *arg0, void *arg1)
 #endif
     /* The IPC library routes mailbox interrupts through the system firmware. */
     (void)Sciclient_configPrmsInit(&config);
-    if (Sciclient_init(&config) != CSL_PASS) {
-        sdos_runtime_fault(&runtime, SDOS_FAULT_IPC, 0u, 1u);
-        sdos_trace("Sciclient_init failed");
+    status = Sciclient_init(&config);
+    if (status != CSL_PASS) {
+        sdos_runtime_fault(&runtime, SDOS_FAULT_IPC, (uint32_t)status, 1u);
+        sdos_trace("Sciclient_init failed: %ld", (long)status);
+        sdos_protection_report();
         return; /* the monitor keeps the health line current */
     }
     sdos_trace("%s, FreeRTOS, starting", runtime.identity.firmware);
@@ -90,6 +95,7 @@ static void main_task(void *arg0, void *arg1)
 int main(void)
 {
     TaskP_Params params;
+    (void)memset(&runtime, 0, sizeof runtime); /* .sdos.runtime may be NOLOAD (C71x L2) */
     OS_init();
     TaskP_Params_init(&params);
     params.priority = MAIN_PRIORITY;

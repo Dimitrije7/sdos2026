@@ -1,0 +1,292 @@
+{
+  "schema": "sdos-memory-map/1",
+  "revision": 1,
+  "updated": "2026-10-19",
+  "description": "Every memory reservation of the course board, with its owner and source, as the live device tree states it. ci/dt_memory.py checks it against the extraction named in 'evidence' (and any new extraction from a board), and checks manifest/dsp-cores.json against both: each DSP's carve-out and DMA pool, local memories, MSMC, and shared DDR.",
+  "board": "BeagleBoard.org BeagleBone AI-64",
+  "evidence": "release/evidence/task-012/20261019T094327Z/dt-memory.json",
+  "memory": [
+    {
+      "base": "0x80000000",
+      "size": "0x80000000"
+    },
+    {
+      "base": "0x880000000",
+      "size": "0x80000000"
+    }
+  ],
+  "memreserve": [],
+  "reserved_memory": [
+    {
+      "node": "optee@9e800000",
+      "base": "0x9e800000",
+      "size": "0x1800000",
+      "no_map": true,
+      "used_by": [],
+      "owner": "op-tee",
+      "reason": "OP-TEE secure OS, loaded by the boot firmware; Linux never maps it.",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a0000000",
+      "base": "0xa0000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41000000"
+      ],
+      "owner": "mcu_r5f0_0",
+      "reason": "MCU R5F core 0 (runs TI's device-manager firmware, attached by remoteproc at boot): DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a0100000",
+      "base": "0xa0100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41000000"
+      ],
+      "owner": "mcu_r5f0_0",
+      "reason": "MCU R5F core 0 (runs TI's device-manager firmware, attached by remoteproc at boot): firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a1000000",
+      "base": "0xa1000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41400000"
+      ],
+      "owner": "mcu_r5f0_1",
+      "reason": "MCU R5F core 1: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a1100000",
+      "base": "0xa1100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/bus@28380000/r5fss@41000000/r5f@41400000"
+      ],
+      "owner": "mcu_r5f0_1",
+      "reason": "MCU R5F core 1: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a2000000",
+      "base": "0xa2000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5c00000"
+      ],
+      "owner": "main_r5f0_0",
+      "reason": "MAIN R5F cluster 0 core 0: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a2100000",
+      "base": "0xa2100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5c00000"
+      ],
+      "owner": "main_r5f0_0",
+      "reason": "MAIN R5F cluster 0 core 0: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a3000000",
+      "base": "0xa3000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5d00000"
+      ],
+      "owner": "main_r5f0_1",
+      "reason": "MAIN R5F cluster 0 core 1: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a3100000",
+      "base": "0xa3100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5c00000/r5f@5d00000"
+      ],
+      "owner": "main_r5f0_1",
+      "reason": "MAIN R5F cluster 0 core 1: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a4000000",
+      "base": "0xa4000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5e00000"
+      ],
+      "owner": "main_r5f1_0",
+      "reason": "MAIN R5F cluster 1 core 0: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a4100000",
+      "base": "0xa4100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5e00000"
+      ],
+      "owner": "main_r5f1_0",
+      "reason": "MAIN R5F cluster 1 core 0: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a5000000",
+      "base": "0xa5000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5f00000"
+      ],
+      "owner": "main_r5f1_1",
+      "reason": "MAIN R5F cluster 1 core 1: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a5100000",
+      "base": "0xa5100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/r5fss@5e00000/r5f@5f00000"
+      ],
+      "owner": "main_r5f1_1",
+      "reason": "MAIN R5F cluster 1 core 1: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a6000000",
+      "base": "0xa6000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d81800000"
+      ],
+      "owner": "c66x_1",
+      "reason": "C66x_1: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a6100000",
+      "base": "0xa6100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d80800000"
+      ],
+      "owner": "c66x_0",
+      "reason": "C66x_0: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a7000000",
+      "base": "0xa7000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d80800000"
+      ],
+      "owner": "c66x_0",
+      "reason": "C66x_0: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a7100000",
+      "base": "0xa7100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@4d81800000"
+      ],
+      "owner": "c66x_1",
+      "reason": "C66x_1: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a8000000",
+      "base": "0xa8000000",
+      "size": "0x100000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@64800000"
+      ],
+      "owner": "c71x_0",
+      "reason": "C71x_0: DMA pool for vrings and RPMsg buffers (first memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@a8100000",
+      "base": "0xa8100000",
+      "size": "0xf00000",
+      "no_map": true,
+      "used_by": [
+        "/bus@100000/dsp@64800000"
+      ],
+      "owner": "c71x_0",
+      "reason": "C71x_0: firmware carve-out remoteproc loads the ELF into (second memory-region).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "memory@aa000000",
+      "base": "0xaa000000",
+      "size": "0x1c00000",
+      "no_map": true,
+      "used_by": [],
+      "owner": "mcu_r5f0_0",
+      "reason": "Inter-RTOS IPC shared memory (vrings between RTOS cores). No device-tree node uses it, but the device-manager firmware on MCU R5F core 0 (TI's IPC echo test with Sciserver, PSDK 11.02.00.07) does at run time: TI's DSP echo firmware messaged it through here until its IPC heap ran out and TI-SCI device management stopped answering, which only a reboot cleared (release/evidence/task-013/20261019T095039Z). No course firmware may use it; every DSP's protection denies it (docs/safety.md).",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json); release/evidence/task-013/20261019T095039Z/mcu_r5f0_0-dm-trace.txt"
+    }
+  ],
+  "srams": [
+    {
+      "node": "/bus@100000/bus@28380000/sram@41c00000",
+      "base": "0x41c00000",
+      "size": "0x100000",
+      "carveouts": [],
+      "owner": "mcu-domain (no consumer)",
+      "reason": "MCU on-chip SRAM. Linux's mmio-sram driver binds it but no node allocates from it. No DSP contract region uses it.",
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    },
+    {
+      "node": "/bus@100000/sram@70000000",
+      "base": "0x70000000",
+      "size": "0x7f0000",
+      "carveouts": [
+        {
+          "node": "atf-sram@0",
+          "base": "0x70000000",
+          "size": "0x20000"
+        }
+      ],
+      "owner": "linux-sram-driver (no consumer)",
+      "reason": "MSMC SRAM. Linux's mmio-sram driver binds it but no node allocates from it; atf-sram@0 (128 KiB) holds ARM Trusted Firmware. The top 64 KiB (0x707F0000) is outside the node: TI's linker files give it to the DMSC firmware.",
+      "usable": [
+        {
+          "base": "0x70020000",
+          "size": "0x7d0000",
+          "owner": "unassigned",
+          "source": "this node minus atf-sram@0; TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3)",
+          "note": "Not owned by any core. Every DSP's protection denies it (docs/safety.md) until a partition gives each core its own slice."
+        }
+      ],
+      "source": "k3-j721e-beagleboneai64.dts in BeagleBoard.org kernel 6.18.55-arm64-k3-r59 (live device tree, release/evidence/task-012/20261019T094327Z/dt-memory.json)"
+    }
+  ]
+}

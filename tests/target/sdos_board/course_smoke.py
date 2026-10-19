@@ -9,6 +9,7 @@ firmware name. Each step is recorded with its exit status and output.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import shlex
@@ -32,9 +33,47 @@ STEPS = ("stop", "load", "start", "status", "health", "echo", "trace", "stop-aga
 Runner = Callable[[Sequence[str], bytes | None], tuple[int, bytes]]
 
 
+TIMED_OUT = 124  # exit status recorded when the board stops answering
+
+
 def _run(argv: Sequence[str], stdin: bytes | None) -> tuple[int, bytes]:
-    result = subprocess.run(list(argv), input=stdin, capture_output=True, check=False, timeout=300)
+    try:
+        result = subprocess.run(list(argv), input=stdin, capture_output=True, check=False, timeout=300)
+    except subprocess.TimeoutExpired as exc:
+        partial = (exc.stdout or b"") + (exc.stderr or b"")
+        return TIMED_OUT, partial + b"\n[no answer from the board for 300 s]\n"
     return result.returncode, result.stdout + result.stderr
+
+
+class KernelLog(contextlib.AbstractContextManager):
+    """Stream the board's kernel log into a local file while firmware runs.
+
+    A fault that hangs the SoC takes SSH down with it; the messages already
+    streamed here are then the only record of what happened."""
+
+    def __init__(self, host: str, key: Path | None, path: Path) -> None:
+        self.argv = ssh_command(host, key) + ["dmesg", "--follow", "--time-format", "iso"]
+        self.path = path
+        self.process: subprocess.Popen | None = None
+
+    def __enter__(self) -> "KernelLog":
+        with open(self.path, "wb") as sink:
+            self.process = subprocess.Popen(self.argv, stdout=sink, stderr=subprocess.STDOUT,
+                                            stdin=subprocess.DEVNULL)
+        time.sleep(0.5)  # the follower is attached before the firmware starts
+        return self
+
+    def __exit__(self, *exc: object) -> None:
+        if self.process is not None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+
+
+def kernel_log(host: str, key: Path | None, path: Path, enabled: bool) -> contextlib.AbstractContextManager:
+    return KernelLog(host, key, path) if enabled else contextlib.nullcontext()
 
 
 def artifacts(build: Path = ROOT / "build") -> dict[str, Path]:
@@ -131,7 +170,7 @@ def evaluate(steps: dict[str, dict[str, Any]], token: str) -> dict[str, bool]:
 
 
 def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: Runner = _run,
-        build: Path = ROOT / "build") -> list[dict[str, Any]]:
+        build: Path = ROOT / "build", follow_kernel: bool = False) -> list[dict[str, Any]]:
     found = artifacts(build)
     problems = check_artifacts(found)
     if problems:
@@ -145,8 +184,9 @@ def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: R
             remote = f"{REMOTE_DIR}/{local.name}"
             upload(host, key, local, remote, "0644", runner)
             token = f"sdos-smoke {core.name} {runtime} {int(time.time())}"
-            code, output = runner(ssh_command(host, key) + ["sh", "-s"],
-                                  remote_script(core, remote, token).encode())
+            with kernel_log(host, key, out / f"{core.name}-{runtime}-kernel.txt", follow_kernel):
+                code, output = runner(ssh_command(host, key) + ["sh", "-s"],
+                                      remote_script(core, remote, token).encode())
             text = output.decode("utf-8", errors="replace")
             steps = parse(text)
             checks = evaluate(steps, token)
@@ -157,4 +197,6 @@ def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: R
             }
             (out / f"{core.name}-{runtime}.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
             results.append(result)
+            if code == TIMED_OUT:
+                return results  # the board stopped answering: nothing later can run
     return results

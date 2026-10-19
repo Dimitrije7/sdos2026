@@ -153,9 +153,15 @@ class FirmwareElfTests(unittest.TestCase):
         pool = self.check("c66x_0", elf32(140, [(0xA7000000, 0x100)], resource_table()))
         self.assertIn("overlaps dma_pool, which is reserved: Linux allocates", pool.problems[0])
         msmc = self.check("c71x_0", elf32(145, [(0x70100000, 0x100)], resource_table()))
-        self.assertIn("overlaps msmc, which is not confirmed free (Task 012)", msmc.problems[0])
+        self.assertIn("overlaps msmc, which is reserved: MSMC SRAM", msmc.problems[0])
         l1d = self.check("c66x_0", elf32(140, [(0x00F00000, 0x100)], resource_table()))
         self.assertIn("uses as cache", l1d.problems[0])
+
+    def test_c71x_l2_is_never_loaded(self) -> None:
+        # The J721E C71x has no local reset: an A72 write into its L2 while
+        # Linux loads the ELF hangs the SoC. Zero-filled bytes count as loaded.
+        l2 = self.check("c71x_0", elf32(145, [(0xA8200000, 0x100), (0x64804000, 0x488)], resource_table()))
+        self.assertIn("overlaps l2sram, which cannot be loaded: C71x L2 SRAM", l2.problems[0])
 
     def test_misaligned_entry_point_is_refused(self) -> None:
         # elf32 uses the first segment's address as the entry point

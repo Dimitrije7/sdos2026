@@ -10,7 +10,15 @@
  * NOINIT data is neither loaded nor zeroed. Its contents after a firmware load,
  * a core reset, or power loss are undefined; it does not persist.
  */
+/* A layout whose L2 remoteproc cannot load (the C71x: manifest/dsp-cores.json)
+ * defines SDOS_COEFFS_LOAD; the coefficients then load there and are copied
+ * into L2 before main(). */
+#if defined(SDOS_COEFFS_LOAD)
+.sdos.coeffs  : load = SDOS_COEFFS_LOAD, run = L2SRAM, align = 0x80, table(BINIT),
+                RUN_START(sdos_coeffs_start), SIZE(sdos_coeffs_size)
+#else
 .sdos.coeffs  : {} > L2SRAM, align = 0x80, RUN_START(sdos_coeffs_start), SIZE(sdos_coeffs_size)
+#endif
 UNION : > L2SRAM, align = 0x80
 {
     .sdos.scratch_a : type = NOLOAD {}

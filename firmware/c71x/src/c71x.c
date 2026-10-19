@@ -243,6 +243,12 @@ void sdos_protection_poll(sdos_runtime *runtime)
     (void)runtime; /* the C71x MMU raises an exception on every violation */
 }
 
+void sdos_protection_report(void)
+{
+    sdos_trace("mmu: status %lu; a refused access raises an exception, which the fault record names",
+               (unsigned long)mmu_status);
+}
+
 void sdos_protection_guard(const sdos_stack *stacks, size_t count)
 {
     size_t i;

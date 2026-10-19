@@ -18,8 +18,9 @@ class PlannerTests(unittest.TestCase):
     def test_the_default_c66x_layout_fits_the_mpax_with_its_device_windows(self) -> None:
         core = firmware_elf.load_core("c66x_0")
         zones = {"code": (0xA6400000, 0xA6800000), "rodata": (0xA6200000, 0xA6400000), "l2code": (0x800000, 0x804000)}
-        # 7 window segments, 4 for the carve-out, 1 pool, 1 read-only data, 1 code.
-        self.assertEqual(firmware_postlink.mpax_segments(core, zones), 14 - 1)
+        # 7 windows (local space, interrupt router, 4 secure proxy, mailboxes), 4 for
+        # the carve-out, 1 pool, 1 read-only data, 1 code: every segment in use.
+        self.assertEqual(firmware_postlink.mpax_segments(core, zones), 14)
 
     def test_mmu_tables_count_split_blocks_and_gigabytes(self) -> None:
         class Elf:

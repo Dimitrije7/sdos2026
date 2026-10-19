@@ -165,12 +165,31 @@ static original found_segment(uint32_t n)
     return o;
 }
 
-/* Expect a probe to be refused and recorded by `status`; clear the record. */
-static int blocked(volatile uint32_t *status, volatile uint32_t *address, volatile uint32_t *clear, uint32_t probe)
+/* Expect a probe to be refused and recorded by `status`; clear the record.
+ * The raw registers are traced either way: the board evidence for how this
+ * XMC reports a refused access (docs/safety.md). */
+static int blocked(const char *what, volatile uint32_t *status, volatile uint32_t *address, volatile uint32_t *clear,
+                   uint32_t probe, uint32_t value)
 {
-    int ok = *status != 0u && (*address & 0x00FFFFFFu) == (probe & 0x00FFFFFFu);
+    uint32_t s = *status;
+    uint32_t a = *address;
+    int ok = s != 0u && (a & 0x00FFFFFFu) == (probe & 0x00FFFFFFu);
     *clear = 1u;
+    sdos_trace("%s: probe 0x%08lx read %08lx; fault status %08lx, address %08lx: %s", what, (unsigned long)probe,
+               (unsigned long)value, (unsigned long)s, (unsigned long)a, ok ? "refused" : "NOT refused");
     return ok;
+}
+
+void sdos_protection_report(void)
+{
+    uint32_t i;
+    for (i = 0u; i < SEGMENTS; i += 2u) {
+        sdos_trace("mpax: %2lu %08lx %08lx  %2lu %08lx %08lx", (unsigned long)i, (unsigned long)XMPAXH(i),
+                   (unsigned long)XMPAXL(i), (unsigned long)(i + 1u), (unsigned long)XMPAXH(i + 1u),
+                   (unsigned long)XMPAXL(i + 1u));
+    }
+    sdos_trace("mpax: fault status %08lx address %08lx; l2: fault status %08lx address %08lx", (unsigned long)XMPFSR,
+               (unsigned long)XMPFAR, (unsigned long)L2MPFSR, (unsigned long)L2MPFAR);
 }
 
 static uint32_t protect_l2(sdos_runtime *runtime)
@@ -198,7 +217,7 @@ static uint32_t protect_l2(sdos_runtime *runtime)
         sdos_cache_writeback((void *)(uintptr_t)code_lo, 64u);
         *probe = value;
         _mfence(); /* the write has reached L2 before the status is read */
-        if (!blocked(&L2MPFSR, &L2MPFAR, &L2MPFCR, code_lo)) {
+        if (!blocked("l2", &L2MPFSR, &L2MPFAR, &L2MPFCR, code_lo, value)) {
             sdos_runtime_fault(runtime, SDOS_FAULT_SELF_TEST, code_lo, L2_FAULT_INFO);
             sdos_trace("l2: self-test FAILED: a write into the L2 code zone was not blocked");
             return 0u;
@@ -214,6 +233,7 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
     const original low = found_segment(0u);
     const original high = found_segment(1u);
     unsigned int key;
+    uint32_t value;
     plan p;
     size_t i;
 
@@ -276,14 +296,15 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
 
     /* Self-tests: the other C66x's memory and shared on-chip SRAM must both
      * be refused and recorded. */
-    (void)*(volatile uint32_t *)(uintptr_t)NEIGHBOUR_DDR;
-    if (!blocked(&XMPFSR, &XMPFAR, &XMPFCR, NEIGHBOUR_DDR)) {
+    sdos_protection_report();
+    value = *(volatile uint32_t *)(uintptr_t)NEIGHBOUR_DDR;
+    if (!blocked("mpax", &XMPFSR, &XMPFAR, &XMPFCR, NEIGHBOUR_DDR, value)) {
         sdos_runtime_fault(runtime, SDOS_FAULT_SELF_TEST, NEIGHBOUR_DDR, 1u);
         sdos_trace("mpax: self-test FAILED: a read of 0x%08lx was not blocked", (unsigned long)NEIGHBOUR_DDR);
         return 0u;
     }
-    (void)*(volatile uint32_t *)(uintptr_t)MSMC_PROBE;
-    if (!blocked(&XMPFSR, &XMPFAR, &XMPFCR, MSMC_PROBE)) {
+    value = *(volatile uint32_t *)(uintptr_t)MSMC_PROBE;
+    if (!blocked("mpax", &XMPFSR, &XMPFAR, &XMPFCR, MSMC_PROBE, value)) {
         sdos_runtime_fault(runtime, SDOS_FAULT_SELF_TEST, MSMC_PROBE, 2u);
         sdos_trace("mpax: self-test FAILED: a read of 0x%08lx was not blocked", (unsigned long)MSMC_PROBE);
         return 0u;

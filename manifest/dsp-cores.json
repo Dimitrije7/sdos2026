@@ -1,9 +1,9 @@
 {
   "schema": "sdos-dsp-cores/2",
-  "revision": 4,
+  "revision": 5,
   "updated": "2026-10-19",
   "description": "Stable logical identity and memory contract of each DSP. Tools resolve a core by its device-tree unit address, never by remoteprocN. Every region a DSP can address is listed with its owner, whether remoteproc can load ELF segments into it, how much of it the runtime reserves as cache, and the reason for each limit. Linker command files, the C core table, and the ELF validators are generated from or checked against this file (Task 041); section placement itself stays in the editable linker files.",
-  "evidence": "release/evidence/task-008/20261018T175900Z-dmesg.txt lists every reserved-memory node and the dma_pool each DSP is assigned. The firmware regions follow TI's PDK memory_map_defines.inc, which swaps the two C66x IPC pools on purpose; TI's pinned echo firmware links inside them. Task 012 confirms every region against the live device tree.",
+  "evidence": "release/evidence/task-012/20261019T094327Z/dt-memory.json is the live device tree's memory (Task 012); ci/dt_memory.py checks every core here against it and manifest/memory-map.json. The firmware regions follow TI's PDK memory_map_defines.inc, which swaps the two C66x IPC pools on purpose; the device tree assigns them the same way.",
   "cores": [
     {
       "name": "c66x_0",
@@ -87,22 +87,22 @@
           "kind": "shared-sram",
           "base": "0x70020000",
           "size": "0x7d0000",
-          "owner": "unverified",
+          "owner": "unassigned",
           "loadable": false,
-          "runtime_use": "audit",
-          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. Linux may map the rest; Task 012 must confirm ownership from the live device tree before use. remoteproc cannot load into it (not in the DSP's memory-region list), so firmware may only use it at run time.",
-          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW)"
+          "runtime_use": "none",
+          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. The live device tree (Task 012) shows Linux's mmio-sram driver bound to it with no consumer, so no core owns it. remoteproc cannot load into it. Every DSP's protection denies it (docs/safety.md) until a partition gives each core its own slice; until then firmware must not use it.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW); release/evidence/task-012/20261019T094327Z/dt-memory.json"
         },
         {
           "name": "shared_ddr",
           "kind": "ddr",
           "base": "0xaa000000",
           "size": "0x1c00000",
-          "owner": "rtos-ipc",
+          "owner": "mcu_r5f0_0",
           "loadable": false,
-          "runtime_use": "audit",
-          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. It is not in this core's remoteproc memory-region list, so remoteproc cannot load into it; run-time use must be agreed with the other RTOS cores, which Task 012 audits.",
-          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
+          "runtime_use": "none",
+          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. The device-manager firmware on MCU R5F core 0 uses it at run time (see manifest/memory-map.json): a DSP that writes here can exhaust that firmware's IPC heap and stop TI-SCI device management for the whole SoC. remoteproc cannot load into it, and every DSP's protection denies it (docs/safety.md).",
+          "source": "manifest/memory-map.json; release/evidence/task-013/20261019T095039Z; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc"
         }
       ],
       "boot_alignment": "0x400",
@@ -121,22 +121,34 @@
           "source": "TI PDK 11.02.01.08 drv/sciclient/src/sciclient/sciclient.c (Sciclient_C66xRatMap)"
         },
         {
-          "base": "0x285b0000",
+          "base": "0x31140000",
           "size": "0x00001000",
-          "reason": "MCU NAVSS secure proxy configuration, which Sciclient uses to reach the system firmware.",
-          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (CSL_MCU_NAVSS0_SEC_PROXY0_CFG_BASE)"
-        },
-        {
-          "base": "0x2a380000",
-          "size": "0x00180000",
-          "reason": "MCU NAVSS secure proxy real-time, configuration, and target-data regions (0x2A380000 to 0x2A4FFFFF).",
-          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
+          "reason": "MAIN NAVSS secure proxy configuration (256 bytes; one 4 KiB MPAX page), which Sciclient uses to reach the system firmware. The MCU NAVSS proxy (0x285B0000, 0x2A380000) is used only by MCU R5F builds; granting it instead made Sciclient_init fail on the board (Task 021, 2026-10-19).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
         },
         {
           "base": "0x31f80000",
           "size": "0x00010000",
           "reason": "NAVSS main mailbox clusters 0 to 11 (0x31F80000 to 0x31F8BFFF), which carry the IPC notifications.",
           "source": "TI PDK 11.02.01.08 drv/ipc/soc/V1/ipc_soc.c, csl/src/ip/navss/V1/cslr_navss_main.h"
+        },
+        {
+          "base": "0x32400000",
+          "size": "0x00100000",
+          "reason": "MAIN NAVSS secure proxy real-time registers, for Sciclient.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
+        },
+        {
+          "base": "0x32800000",
+          "size": "0x00100000",
+          "reason": "MAIN NAVSS secure proxy thread configuration, for Sciclient.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
+        },
+        {
+          "base": "0x32c00000",
+          "size": "0x00100000",
+          "reason": "MAIN NAVSS secure proxy target data (the message buffers), for Sciclient.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
         }
       ]
     },
@@ -222,22 +234,22 @@
           "kind": "shared-sram",
           "base": "0x70020000",
           "size": "0x7d0000",
-          "owner": "unverified",
+          "owner": "unassigned",
           "loadable": false,
-          "runtime_use": "audit",
-          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. Linux may map the rest; Task 012 must confirm ownership from the live device tree before use. remoteproc cannot load into it (not in the DSP's memory-region list), so firmware may only use it at run time.",
-          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW)"
+          "runtime_use": "none",
+          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. The live device tree (Task 012) shows Linux's mmio-sram driver bound to it with no consumer, so no core owns it. remoteproc cannot load into it. Every DSP's protection denies it (docs/safety.md) until a partition gives each core its own slice; until then firmware must not use it.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW); release/evidence/task-012/20261019T094327Z/dt-memory.json"
         },
         {
           "name": "shared_ddr",
           "kind": "ddr",
           "base": "0xaa000000",
           "size": "0x1c00000",
-          "owner": "rtos-ipc",
+          "owner": "mcu_r5f0_0",
           "loadable": false,
-          "runtime_use": "audit",
-          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. It is not in this core's remoteproc memory-region list, so remoteproc cannot load into it; run-time use must be agreed with the other RTOS cores, which Task 012 audits.",
-          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
+          "runtime_use": "none",
+          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. The device-manager firmware on MCU R5F core 0 uses it at run time (see manifest/memory-map.json): a DSP that writes here can exhaust that firmware's IPC heap and stop TI-SCI device management for the whole SoC. remoteproc cannot load into it, and every DSP's protection denies it (docs/safety.md).",
+          "source": "manifest/memory-map.json; release/evidence/task-013/20261019T095039Z; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc"
         }
       ],
       "boot_alignment": "0x400",
@@ -256,22 +268,34 @@
           "source": "TI PDK 11.02.01.08 drv/sciclient/src/sciclient/sciclient.c (Sciclient_C66xRatMap)"
         },
         {
-          "base": "0x285b0000",
+          "base": "0x31140000",
           "size": "0x00001000",
-          "reason": "MCU NAVSS secure proxy configuration, which Sciclient uses to reach the system firmware.",
-          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (CSL_MCU_NAVSS0_SEC_PROXY0_CFG_BASE)"
-        },
-        {
-          "base": "0x2a380000",
-          "size": "0x00180000",
-          "reason": "MCU NAVSS secure proxy real-time, configuration, and target-data regions (0x2A380000 to 0x2A4FFFFF).",
-          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
+          "reason": "MAIN NAVSS secure proxy configuration (256 bytes; one 4 KiB MPAX page), which Sciclient uses to reach the system firmware. The MCU NAVSS proxy (0x285B0000, 0x2A380000) is used only by MCU R5F builds; granting it instead made Sciclient_init fail on the board (Task 021, 2026-10-19).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
         },
         {
           "base": "0x31f80000",
           "size": "0x00010000",
           "reason": "NAVSS main mailbox clusters 0 to 11 (0x31F80000 to 0x31F8BFFF), which carry the IPC notifications.",
           "source": "TI PDK 11.02.01.08 drv/ipc/soc/V1/ipc_soc.c, csl/src/ip/navss/V1/cslr_navss_main.h"
+        },
+        {
+          "base": "0x32400000",
+          "size": "0x00100000",
+          "reason": "MAIN NAVSS secure proxy real-time registers, for Sciclient.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
+        },
+        {
+          "base": "0x32800000",
+          "size": "0x00100000",
+          "reason": "MAIN NAVSS secure proxy thread configuration, for Sciclient.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
+        },
+        {
+          "base": "0x32c00000",
+          "size": "0x00100000",
+          "reason": "MAIN NAVSS secure proxy target data (the message buffers), for Sciclient.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
         }
       ]
     },
@@ -313,36 +337,36 @@
           "global_base": "0x64800000",
           "size": "0x70000",
           "owner": "core",
-          "loadable": true,
+          "loadable": false,
           "runtime_use": "any",
           "cache_reserve": {
             "freertos": "0x0",
             "baremetal": "0x0"
           },
-          "reason": "C71x L2 SRAM as TI's C7x linker files declare it (448 KiB at 0x64800000); TI's C7x startup configures the remaining L2 as cache. Task 012 confirms the size against the live device tree.",
-          "source": "TI PDK 11.02.01.08 linker_c7x_c7x_1_freertos.lds (L2SRAM 0x64800000, 0x70000)"
+          "reason": "C71x L2 SRAM as TI's C7x linker files declare it (448 KiB at 0x64800000); TI's C7x startup configures the remaining L2 as cache. Task 012 confirms the size against the live device tree. Not loadable: the J721E C71x has no local reset, so the kernel loads the ELF while the module is held in reset, and an A72 write into L2 then gets no response and hangs the SoC (a course firmware with a 4-byte .sdos.coeffs and a zero-filled .sdos.runtime in L2 hung the board on 2026-10-19, Task 021). Firmware puts only NOLOAD data and start-up copies (table(BINIT)) here.",
+          "source": "TI PDK 11.02.01.08 linker_c7x_c7x_1_freertos.lds (L2SRAM 0x64800000, 0x70000); Linux drivers/remoteproc/ti_k3_dsp_remoteproc.c (no local reset for the J721E C71x); release/evidence/task-021"
         },
         {
           "name": "msmc",
           "kind": "shared-sram",
           "base": "0x70020000",
           "size": "0x7d0000",
-          "owner": "unverified",
+          "owner": "unassigned",
           "loadable": false,
-          "runtime_use": "audit",
-          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. Linux may map the rest; Task 012 must confirm ownership from the live device tree before use. remoteproc cannot load into it (not in the DSP's memory-region list), so firmware may only use it at run time.",
-          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW)"
+          "runtime_use": "none",
+          "reason": "MSMC SRAM, shared by the A72, R5F, and DSP cores. 0x70000000-0x7001FFFF holds ARM Trusted Firmware and 0x707F0000-0x707FFFFF the DMSC firmware, both excluded here. The live device tree (Task 012) shows Linux's mmio-sram driver bound to it with no consumer, so no core owns it. remoteproc cannot load into it. Every DSP's protection denies it (docs/safety.md) until a partition gives each core its own slice; until then firmware must not use it.",
+          "source": "TI PDK 11.02.01.08 linker_c66_freertos_common.inc (MSMC3, MSMC3_ARM_FW, MSMC3_DMSC_FW); release/evidence/task-012/20261019T094327Z/dt-memory.json"
         },
         {
           "name": "shared_ddr",
           "kind": "ddr",
           "base": "0xaa000000",
           "size": "0x1c00000",
-          "owner": "rtos-ipc",
+          "owner": "mcu_r5f0_0",
           "loadable": false,
-          "runtime_use": "audit",
-          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. It is not in this core's remoteproc memory-region list, so remoteproc cannot load into it; run-time use must be agreed with the other RTOS cores, which Task 012 audits.",
-          "source": "release/evidence/task-008/20261018T175900Z-dmesg.txt; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc and the per-core linker files"
+          "runtime_use": "none",
+          "reason": "DDR reserved by the device tree as memory@aa000000 (28 MiB) for inter-RTOS IPC. The device-manager firmware on MCU R5F core 0 uses it at run time (see manifest/memory-map.json): a DSP that writes here can exhaust that firmware's IPC heap and stop TI-SCI device management for the whole SoC. remoteproc cannot load into it, and every DSP's protection denies it (docs/safety.md).",
+          "source": "manifest/memory-map.json; release/evidence/task-013/20261019T095039Z; TI PDK 11.02.01.08 ti/drv/ipc/examples/common/j721e/freertos/memory_map_defines.inc"
         }
       ],
       "boot_alignment": "0x200000",
@@ -355,22 +379,34 @@
           "source": "TI PDK 11.02.01.08 osal/soc/j721e/osal_soc.h (OSAL_FREERTOS_OS_TIMER_ID_C7X_1), csl/soc/j721e/src/cslr_soc_baseaddress.h"
         },
         {
-          "base": "0x28400000",
+          "base": "0x31000000",
           "size": "0x00200000",
-          "reason": "MCU NAVSS secure proxy configuration (0x285B0000), for Sciclient. Rounded to one 2 MiB MMU block.",
-          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
-        },
-        {
-          "base": "0x2a200000",
-          "size": "0x00400000",
-          "reason": "MCU NAVSS secure proxy real-time, configuration, and target-data regions (0x2A380000 to 0x2A4FFFFF). Rounded to two 2 MiB MMU blocks.",
-          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
+          "reason": "MAIN NAVSS secure proxy configuration (0x31140000), for Sciclient. Rounded to one 2 MiB MMU block. The MCU NAVSS proxy (0x285B0000, 0x2A380000) is used only by MCU R5F builds; granting it instead made Sciclient_init fail on the board (Task 021, 2026-10-19).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
         },
         {
           "base": "0x31e00000",
           "size": "0x00200000",
           "reason": "NAVSS main mailbox clusters (0x31F80000 to 0x31F8BFFF) for IPC. Rounded to one 2 MiB MMU block.",
           "source": "TI PDK 11.02.01.08 drv/ipc/soc/V1/ipc_soc.c"
+        },
+        {
+          "base": "0x32400000",
+          "size": "0x00200000",
+          "reason": "MAIN NAVSS secure proxy real-time registers (1 MiB), for Sciclient. Rounded to one 2 MiB MMU block.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
+        },
+        {
+          "base": "0x32800000",
+          "size": "0x00200000",
+          "reason": "MAIN NAVSS secure proxy thread configuration (1 MiB), for Sciclient. Rounded to one 2 MiB MMU block.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
+        },
+        {
+          "base": "0x32c00000",
+          "size": "0x00200000",
+          "reason": "MAIN NAVSS secure proxy target data (1 MiB), for Sciclient. Rounded to one 2 MiB MMU block.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (the #else branch, which every DSP build takes: CSL_NAVSS0_SEC_PROXY0_*), csl/soc/j721e/src/cslr_soc_baseaddress.h; the C71x ELF's gSciclient_secProxyCfg holds these four addresses"
         },
         {
           "base": "0x78000000",
@@ -383,7 +419,7 @@
   ],
   "fields": {
     "loadable": "remoteproc can copy an ELF segment here: the region is in this core's device-tree memory-region list or is the core's own internal memory.",
-    "runtime_use": "any: code and data; none: firmware must not use it; audit: usable only after Task 012 confirms nothing else owns it, and then only at run time (NOLOAD or copied in).",
+    "runtime_use": "any: code and data; none: firmware must not use it (the reason says why); audit: usable only after Task 012 confirms nothing else owns it, and then only at run time (NOLOAD or copied in).",
     "cache_reserve": "bytes at the top of a local SRAM that the runtime configures as cache; firmware may not place anything there under that runtime.",
     "boot_alignment": "Required alignment of the ELF entry point, with the loader's reason.",
     "mmio_windows": "Address windows outside the core's own memory that its drivers need, mapped read-write and never executable: by the MPAX on the C66x, by the MMU on the C71x. Every other address outside the core's own memory is denied (docs/safety.md). Derived from the PDK sources the firmware links; Task 042's board session confirms them."

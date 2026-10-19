@@ -59,6 +59,7 @@ PYTHON_TEST_MODULES = (
     "ci.test_container",
     "ci.test_workflows",
     "ci.test_firmware_elf",
+    "ci.test_dt_memory",
     "ci.test_firmware_postlink",
     "ci.test_image",
     "ci.test_linker_layouts",
@@ -69,6 +70,7 @@ PYTHON_TEST_MODULES = (
 )
 VALIDATORS = (
     "ci/validate_hardware.py",
+    "ci/dt_memory.py",
     "ci/validate_licenses.py",
     "ci/validate_versions.py",
     "ci/validate_workflows.py",

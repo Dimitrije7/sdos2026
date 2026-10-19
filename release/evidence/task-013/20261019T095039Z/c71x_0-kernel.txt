@@ -1,0 +1,39 @@
+[  359.344140] BeagleBone kernel: remoteproc remoteproc2: powering up 64800000.dsp
+[  359.416052] BeagleBone kernel: remoteproc remoteproc2: Booting fw image sdos/ti-ipc/ipc_echo_test_c7x_1_release_strip.xe71, size 10488888
+[  359.416849] BeagleBone kernel: remoteproc remoteproc2: unsupported resource 65538
+[  359.417322] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a8000000
+[  359.418042] BeagleBone kernel: virtio_rpmsg_bus virtio1: rpmsg host is online
+[  359.418728] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+[  359.419354] BeagleBone kernel: remoteproc remoteproc2: remote processor 64800000.dsp is now up
+[  359.419800] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel ti.ipc4.ping-pong addr 0xd
+[  359.447988] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel rpmsg_chrdev addr 0xe
+[  359.452816] BeagleBone kernel: remoteproc remoteproc2: stopped remote processor 64800000.dsp
+[  359.453402] BeagleBone kernel: remoteproc remoteproc2: powering up 64800000.dsp
+[  359.480904] BeagleBone kernel: remoteproc remoteproc2: Booting fw image sdos/ti-ipc/ipc_echo_test_c7x_1_release_strip.xe71, size 10488888
+[  359.481660] BeagleBone kernel: remoteproc remoteproc2: unsupported resource 65538
+[  359.485479] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a8000000
+[  359.486513] BeagleBone kernel: virtio_rpmsg_bus virtio1: rpmsg host is online
+[  359.487223] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+[  359.487869] BeagleBone kernel: remoteproc remoteproc2: remote processor 64800000.dsp is now up
+[  359.508274] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel ti.ipc4.ping-pong addr 0xd
+[  359.509194] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel rpmsg_chrdev addr 0xe
+[  362.528063] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox timedout in resp(caller: ti_sci_cmd_put_device+0x20/0x40)
+[  362.529409] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox send fail -110
+[  362.530181] BeagleBone kernel: k3-dsp-rproc 64800000.dsp: module-reset assert failed (-ETIMEDOUT)
+[  362.530812] BeagleBone kernel: remoteproc remoteproc2: can't stop rproc: -110
+[  363.556039] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox timedout in resp(caller: ti_sci_cmd_put_device+0x20/0x40)
+[  363.557038] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox send fail -110
+[  363.557678] BeagleBone kernel: k3-dsp-rproc 64800000.dsp: module-reset assert failed (-ETIMEDOUT)
+[  363.558248] BeagleBone kernel: remoteproc remoteproc2: can't stop rproc: -110
+[  364.580057] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox timedout in resp(caller: ti_sci_cmd_put_device+0x20/0x40)
+[  364.581033] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox send fail -110
+[  364.581687] BeagleBone kernel: k3-dsp-rproc 64800000.dsp: module-reset assert failed (-ETIMEDOUT)
+[  364.582297] BeagleBone kernel: remoteproc remoteproc2: can't stop rproc: -110
+[  365.604988] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox timedout in resp(caller: ti_sci_cmd_put_device+0x20/0x40)
+[  365.606032] BeagleBone kernel: ti-sci 44083000.system-controller: Mbox send fail -110
+[  365.606667] BeagleBone kernel: k3-dsp-rproc 64800000.dsp: module-reset assert failed (-ETIMEDOUT)
+[  365.607261] BeagleBone kernel: remoteproc remoteproc2: can't stop rproc: -110
+[  365.607707] BeagleBone kernel: ti-sci 44083000.system-controller: Message for 0 is not expected!
+[  365.612763] BeagleBone kernel: ti-sci 44083000.system-controller: Message for 0 is not expected!
+[  365.613454] BeagleBone kernel: ti-sci 44083000.system-controller: Message for 0 is not expected!
+[  365.614051] BeagleBone kernel: ti-sci 44083000.system-controller: Message for 0 is not expected!

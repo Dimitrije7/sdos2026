@@ -1,0 +1,16 @@
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/bus@28380000/interrupt-controller@42200000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/bus@28380000/gpio@42110000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/bus@28380000/gpio@42100000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/interrupt-controller@a00000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/bus@30000000/interrupt-controller@310e0000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/bus@30000000/interrupt-controller@33d00000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@600000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@601000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@610000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@611000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@620000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@621000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@630000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/gpio@631000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/icssg@b000000/interrupt-controller@20000: Missing #address-cells in interrupt provider
+release/evidence/task-012/20261019T094327Z/live.dts: Warning (interrupt_provider): /bus@100000/icssg@b100000/interrupt-controller@20000: Missing #address-cells in interrupt provider

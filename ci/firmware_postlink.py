@@ -109,6 +109,8 @@ def check(elf: fe.ElfFile, core: dict, runtime: str) -> list[str]:
     found, problems = zones(elf, core["family"])
     loadable = fe.load_ranges(core, runtime)
     for zone, (start, end) in found.items():
+        if zone == "l2code":
+            continue  # run addresses only: checked against usable L2 below (C71x L2 is never loaded)
         if end > start and not any(lo <= start and end <= hi for _n, lo, hi in loadable):
             problems.append(f"the {zone} zone {start:#x}..{end:#x} is not inside memory {core['name']} may load")
     l2 = _region(core, "l2sram")

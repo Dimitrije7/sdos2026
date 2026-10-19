@@ -1,0 +1,162 @@
+{
+  "schema": "sdos-dsp-ipc/1",
+  "core": "c71x_0",
+  "device": "64800000.dsp",
+  "captured_utc": "2026-10-19T09:50:54Z",
+  "kernel": "6.18.55-arm64-k3-r59",
+  "firmware": {
+    "input": "ti.ipc-echo-fw-j721e-c7x1",
+    "file": "ipc_echo_test_c7x_1_release_strip.xe71",
+    "sha256": "f929d68d27e34d6924bde7247151feda3636019202b974e323183f48558845bd"
+  },
+  "plan": {
+    "device": "64800000.dsp",
+    "firmware": "sdos/ti-ipc/ipc_echo_test_c7x_1_release_strip.xe71",
+    "service": "rpmsg_chrdev",
+    "endpoint": 14,
+    "count": 10,
+    "cycles": 2,
+    "payload": 200,
+    "reply_timeout": 2.0,
+    "start_timeout": 15.0,
+    "stop_timeout": 10.0
+  },
+  "agent_exit": 1,
+  "events": [
+    {
+      "ok": true,
+      "device": "64800000.dsp",
+      "remoteproc": "remoteproc2",
+      "state": "offline",
+      "firmware": "j7-c71_0-fw",
+      "event": "resolve",
+      "t": 359.342081
+    },
+    {
+      "ok": true,
+      "seconds": 0.0,
+      "event": "offline",
+      "t": 359.342425
+    },
+    {
+      "ok": true,
+      "firmware": "sdos/ti-ipc/ipc_echo_test_c7x_1_release_strip.xe71",
+      "event": "load",
+      "t": 359.342857
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "state": "running",
+      "event": "start",
+      "t": 359.421168
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0012,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 359.422603
+    },
+    {
+      "cycle": 1,
+      "text": "unavailable: [Errno 2] No such file or directory: '/sys/kernel/debug/remoteproc/remoteproc2/trace0'",
+      "event": "trace",
+      "t": 359.422791
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "endpoint": "/dev/rpmsg2",
+      "sent": 11,
+      "received": 11,
+      "mismatches": [],
+      "rtt_us": {
+        "min": 78.0,
+        "max": 2432.7,
+        "mean": 314.3
+      },
+      "event": "echo",
+      "t": 359.429729
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0002,
+      "event": "stop",
+      "t": 359.433114
+    },
+    {
+      "cycle": 2,
+      "ok": true,
+      "seconds": 0.0003,
+      "state": "running",
+      "event": "start",
+      "t": 359.485329
+    },
+    {
+      "cycle": 2,
+      "ok": true,
+      "seconds": 0.0011,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 359.489533
+    },
+    {
+      "cycle": 2,
+      "text": "unavailable: [Errno 2] No such file or directory: '/sys/kernel/debug/remoteproc/remoteproc2/trace0'",
+      "event": "trace",
+      "t": 359.489982
+    },
+    {
+      "cycle": 2,
+      "ok": false,
+      "endpoint": "/dev/rpmsg1",
+      "sent": 11,
+      "received": 0,
+      "mismatches": [
+        {
+          "sent": "ping 1",
+          "reply": null
+        }
+      ],
+      "rtt_us": {
+        "min": null,
+        "max": null,
+        "mean": null
+      },
+      "event": "echo",
+      "t": 361.497463
+    },
+    {
+      "message": "TimeoutError: [Errno 110] Connection timed out",
+      "event": "error",
+      "t": 363.548227
+    },
+    {
+      "ok": false,
+      "message": "[Errno 110] Connection timed out",
+      "event": "cleanup",
+      "t": 365.60022
+    },
+    {
+      "state": "running",
+      "firmware": "sdos/ti-ipc/ipc_echo_test_c7x_1_release_strip.xe71",
+      "event": "final",
+      "t": 365.600756
+    }
+  ],
+  "passed": false,
+  "checks": {
+    "resolved": true,
+    "loaded": true,
+    "started": true,
+    "rpmsg": true,
+    "echo": false,
+    "stopped": false,
+    "no_errors": false,
+    "left_offline": false
+  }
+}

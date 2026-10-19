@@ -1,0 +1,538 @@
+{
+  "schema": "sdos-board-report/1",
+  "identity": {
+    "dogtag": "BeagleBoard.org Debian Trixie IOT Image 2026-10-09",
+    "os": "Debian GNU/Linux 13 (trixie)",
+    "kernel": "Linux 6.18.55-arm64-k3-r59 #1 SMP PREEMPT_RT Sat Oct  3 20:19:12 UTC 2026 aarch64",
+    "cmdline": "console=ttyS2,115200n8 earlycon=ns16550a,mmio32,0x02800000 root=/dev/mmcblk1p3 ro rootfstype=ext4 fsck.repair=yes resume=/dev/mmcblk1p2 rootwait net.ifnames=0",
+    "model": "BeagleBoard.org BeagleBone AI-64",
+    "compatible": [
+      "beagle,j721e-beagleboneai64",
+      "ti,j721e"
+    ],
+    "u_boot": "2026.10-gb4086bd599be",
+    "packages": [
+      "bb-beagle-flasher 1.20260701.0-0~trixie+20260701",
+      "bb-beagle-version 1.20240625.1-0~trixie+20240625",
+      "bb-code-server 4.141.0-0bbbio1~trixie+20261009",
+      "bb-customizations 1.20260407.0-0~trixie+20260407",
+      "bb-u-boot-beagleboneai64 2026.10.20261005.0-0~trixie+20261007",
+      "bb-u-boot-beagleplay 2026.10.20261005.0-0~trixie+20261008",
+      "bb-u-boot-beagley-ai 2026.10.20261005.0-0~trixie+20261008",
+      "bb-u-boot-pocketbeagle2 2026.01.20260105.3-0~trixie+20261008",
+      "bb-usb-gadgets 1.20260724.0-0~trixie+20260724",
+      "bb-wl18xx-firmware 1.20240622.4-0~trixie+20250530",
+      "bb-wlan0-defaults 1.20240625.0-0~trixie+20240625",
+      "bbb.io-headers-6.18-k3 1.20261009.0-0~trixie+20261009",
+      "bbb.io-kernel-6.18-k3 1.20261009.0-0~trixie+20261009",
+      "bbb.io-keyring 1.20250813.0-0~trixie+20250813",
+      "linux-image-6.18.55-arm64-k3-r59 1trixie",
+      "ti-devmem2 0.0.0-git20210904.4-0~trixie+20250304",
+      "ti-k3conf 0.4.0-0.git20251204.0-0~trixie+20251204",
+      "ti-pru-cgt-v2.3 2.3.3-0rcnee8~trixie+20250521"
+    ],
+    "package_list_sha256": "c4d4f98daf3c42efbd2b39faa9b39a8d70eebfdb02f3c21f091dcf3f13c618f3",
+    "fdt_sha256": "808c18b381bbf36ac14921d77c2774fe421c37043ffa0a677d94daf106c2453c",
+    "fdt_copy_sha256": "808c18b381bbf36ac14921d77c2774fe421c37043ffa0a677d94daf106c2453c"
+  },
+  "firmware_files": [
+    "drwxr-xr-x  3 root root   4096 Oct  9 17:32 ti-connectivity"
+  ],
+  "remoteproc": [
+    {
+      "sysfs": "remoteproc0",
+      "name": "4d80800000.dsp",
+      "state": "offline",
+      "firmware": "j7-c66_0-fw",
+      "device": "/sys/devices/platform/bus@100000/4d80800000.dsp"
+    },
+    {
+      "sysfs": "remoteproc1",
+      "name": "4d81800000.dsp",
+      "state": "offline",
+      "firmware": "j7-c66_1-fw",
+      "device": "/sys/devices/platform/bus@100000/4d81800000.dsp"
+    },
+    {
+      "sysfs": "remoteproc10",
+      "name": "b004000.rtu",
+      "state": "offline",
+      "firmware": "j7-rtu0_0-fw",
+      "device": "/sys/devices/platform/bus@100000/b000000.icssg/b004000.rtu"
+    },
+    {
+      "sysfs": "remoteproc11",
+      "name": "b00a000.txpru",
+      "state": "offline",
+      "firmware": "j7-txpru0_0-fw",
+      "device": "/sys/devices/platform/bus@100000/b000000.icssg/b00a000.txpru"
+    },
+    {
+      "sysfs": "remoteproc12",
+      "name": "b038000.pru",
+      "state": "offline",
+      "firmware": "j7-pru0_1-fw",
+      "device": "/sys/devices/platform/bus@100000/b000000.icssg/b038000.pru"
+    },
+    {
+      "sysfs": "remoteproc13",
+      "name": "b006000.rtu",
+      "state": "offline",
+      "firmware": "j7-rtu0_1-fw",
+      "device": "/sys/devices/platform/bus@100000/b000000.icssg/b006000.rtu"
+    },
+    {
+      "sysfs": "remoteproc14",
+      "name": "b00c000.txpru",
+      "state": "offline",
+      "firmware": "j7-txpru0_1-fw",
+      "device": "/sys/devices/platform/bus@100000/b000000.icssg/b00c000.txpru"
+    },
+    {
+      "sysfs": "remoteproc15",
+      "name": "b134000.pru",
+      "state": "offline",
+      "firmware": "j7-pru1_0-fw",
+      "device": "/sys/devices/platform/bus@100000/b100000.icssg/b134000.pru"
+    },
+    {
+      "sysfs": "remoteproc16",
+      "name": "b104000.rtu",
+      "state": "offline",
+      "firmware": "j7-rtu1_0-fw",
+      "device": "/sys/devices/platform/bus@100000/b100000.icssg/b104000.rtu"
+    },
+    {
+      "sysfs": "remoteproc17",
+      "name": "b10a000.txpru",
+      "state": "offline",
+      "firmware": "j7-txpru1_0-fw",
+      "device": "/sys/devices/platform/bus@100000/b100000.icssg/b10a000.txpru"
+    },
+    {
+      "sysfs": "remoteproc18",
+      "name": "b138000.pru",
+      "state": "offline",
+      "firmware": "j7-pru1_1-fw",
+      "device": "/sys/devices/platform/bus@100000/b100000.icssg/b138000.pru"
+    },
+    {
+      "sysfs": "remoteproc19",
+      "name": "b106000.rtu",
+      "state": "offline",
+      "firmware": "j7-rtu1_1-fw",
+      "device": "/sys/devices/platform/bus@100000/b100000.icssg/b106000.rtu"
+    },
+    {
+      "sysfs": "remoteproc2",
+      "name": "64800000.dsp",
+      "state": "offline",
+      "firmware": "j7-c71_0-fw",
+      "device": "/sys/devices/platform/bus@100000/64800000.dsp"
+    },
+    {
+      "sysfs": "remoteproc20",
+      "name": "b10c000.txpru",
+      "state": "offline",
+      "firmware": "j7-txpru1_1-fw",
+      "device": "/sys/devices/platform/bus@100000/b100000.icssg/b10c000.txpru"
+    },
+    {
+      "sysfs": "remoteproc3",
+      "name": "41000000.r5f",
+      "state": "attached",
+      "firmware": "unknown",
+      "device": "/sys/devices/platform/bus@100000/bus@100000:bus@28380000/bus@100000:bus@28380000:r5fss@41000000/41000000.r5f"
+    },
+    {
+      "sysfs": "remoteproc5",
+      "name": "5c00000.r5f",
+      "state": "offline",
+      "firmware": "j7-main-r5f0_0-fw",
+      "device": "/sys/devices/platform/bus@100000/bus@100000:r5fss@5c00000/5c00000.r5f"
+    },
+    {
+      "sysfs": "remoteproc6",
+      "name": "5d00000.r5f",
+      "state": "offline",
+      "firmware": "j7-main-r5f0_1-fw",
+      "device": "/sys/devices/platform/bus@100000/bus@100000:r5fss@5c00000/5d00000.r5f"
+    },
+    {
+      "sysfs": "remoteproc7",
+      "name": "5e00000.r5f",
+      "state": "offline",
+      "firmware": "j7-main-r5f1_0-fw",
+      "device": "/sys/devices/platform/bus@100000/bus@100000:r5fss@5e00000/5e00000.r5f"
+    },
+    {
+      "sysfs": "remoteproc8",
+      "name": "5f00000.r5f",
+      "state": "offline",
+      "firmware": "j7-main-r5f1_1-fw",
+      "device": "/sys/devices/platform/bus@100000/bus@100000:r5fss@5e00000/5f00000.r5f"
+    },
+    {
+      "sysfs": "remoteproc9",
+      "name": "b034000.pru",
+      "state": "offline",
+      "firmware": "j7-pru0_0-fw",
+      "device": "/sys/devices/platform/bus@100000/b000000.icssg/b034000.pru"
+    }
+  ],
+  "rpmsg": [
+    "virtio0.rpmsg_chrdev.-1.14",
+    "virtio0.rpmsg_ctrl.0.0",
+    "virtio0.rpmsg_ns.53.53",
+    "virtio0.ti.ipc4.ping-pong.-1.13",
+    "crw------- 1 root root 234, 0 Oct  9 18:05 /dev/rpmsg0",
+    "crw------- 1 root root 511, 0 Oct  9 18:05 /dev/rpmsg_ctrl0",
+    "crw------- 1 root root 511, 0 Oct  9 18:05 /dev/rpmsg_ctrl0"
+  ],
+  "kconfig": {
+    "CONFIG_REMOTEPROC": "y",
+    "CONFIG_TI_K3_DSP_REMOTEPROC": "m",
+    "CONFIG_RPMSG": "y",
+    "CONFIG_RPMSG_CHAR": "m",
+    "CONFIG_RPMSG_CTRL": "m",
+    "CONFIG_RPMSG_VIRTIO": "y",
+    "CONFIG_CMA": "y",
+    "CONFIG_DMA_CMA": "y",
+    "CONFIG_DEBUG_FS": "y",
+    "CONFIG_FTRACE": "y"
+  },
+  "memory": {
+    "meminfo_bytes": {
+      "MemTotal": 3897733120,
+      "MemAvailable": 3613310976,
+      "CmaTotal": 150994944,
+      "CmaFree": 145997824
+    },
+    "reserved": [
+      {
+        "node": "memory@a0000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa0000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a0100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa0100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a1000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa1000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a1100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa1100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a2000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa2000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a2100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa2100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a3000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa3000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a3100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa3100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a4000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa4000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a4100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa4100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a5000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa5000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a5100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa5100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a6000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa6000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a6100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa6100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a7000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa7000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a7100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa7100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@a8000000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa8000000",
+        "size": 1048576
+      },
+      {
+        "node": "memory@a8100000",
+        "compatible": "shared-dma-pool",
+        "no_map": true,
+        "base": "0xa8100000",
+        "size": 15728640
+      },
+      {
+        "node": "memory@aa000000",
+        "compatible": "",
+        "no_map": true,
+        "base": "0xaa000000",
+        "size": 29360128
+      },
+      {
+        "node": "optee@9e800000",
+        "compatible": "",
+        "no_map": true,
+        "base": "0x9e800000",
+        "size": 25165824
+      }
+    ]
+  },
+  "iomem_lines": 193,
+  "mounts": [
+    "/ /dev/mmcblk1p3 ext4 rw,noatime,errors=remount-ro",
+    "/dev devtmpfs devtmpfs rw,relatime,size=1827956k,nr_inodes=456989,mode=755,inode64",
+    "/proc proc proc rw,nosuid,nodev,noexec,relatime",
+    "/sys sysfs sysfs rw,nosuid,nodev,noexec,relatime",
+    "/sys/kernel/security securityfs securityfs rw,nosuid,nodev,noexec,relatime",
+    "/dev/shm tmpfs tmpfs rw,nosuid,nodev,inode64",
+    "/dev/pts devpts devpts rw,nosuid,noexec,relatime,gid=5,mode=600,ptmxmode=000",
+    "/run tmpfs tmpfs rw,nosuid,nodev,size=761276k,nr_inodes=819200,mode=755,inode64",
+    "/sys/fs/cgroup cgroup2 cgroup2 rw,nosuid,nodev,noexec,relatime,nsdelegate,memory_recursiveprot",
+    "/sys/fs/pstore none pstore rw,nosuid,nodev,noexec,relatime",
+    "/sys/fs/bpf bpf bpf rw,nosuid,nodev,noexec,relatime,mode=700",
+    "/proc/sys/fs/binfmt_misc systemd-1 autofs rw,relatime,fd=37,pgrp=1,timeout=0,minproto=5,maxproto=5,direct,pipe_ino=8842",
+    "/dev/mqueue mqueue mqueue rw,nosuid,nodev,noexec,relatime",
+    "/dev/hugepages hugetlbfs hugetlbfs rw,nosuid,nodev,relatime,pagesize=2M",
+    "/run/lock tmpfs tmpfs rw,nosuid,nodev,noexec,relatime,size=5120k,inode64",
+    "/sys/kernel/debug debugfs debugfs rw,relatime,gid=991,mode=755",
+    "/sys/kernel/tracing tracefs tracefs rw,nosuid,nodev,noexec,relatime",
+    "/run/credentials/systemd-journald.service tmpfs tmpfs ro,nosuid,nodev,noexec,relatime,nosymfollow,size=1024k,nr_inodes=1024,mode=700,inode64,noswap",
+    "/sys/kernel/config configfs configfs rw,nosuid,nodev,noexec,relatime",
+    "/sys/fs/fuse/connections fusectl fusectl rw,nosuid,nodev,noexec,relatime",
+    "/run/credentials/systemd-resolved.service tmpfs tmpfs ro,nosuid,nodev,noexec,relatime,nosymfollow,size=1024k,nr_inodes=1024,mode=700,inode64,noswap",
+    "/boot/firmware /dev/mmcblk1p1 vfat rw,nosuid,nodev,noexec,relatime,uid=1000,gid=1000,fmask=0022,dmask=0022,codepage=437,iocharset=ascii,shortname=mixed,utf8,errors=remount-ro",
+    "/proc/sys/fs/binfmt_misc binfmt_misc binfmt_misc rw,nosuid,nodev,noexec,relatime",
+    "/run/credentials/systemd-networkd.service tmpfs tmpfs ro,nosuid,nodev,noexec,relatime,nosymfollow,size=1024k,nr_inodes=1024,mode=700,inode64,noswap",
+    "/run/credentials/getty@tty1.service tmpfs tmpfs ro,nosuid,nodev,noexec,relatime,nosymfollow,size=1024k,nr_inodes=1024,mode=700,inode64,noswap",
+    "/run/credentials/serial-getty@ttyS2.service tmpfs tmpfs ro,nosuid,nodev,noexec,relatime,nosymfollow,size=1024k,nr_inodes=1024,mode=700,inode64,noswap",
+    "/run/credentials/serial-getty@ttyGS0.service tmpfs tmpfs ro,nosuid,nodev,noexec,relatime,nosymfollow,size=1024k,nr_inodes=1024,mode=700,inode64,noswap",
+    "/run/user/0 tmpfs tmpfs rw,nosuid,nodev,relatime,size=380636k,nr_inodes=95159,mode=700,inode64"
+  ],
+  "disk": [
+    "Mounted on       1B-blocks       Avail",
+    "/              26207846400 20267823104",
+    "/boot/firmware   264289280   225251328"
+  ],
+  "block_devices": [
+    "mmcblk0 14.6G disk   ",
+    "mmcblk0p1 128M part vfat FIRMWARE ",
+    "mmcblk0p2 14.5G part ext4 rootfs ",
+    "zram0 1.8G disk swap zram0 [SWAP]",
+    "mmcblk0boot0 4M disk   ",
+    "mmcblk0boot1 4M disk   ",
+    "mmcblk1 29.1G disk   ",
+    "mmcblk1p1 256M part vfat BOOT /boot/firmware",
+    "mmcblk1p2 4G part swap  [SWAP]",
+    "mmcblk1p3 24.9G part ext4 rootfs /"
+  ],
+  "debugfs_tracefs": [
+    "/sys/kernel/debug",
+    "/sys/kernel/tracing"
+  ],
+  "time": [
+    "Timezone=Etc/UTC",
+    "LocalRTC=no",
+    "NTPSynchronized=no",
+    "2026-10-09T18:13:28Z"
+  ],
+  "thermal_milli_c": {
+    "wkup-thermal": 35449,
+    "mpu-thermal": 35924,
+    "c7x-thermal": 36160,
+    "gpu-thermal": 36869,
+    "r5f-thermal": 36160
+  },
+  "hwmon_fan_channels": {
+    "wkup_thermal": 0,
+    "mpu_thermal": 0,
+    "c7x_thermal": 0,
+    "gpu_thermal": 0,
+    "r5f_thermal": 0
+  },
+  "journal": [
+    "/var/log/journal",
+    "IDX BOOT ID                          FIRST ENTRY                 LAST ENTRY",
+    " -3 d92d5b17c6984126a7b7021886c5529c Fri 2026-10-09 17:39:56 UTC Fri 2026-10-09 17:40:16 UTC",
+    " -2 77acdb86119e4985946584aa3747719d Fri 2026-10-09 17:40:00 UTC Fri 2026-10-09 17:40:16 UTC",
+    " -1 702ef3c4375d4bd092bbc7377547116d Fri 2026-10-09 17:40:04 UTC Fri 2026-10-09 18:05:17 UTC",
+    "  0 ab99d83aa8cd4c5e8801187093bbaac0 Fri 2026-10-09 18:05:18 UTC Fri 2026-10-09 18:13:27 UTC"
+  ],
+  "network": [
+    "1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000\\    link/loopback mac-38fbdde9 brd mac-38fbdde9",
+    "2: eth0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc mq state DOWN mode DEFAULT group default qlen 1000\\    link/ether mac-7518b232 brd mac-927ac519\\    altname enx247625a0f78b",
+    "3: usb0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc fq_codel state UP mode DEFAULT group default qlen 1000\\    link/ether mac-719b2767 brd mac-927ac519",
+    "4: docker0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc noqueue state DOWN mode DEFAULT group default \\    link/ether mac-fde5bd3a brd mac-927ac519",
+    "1: lo    inet 127.0.0.1/8 scope host lo\\       valid_lft forever preferred_lft forever",
+    "3: usb0    inet 192.168.7.2/30 brd 192.168.7.3 scope global usb0\\       valid_lft forever preferred_lft forever",
+    "4: docker0    inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0\\       valid_lft forever preferred_lft forever",
+    "1: lo    inet6 ::1/128 scope host noprefixroute \\       valid_lft forever preferred_lft forever",
+    "3: usb0    inet6 fe80::1eba:8cff:fea2:ed6b/64 scope link proto kernel_ll \\       valid_lft forever preferred_lft forever"
+  ],
+  "failed_units": [],
+  "boot_time": "Startup finished in 5.055s (kernel) + 17.720s (userspace) = 22.776s ",
+  "uptime_s": 497.56,
+  "dmesg_errors": [
+    "[    3.633897] pcieport 0000:00:00.0: of_irq_parse_pci: failed with rc=-22",
+    "[    3.672674] cdns-mhdp8546 a000000.dp-bridge: error -EINVAL: invalid resource (null)",
+    "[    4.061439] mmc1: tuning execution failed: -1",
+    "[    5.577511] systemd[1]: bpf-restrict-fs: Failed to load BPF object: No such process",
+    "[   11.591002] remoteproc remoteproc0: request_firmware failed: -2",
+    "[   11.676885] remoteproc remoteproc1: request_firmware failed: -2",
+    "[   11.971690] remoteproc remoteproc2: request_firmware failed: -2",
+    "[   12.626501] remoteproc remoteproc5: request_firmware failed: -2",
+    "[   12.660033] remoteproc remoteproc6: request_firmware failed: -2",
+    "[   12.733754] remoteproc remoteproc7: request_firmware failed: -2",
+    "[   12.767087] remoteproc remoteproc8: request_firmware failed: -2"
+  ],
+  "results": [
+    {
+      "item": "ssh",
+      "status": "pass",
+      "detail": "report collected over SSH"
+    },
+    {
+      "item": "remoteproc C66x_0",
+      "status": "pass",
+      "detail": "4d80800000.dsp is remoteproc0, state offline, firmware j7-c66_0-fw"
+    },
+    {
+      "item": "remoteproc C66x_1",
+      "status": "pass",
+      "detail": "4d81800000.dsp is remoteproc1, state offline, firmware j7-c66_1-fw"
+    },
+    {
+      "item": "remoteproc C71x_0",
+      "status": "pass",
+      "detail": "64800000.dsp is remoteproc2, state offline, firmware j7-c71_0-fw"
+    },
+    {
+      "item": "kernel features",
+      "status": "pass",
+      "detail": "all required options are y or m"
+    },
+    {
+      "item": "CMA",
+      "status": "pass",
+      "detail": "CmaTotal 144 MiB"
+    },
+    {
+      "item": "reserved memory",
+      "status": "pass",
+      "detail": "20 nodes"
+    },
+    {
+      "item": "storage",
+      "status": "pass",
+      "detail": "root /dev/mmcblk1p3 (ext4) is read-write"
+    },
+    {
+      "item": "debugfs and tracefs",
+      "status": "pass",
+      "detail": "/sys/kernel/debug, /sys/kernel/tracing"
+    },
+    {
+      "item": "time",
+      "status": "fail",
+      "detail": "clock not synchronized; Timezone=Etc/UTC LocalRTC=no NTPSynchronized=no 2026-10-09T18:13:28Z"
+    },
+    {
+      "item": "temperature",
+      "status": "pass",
+      "detail": "hottest zone 36.9 C over 5 zones"
+    },
+    {
+      "item": "fan",
+      "status": "info",
+      "detail": "0 fan or PWM channels visible"
+    },
+    {
+      "item": "persistent logs",
+      "status": "pass",
+      "detail": "journal stored in /var/log/journal"
+    },
+    {
+      "item": "ethernet",
+      "status": "fail",
+      "detail": "eth0 has no link"
+    },
+    {
+      "item": "failed units",
+      "status": "pass",
+      "detail": "none"
+    }
+  ]
+}

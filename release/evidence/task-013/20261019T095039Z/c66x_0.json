@@ -1,0 +1,114 @@
+{
+  "schema": "sdos-dsp-ipc/1",
+  "core": "c66x_0",
+  "device": "4d80800000.dsp",
+  "captured_utc": "2026-10-19T09:50:44Z",
+  "kernel": "6.18.55-arm64-k3-r59",
+  "firmware": {
+    "input": "ti.ipc-echo-fw-j721e-c66xdsp1",
+    "file": "ipc_echo_test_c66xdsp_1_release_strip.xe66",
+    "sha256": "b316626379fe4d3e1ac1a6f8280197d50c3a284aec59868401ffa301eaf0c296"
+  },
+  "plan": {
+    "device": "4d80800000.dsp",
+    "firmware": "sdos/ti-ipc/ipc_echo_test_c66xdsp_1_release_strip.xe66",
+    "service": "rpmsg_chrdev",
+    "endpoint": 14,
+    "count": 10,
+    "cycles": 2,
+    "payload": 200,
+    "reply_timeout": 2.0,
+    "start_timeout": 15.0,
+    "stop_timeout": 10.0
+  },
+  "agent_exit": 1,
+  "events": [
+    {
+      "ok": true,
+      "device": "4d80800000.dsp",
+      "remoteproc": "remoteproc0",
+      "state": "offline",
+      "firmware": "j7-c66_0-fw",
+      "event": "resolve",
+      "t": 353.933267
+    },
+    {
+      "ok": true,
+      "seconds": 0.0,
+      "event": "offline",
+      "t": 353.933639
+    },
+    {
+      "ok": true,
+      "firmware": "sdos/ti-ipc/ipc_echo_test_c66xdsp_1_release_strip.xe66",
+      "event": "load",
+      "t": 353.934125
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "state": "running",
+      "event": "start",
+      "t": 353.962111
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0012,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 353.963474
+    },
+    {
+      "cycle": 1,
+      "text": "IPC_echo_test (core : C66X_1) .....\n",
+      "event": "trace",
+      "t": 353.963764
+    },
+    {
+      "cycle": 1,
+      "ok": false,
+      "endpoint": "/dev/rpmsg1",
+      "sent": 11,
+      "received": 0,
+      "mismatches": [
+        {
+          "sent": "ping 1",
+          "reply": null
+        }
+      ],
+      "rtt_us": {
+        "min": null,
+        "max": null,
+        "mean": null
+      },
+      "event": "echo",
+      "t": 355.969588
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "event": "stop",
+      "t": 355.983947
+    },
+    {
+      "state": "offline",
+      "firmware": "j7-c66_0-fw",
+      "event": "final",
+      "t": 355.986854
+    }
+  ],
+  "passed": false,
+  "checks": {
+    "resolved": true,
+    "loaded": true,
+    "started": false,
+    "rpmsg": false,
+    "echo": false,
+    "stopped": false,
+    "no_errors": true,
+    "left_offline": true
+  }
+}

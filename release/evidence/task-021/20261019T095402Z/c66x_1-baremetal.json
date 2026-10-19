@@ -1,0 +1,78 @@
+{
+  "schema": "sdos-course-smoke/1",
+  "core": "c66x_1",
+  "runtime": "baremetal",
+  "firmware": "sdos-c66x_1-baremetal.xe66",
+  "captured_utc": "2026-10-19T09:55:02Z",
+  "ssh_exit": 0,
+  "checks": {
+    "loaded": true,
+    "started": false,
+    "status": false,
+    "healthy": false,
+    "echo": false,
+    "stopped": true,
+    "restored": true
+  },
+  "passed": false,
+  "steps": {
+    "stop": {
+      "output": [
+        "dspctl: stop: stop needs c66x_1 running, but it is offline (bad buffer state)"
+      ],
+      "status": 0
+    },
+    "load": {
+      "output": [
+        "loaded /tmp/sdos-smoke/sdos-c66x_1-baremetal.xe66"
+      ],
+      "status": 0
+    },
+    "start": {
+      "output": [
+        "dspctl: start: c66x_1 did not answer within 10000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "status": {
+      "output": [
+        "dspctl: status: c66x_1 did not answer within 2000 ms (timeout)",
+        "C66x_1 (4d81800000.dsp) running"
+      ],
+      "status": 1
+    },
+    "health": {
+      "output": [
+        "{\"name\": \"c66x_1\", \"state\": \"faulted\", \"fault\": \"self-test\", \"fault_info\": 1, \"fault_address\": 2786066432, \"heartbeat\": 597, \"uptime_ms\": 12013, \"stack_margin\": 15008, \"integrity_passes\": 86, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "echo": {
+      "output": [
+        "dspctl: echo: c66x_1 did not answer within 2000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "trace": {
+      "output": [
+        "SDOS-HEALTH 1 seq=000002bb hb=000002ba up=000036d0 state=2 fault=08 info=00000001 addr=00000000a6100000 margin=00003aa0 passes=00000064 late=00000000 end=000002bb                             ",
+        "[0.056] integrity: 6 read-only ranges match their CRC record",
+        "[0.057] mpax: segment 0 0000001e 000000bf, segment 1 8000001e 080000bf (as found)",
+        "[0.057] mpax: self-test FAILED: a read of 0xa6100000 was not blocked",
+        "[0.057] layout: fir code loaded at a7400000, runs at 800000, 384 bytes; check passed",
+        "[0.057] Sciclient_init failed"
+      ],
+      "status": 0
+    },
+    "stop-again": {
+      "output": [],
+      "status": 0
+    },
+    "restored": {
+      "output": [
+        "offline j7-c66_1-fw j7-c66_1-fw"
+      ],
+      "status": 0
+    }
+  }
+}

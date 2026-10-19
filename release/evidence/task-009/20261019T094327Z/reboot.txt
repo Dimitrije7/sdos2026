@@ -1,0 +1,23 @@
+reboot via 'systemctl reboot' over SSH; reconnect_s=53 (host-side, from command to first successful SSH)
+boot_id before: ab99d83a-a8cd-4c5e-8801-187093bbaac0 after: f5cfe3ba-362a-4a3e-bddc-35cf23aa6204
+ -2 702ef3c4375d4bd092bbc7377547116d Fri 2026-10-09 17:40:04 UTC Fri 2026-10-09 18:05:17 UTC
+ -1 ab99d83aa8cd4c5e8801187093bbaac0 Fri 2026-10-09 18:05:18 UTC Fri 2026-10-09 18:14:06 UTC
+  0 f5cfe3ba362a4a3ebddc35cf23aa6204 Fri 2026-10-09 18:14:08 UTC Fri 2026-10-09 18:14:54 UTC
+
+[  535.196640] BeagleBone systemd[1]: Reached target shutdown.target - System Shutdown.
+[  535.208253] BeagleBone systemd[1]: Reached target final.target - Late Shutdown Services.
+[  535.220521] BeagleBone systemd[1]: systemd-reboot.service: Deactivated successfully.
+[  535.220657] BeagleBone systemd[1]: Finished systemd-reboot.service - System Reboot.
+[  535.232424] BeagleBone systemd[1]: Reached target reboot.target - System Reboot.
+[  535.244185] BeagleBone systemd[1]: Shutting down.
+[  535.340806] BeagleBone systemd[1]: Using hardware watchdog 'Software Watchdog', version 0, device /dev/watchdog0
+[  535.340849] BeagleBone systemd[1]: Watchdog running with a hardware timeout of 10min.
+[  535.349366] BeagleBone kernel: watchdog: watchdog0: watchdog did not stop!
+[  535.364134] BeagleBone systemd-shutdown[1]: Using hardware watchdog 'Software Watchdog', version 0, device /dev/watchdog0
+[  535.774101] BeagleBone systemd-shutdown[1]: Watchdog running with a hardware timeout of 10min.
+[  535.774244] BeagleBone systemd-shutdown[1]: Syncing filesystems and block devices.
+[  535.809398] BeagleBone systemd-shutdown[1]: Sending SIGTERM to remaining processes...
+[  535.809615] BeagleBone systemd-journald[190]: Received SIGTERM from PID 1 (systemd-shutdow).
+[  535.809751] BeagleBone systemd-journald[190]: Journal stopped
+
+running
