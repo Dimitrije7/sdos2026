@@ -59,11 +59,13 @@ PYTHON_TEST_MODULES = (
     "ci.test_container",
     "ci.test_workflows",
     "ci.test_firmware_elf",
+    "ci.test_firmware_postlink",
     "ci.test_image",
     "ci.test_linker_layouts",
     "tests.target.test_sdos_board",
     "tests.target.test_dsp_ipc",
     "tests.target.test_course_smoke",
+    "tests.target.test_fault_injection",
 )
 VALIDATORS = (
     "ci/validate_hardware.py",
@@ -79,9 +81,10 @@ CPPCHECK = [
     "--enable=warning,style,performance,portability", "--suppress=missingIncludeSystem",
     "--suppress=unusedFunction", "--suppress=unmatchedSuppression",
     "-I", "firmware/common/protocol/include", "-I", "firmware/common/runtime/include",
+    "-I", "firmware/common/safety/include",
     "-I", "host/libsdos_dsp/include", "-I", "algorithms/fir_q15/include", "-I", "tests/unit/include",
     "-D__GNUC__", "-DSDOS_CORES_MACROS_ONLY",
-    "firmware/common/protocol", "firmware/common/runtime", "host", "algorithms",
+    "firmware/common/protocol", "firmware/common/runtime", "firmware/common/safety", "host", "algorithms",
 ]
 
 

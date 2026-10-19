@@ -10,8 +10,9 @@
  * region's end is ORIGIN + USABLE - 1.
  *
  * MANDATORY marks a rule with a hardware, loader, or interoperability reason;
- * everything else is a default you may change. ci/firmware_elf.py checks every
- * build against the memory contract, whatever the layout.
+ * PROTECTION marks what the run-time memory protection relies on
+ * (docs/safety.md); everything else is a default you may change.
+ * ci/firmware_postlink.py and ci/firmware_elf.py check every build.
  */
 #include "sdos_memory.cmd"
 
@@ -23,28 +24,47 @@
 --diag_suppress=10068   /* "no matching section": optional runtime sections */
 
 -stack 0x20000   /* C stack; TI's C7x interrupt handling nests on it */
--heap  0x20000   /* malloc() */
+-heap  0x0       /* PROTECTION: no C heap; the post-link check refuses malloc() */
 --args 0x1000
+
+/* Split of the 15 MiB DDR carve-out. Move the boundaries freely, minding the
+ * 2 MiB and 4 MiB alignments below, which leave holes: the protection zones
+ * follow the boundaries. PROTECTION: keep them 4 KiB-aligned; each boundary
+ * that is not 2 MiB-aligned costs one of TI's 16 MMU tables. */
+#define META_ORIGIN   (SDOS_DDR_ORIGIN)
+#define CODE_ORIGIN   (SDOS_DDR_ORIGIN + 0x00100000)
+#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00a00000)
+#define DATA_ORIGIN   (SDOS_DDR_ORIGIN + 0x00b00000)
+#define DDR_END       (SDOS_DDR_ORIGIN + SDOS_DDR_USABLE)
 
 MEMORY
 {
-    /* Default split of the 15 MiB DDR carve-out. Change the sizes freely, but
-     * mind the 2 MiB and 4 MiB alignments below, which leave holes. */
-    DDR_META  (RW)   : origin = SDOS_DDR_ORIGIN,              length = 0x00100000  /* resource table, trace */
-    DDR_CODE  (RWIX) : origin = SDOS_DDR_ORIGIN + 0x00100000, length = 0x00900000
-    DDR_DATA  (RW)   : origin = SDOS_DDR_ORIGIN + 0x00a00000, length = SDOS_DDR_USABLE - 0x00a00000
+    DDR_META   (RW)   : origin = META_ORIGIN,   length = CODE_ORIGIN - META_ORIGIN    /* resource table, trace, integrity record */
+    DDR_CODE   (RX)   : origin = CODE_ORIGIN,   length = RODATA_ORIGIN - CODE_ORIGIN
+    DDR_RODATA (R)    : origin = RODATA_ORIGIN, length = DATA_ORIGIN - RODATA_ORIGIN
+    DDR_DATA   (RW)   : origin = DATA_ORIGIN,   length = DDR_END - DATA_ORIGIN
     /* Local L2 SRAM, private to this core. */
-    L2SRAM    (RWIX) : origin = SDOS_L2SRAM_ORIGIN,           length = SDOS_L2SRAM_USABLE
+    L2SRAM     (RWIX) : origin = SDOS_L2SRAM_ORIGIN, length = SDOS_L2SRAM_USABLE
 }
+
+/* PROTECTION: the zones the MMU maps read-only and executable (code) and
+ * read-only (constants). The rest of the carve-out is writable and never
+ * executable; nothing else in DDR is mapped. */
+sdos_zone_code_start   = CODE_ORIGIN;
+sdos_zone_code_end     = RODATA_ORIGIN;
+sdos_zone_rodata_start = RODATA_ORIGIN;
+sdos_zone_rodata_end   = DATA_ORIGIN;
 
 SECTIONS
 {
     /* MANDATORY: remoteproc finds the resource table by this section name and
      * reads it before starting the core, so it must be in loaded memory. */
     .resource_table : {} > DDR_META, align = 0x1000
-    /* MANDATORY: Linux reads the trace through remoteproc, which maps only
-     * loadable memory. */
+    /* MANDATORY: Linux reads the trace, and the health line at its start,
+     * through remoteproc, which maps only loadable memory. */
     .tracebuf : {} > DDR_META, align = 0x400   /* zeroed at start, so the trace reads cleanly */
+    /* PROTECTION: the CRC record of the read-only image, written after linking. */
+    .sdos.integrity : {} > DDR_META, align = 0x8
 
     /* MANDATORY: the K3 remoteproc driver boots a C71x only from a 2 MiB-aligned
      * entry point; _c_int00_secure comes from TI's boot.oe71. */
@@ -54,28 +74,32 @@ SECTIONS
      * and 2 MiB for the C7x vector base registers. */
     .vecs                 : {} > DDR_CODE, align = 0x400000
     .secure_vecs          : {} > DDR_CODE, align = 0x200000
-    /* Default, copied from TI's layout without a known hardware reason. */
-    .text                 : {} > DDR_CODE, align = 0x200000
+    .text                 : {} > DDR_CODE
 
     #include "c71x_runtime.cmd"
 
+    /* Constants and initialization tables: read-only after loading. */
+    .const  : {} > DDR_RODATA
+    .switch : {} > DDR_RODATA
+    .cinit  : {} > DDR_RODATA
+    .binit  : {} > DDR_RODATA   /* load/run copy table, processed before main() */
+    .init_array : {} > DDR_RODATA
+
     .bss    : {} > DDR_DATA
     .data   : {} > DDR_DATA
-    .cinit  : {} > DDR_DATA
-    .binit  : {} > DDR_DATA   /* load/run copy table, processed before main() */
-    .init_array : {} > DDR_DATA
-    .const  : {} > DDR_DATA
-    .switch : {} > DDR_DATA
     .args   : {} > DDR_DATA
     .cio    : {} > DDR_DATA
-    .sysmem : {} > DDR_DATA
-    /* MANDATORY: TI's C7x interrupt handling needs a 128 KiB-aligned stack. */
+    /* MANDATORY: TI's C7x interrupt handling needs a 128 KiB-aligned stack.
+     * PROTECTION: its lowest page becomes the read-only guard. */
     .stack  : {} > DDR_DATA, align = 0x20000
 
     ipc_data_buffer : type = NOLOAD {} > DDR_DATA, align = 0x8
-    /* MANDATORY: FreeRTOS C7x task stacks must be 8 KiB aligned. */
-    .sdos.task_stack : type = NOLOAD {} > DDR_DATA, align = 0x2000
-    .sdos.runtime    : {} > L2SRAM
+    /* MANDATORY: FreeRTOS C7x task stacks must be 8 KiB aligned.
+     * PROTECTION: each stack's lowest page becomes its read-only guard. */
+    .sdos.stack.main    : type = NOLOAD {} > DDR_DATA, align = 0x2000
+    .sdos.stack.monitor : type = NOLOAD {} > DDR_DATA, align = 0x2000
+    .sdos.stack.ipc     : type = NOLOAD {} > DDR_DATA, align = 0x2000
+    .sdos.runtime       : {} > L2SRAM
 
     #include "fir_memory.cmd"
     #include "buffers_memory.cmd"

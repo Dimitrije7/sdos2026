@@ -1,9 +1,15 @@
-# Host/DSP protocol 1.0
+# Host/DSP protocol 2.0
 
 Status: **proposed**, implemented and tested on the PC, awaiting the maintainer
 decision in [Task 027](../tasks/027-protocol-data-path-decision.md). The shared
 data path on the board is the one open part; see
 [Decision needed](#decision-needed).
+
+Version 2.0 (2026-10-19, [Task 042](../tasks/042-freedom-from-interference.md))
+replaced the never-released 1.0. It adds an end-to-end CRC over every message,
+three status codes for the firmware's safety mechanisms, a time budget per
+RUN, and the safety counters in STATUS. [`docs/safety.md`](safety.md)
+explains the mechanisms.
 
 Linux applications talk to DSP firmware through
 [`libsdos_dsp`](../host/libsdos_dsp/include/sdos/dsp.h) and
@@ -21,8 +27,11 @@ to address 40 with the upstream `rpmsg_char` ioctl. It finds the control
 device through sysfs by the core's device address, not by number.
 
 One RPMsg buffer holds 512 bytes, of which 16 are the RPMsg header. An SDOS
-message is therefore at most 496 bytes: a 16-byte header and up to 480 bytes
+message is therefore at most 496 bytes: a 20-byte header and up to 476 bytes
 of payload.
+
+The firmware answers only messages from Linux on the A72 (`IPC_MPU1_0`).
+Messages from any other processor are dropped and counted in STATUS.
 
 ## Message format
 
@@ -32,19 +41,25 @@ structure is ever copied to or from the wire.
 | Offset | Size | Field | Rule |
 |---|---|---|---|
 | 0 | 2 | magic | `S`, `D` |
-| 2 | 1 | major version | 1; any other value is refused with `E_VERSION` |
+| 2 | 1 | major version | 2; any other value is refused with `E_VERSION` |
 | 3 | 1 | minor version | 0; a newer minor is accepted |
 | 4 | 2 | type | see below |
 | 6 | 2 | flags | bit 0 marks a response; other bits must be 0 |
 | 8 | 4 | request id | chosen by the host; the response repeats it |
-| 12 | 2 | payload length | must equal the message length minus 16 |
+| 12 | 2 | payload length | must equal the message length minus 20 |
 | 14 | 2 | status | 0 in requests; the result in responses |
+| 16 | 4 | CRC-32C | over bytes 0 to 15 and the payload; a mismatch is `E_INTEGRITY` |
+
+The CRC covers the bytes actually received, so a corrupted length is caught
+as well. Every single-bit error in a message is detected; the test in
+[`test_protocol.c`](../firmware/common/protocol/tests/test_protocol.c) flips
+each bit of a message in turn.
 
 | Type | Request payload | Response payload |
 |---|---|---|
 | 1 HELLO | none | identity, 48 bytes |
-| 2 ECHO | 0 to 480 bytes | the same bytes |
-| 3 STATUS | none | counters, 24 bytes |
+| 2 ECHO | 0 to 476 bytes | the same bytes |
+| 3 STATUS | none | counters and the fault record, 64 bytes |
 | 4 RUN | algorithm, two descriptors, parameters | result, 20 bytes |
 
 **Identity:**
@@ -60,15 +75,40 @@ structure is ever copied to or from the wire.
 
 Reserved bytes must be zero.
 
-**Counters:** uptime in ms, requests, errors, last error, last request id,
-and completed runs.
+Capability bits: 0x1 echo, 0x2 status, 0x4 run, 0x8 checksums, 0x10 cycle
+counts, 0x20 health line, 0x40 RUN budgets measured, 0x80 memory protection
+configured, 0x100 image integrity checked, 0x8000 a fault-injection test
+build.
+
+**Counters** (offsets in bytes):
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 each | uptime in ms, requests, errors, last error, last request id, completed runs |
+| 24 | 1 | firmware state: 0 starting, 1 ok, 2 faulted, 3 halted |
+| 25 | 1 | fault code, below; the first fault is kept |
+| 26 | 2 | reserved, 0 |
+| 28 | 4 | fault detail |
+| 32 | 8 | fault address |
+| 40 | 4 | heartbeat |
+| 44 | 4 | RUN requests that missed their budget |
+| 48 | 4 | requests with a bad message CRC |
+| 52 | 4 | messages from processors other than the Linux host |
+| 56 | 4 | least unused bytes of any guarded stack; 0xFFFFFFFF when unknown |
+| 60 | 4 | completed background checks of the code and constants |
+
+Fault codes: 0 none, 1 integrity, 2 stack, 3 protection, 4 access,
+5 exception, 6 watchdog, 7 layout, 8 self-test, 9 heap, 10 ipc.
+[`docs/safety.md`](safety.md#fault-codes) says what raises each.
 
 **RUN request:**
 
-- algorithm id (4 bytes) and reserved (4 bytes);
+- algorithm id (4 bytes) and time budget in microseconds (4 bytes); a budget
+  of 0 means the watchdog limit of 2,000,000 µs, and a larger budget is
+  refused with `bad field`;
 - input descriptor (24 bytes) and output descriptor (24 bytes);
 - parameter length (2 bytes) and reserved (2 bytes);
-- up to 420 bytes of parameters.
+- up to 416 bytes of parameters.
 
 **Descriptor:**
 
@@ -100,10 +140,13 @@ and completed runs.
 | 11 | internal error | the algorithm or runtime failed |
 | 12 | timeout | host only: no response in time |
 | 13 | transport error | host only: the endpoint or device failed |
+| 14 | message corrupted | the message CRC does not match |
+| 15 | firmware faulted | the firmware is in its safe state; RUN is refused until a restart |
+| 16 | deadline missed | the algorithm finished after its budget; its output is invalid |
 
-The DSP answers every request that is at least 16 bytes long. Even a request
-with bad magic gets a response carrying the raw type and request id, so the
-host can match it. The fuzz test in
+The DSP answers every request that is at least 20 bytes long. Even a rejected
+request gets a response carrying the raw type and request id, so the host can
+match it. The fuzz test in
 [`test_protocol.c`](../firmware/common/protocol/tests/test_protocol.c) sends
 200,000 random requests and requires a valid response to each.
 
@@ -116,7 +159,7 @@ host can match it. The fuzz test in
   `unknown type`.
 - Capability bits announce optional features. The host checks a bit before
   using the feature.
-- Reserved fields must be zero in 1.0, so a later minor can give them a
+- Reserved fields must be zero in 2.0, so a later minor can give them a
   meaning without old firmware misreading them.
 
 ## Buffer ownership and caches
@@ -140,7 +183,7 @@ These transitions are the only ones allowed:
 | HOST | submit | TO_DSP |
 | HOST | release | FREE |
 | TO_DSP | DSP accepts | DSP |
-| TO_DSP | DSP rejects the request | HOST |
+| TO_DSP | DSP rejects the request, or answers with an error | HOST |
 | DSP | DSP completes | TO_HOST |
 | TO_HOST | host invalidates | HOST |
 | TO_DSP, DSP, or TO_HOST | timeout | QUARANTINED |
@@ -173,13 +216,17 @@ the whole 6 × 9 table.
   one, and counts it.
 - **Malformed input:** a malformed response is reported as an error and is
   never interpreted.
+- **Late results:** a RUN that answers `deadline missed` or `firmware faulted`
+  returns its buffers to the host with undefined output contents. The DSP
+  wrote back its cache over the output range either way, so the next RUN
+  starts from a clean state.
 
 ## Decision needed
 
 Task 027 is a maintainer decision. Nothing above depends on the open question
 except the Linux side of the shared region.
 
-**Recommended:** accept protocol 1.0 as specified, with the upstream
+**Recommended:** accept protocol 2.0 as specified, with the upstream
 `rpmsg_char` interface used directly. It is in mainline Linux, and TI's own
 `ti-rpmsg-char` library is a thin wrapper over it. That avoids one more
 licensed input. Firmware keeps TI's IPC library on the DSP side.

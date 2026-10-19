@@ -166,7 +166,7 @@ static sdos_status request(sdos_dsp *dsp, uint16_t type, const uint8_t *payload,
 {
     uint8_t message[SDOS_MSG_MAX];
     uint8_t response[SDOS_MSG_MAX];
-    sdos_header header = {SDOS_PROTO_MAJOR, SDOS_PROTO_MINOR, type, 0u, 0u, length, 0u};
+    sdos_header header = {SDOS_PROTO_MAJOR, SDOS_PROTO_MINOR, type, 0u, 0u, length, 0u, 0u};
     uint64_t deadline;
     size_t n;
     sdos_status status;
@@ -414,6 +414,7 @@ sdos_status sdos_dsp_run(sdos_dsp *dsp, uint32_t algorithm, sdos_buffer *input, 
     (void)refresh(dsp, output);
     memset(&rq, 0, sizeof rq);
     rq.algorithm = algorithm;
+    rq.budget_us = dsp->run_budget_us;
     rq.input = describe(input, ++input->sequence);
     rq.input.checksum = sdos_crc32c(0u, input->data, input->length);
     rq.output = describe(output, ++output->sequence);
@@ -470,4 +471,40 @@ sdos_status sdos_dsp_run(sdos_dsp *dsp, uint32_t algorithm, sdos_buffer *input, 
 sdos_status sdos_dsp_trace(sdos_dsp *dsp, char *text, size_t capacity, size_t *length)
 {
     return dsp->ops->trace(dsp, text, capacity, length);
+}
+
+sdos_status sdos_dsp_set_run_budget(sdos_dsp *dsp, uint32_t budget_us)
+{
+    if (budget_us > SDOS_WATCHDOG_US) {
+        return sdos__fail(dsp, SDOS_E_FIELD, "a RUN budget is at most %u us, the watchdog limit",
+                          (unsigned)SDOS_WATCHDOG_US);
+    }
+    dsp->run_budget_us = budget_us;
+    return SDOS_OK;
+}
+
+sdos_status sdos_dsp_health(sdos_dsp *dsp, sdos_health *health)
+{
+    char text[SDOS_HEALTH_SIZE + 1u];
+    sdos_status status = SDOS_E_STATE;
+    int attempt;
+    for (attempt = 0; attempt < 5 && status == SDOS_E_STATE; attempt++) {
+        size_t n = 0u;
+        status = dsp->ops->trace(dsp, text, sizeof text, &n);
+        if (status != SDOS_OK) {
+            return status;
+        }
+        status = sdos_health_parse(text, n, health);
+    }
+    switch (status) {
+    case SDOS_OK:
+        return SDOS_OK;
+    case SDOS_E_MAGIC:
+        return sdos__fail(dsp, status, "the %s trace has no health line; the firmware predates protocol 2.0",
+                          dsp->core->name);
+    case SDOS_E_STATE:
+        return sdos__fail(dsp, status, "the %s health line kept changing while it was read", dsp->core->name);
+    default:
+        return sdos__fail(dsp, status, "the %s health line is malformed", dsp->core->name);
+    }
 }

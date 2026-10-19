@@ -37,6 +37,7 @@ struct sdos_dsp {
     void *backend;
     char root[SDOS_PATH_MAX];
     uint32_t timeout_ms;
+    uint32_t run_budget_us;
     uint32_t next_request;
     uint32_t generation;
     uint32_t stale_responses;

@@ -3,7 +3,7 @@
  *
  * A DSP is named by its logical name (c66x_0, c66x_1, c71x_0), never by a
  * remoteprocN number. The library hides remoteproc sysfs and rpmsg_char, and
- * speaks protocol 1.0 (docs/protocol.md) to the firmware.
+ * speaks protocol 2.0 (docs/protocol.md) to the firmware.
  *
  * Two backends share this API: "linux" drives the real kernel interfaces, and
  * "mock" runs the DSP runtime in-process so applications and tests work on a
@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-#define SDOS_DSP_API_VERSION 0x000100u /* 0.1.0: provisional until Task 027 is accepted */
+#define SDOS_DSP_API_VERSION 0x000200u /* 0.2.0: provisional until Task 027 is accepted */
 
 typedef struct sdos_dsp sdos_dsp;
 
@@ -89,6 +89,16 @@ sdos_status sdos_dsp_buffer_acquire(sdos_dsp *dsp, uint32_t offset, uint32_t len
 sdos_status sdos_dsp_buffer_release(sdos_dsp *dsp, sdos_buffer *buffer);
 sdos_status sdos_dsp_run(sdos_dsp *dsp, uint32_t algorithm, sdos_buffer *input, sdos_buffer *output,
                          const void *params, size_t params_length, sdos_run_result *result);
+
+/* Time budget for each later RUN on this handle, in microseconds; 0 (the
+ * default) means the firmware's watchdog limit, SDOS_WATCHDOG_US. A RUN that
+ * finishes late fails with SDOS_E_DEADLINE and its output is invalid. */
+sdos_status sdos_dsp_set_run_budget(sdos_dsp *dsp, uint32_t budget_us);
+
+/* The firmware's health line (docs/safety.md), read through the remoteproc
+ * trace, so it works even when the firmware no longer answers messages. A
+ * line being rewritten while read is read again. */
+sdos_status sdos_dsp_health(sdos_dsp *dsp, sdos_health *health);
 
 /* The firmware trace buffer as text, newest data last. */
 sdos_status sdos_dsp_trace(sdos_dsp *dsp, char *text, size_t capacity, size_t *length);

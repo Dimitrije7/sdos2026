@@ -13,6 +13,7 @@ static uint8_t region[REGION];
 static sdos_runtime rt;
 static size_t invalidated_offset, invalidated_length, written_offset, written_length;
 static uint64_t clock_now;
+static uint32_t next_budget_us;
 
 static void invalidate(void *address, size_t length)
 {
@@ -50,6 +51,8 @@ static void reset(void)
     rt.cache_invalidate = invalidate;
     rt.cache_writeback = writeback;
     rt.cycles = cycles;
+    next_budget_us = 0u;
+    sdos_runtime_ready(&rt);
 }
 
 /* Send one request; return the response status and copy its payload out. */
@@ -58,7 +61,7 @@ static sdos_status call(uint16_t type, const uint8_t *payload, uint16_t length, 
     static uint32_t id = 100u;
     uint8_t msg[SDOS_MSG_MAX];
     uint8_t reply[SDOS_MSG_MAX];
-    sdos_header h = {SDOS_PROTO_MAJOR, SDOS_PROTO_MINOR, type, 0u, ++id, length, 0u};
+    sdos_header h = {SDOS_PROTO_MAJOR, SDOS_PROTO_MINOR, type, 0u, ++id, length, 0u, 0u};
     size_t n = sdos_encode(&h, payload, msg, sizeof msg);
     size_t r = sdos_runtime_handle(&rt, msg, n, reply, sizeof reply);
     sdos_header got;
@@ -86,6 +89,7 @@ static sdos_status run(uint32_t algorithm, sdos_descriptor in, sdos_descriptor o
     sdos_status st;
     memset(&rq, 0, sizeof rq);
     rq.algorithm = algorithm;
+    rq.budget_us = next_budget_us;
     rq.input = in;
     rq.output = out;
     rq.params_length = params_length;
@@ -236,7 +240,7 @@ static void test_responses_are_never_handled_as_requests(void)
 {
     uint8_t msg[SDOS_MSG_MAX];
     uint8_t reply[SDOS_MSG_MAX];
-    sdos_header h = {1u, 0u, SDOS_MSG_ECHO, SDOS_FLAG_RESPONSE, 5u, 0u, 0u};
+    sdos_header h = {SDOS_PROTO_MAJOR, 0u, SDOS_MSG_ECHO, SDOS_FLAG_RESPONSE, 5u, 0u, 0u, 0u};
     sdos_header got;
     size_t n;
     reset();
@@ -244,6 +248,85 @@ static void test_responses_are_never_handled_as_requests(void)
     n = sdos_runtime_handle(&rt, msg, n, reply, sizeof reply);
     CHECK("a response sent to the DSP is refused",
           sdos_decode_header(reply, n, &got) == SDOS_OK && got.status == SDOS_E_FIELD && got.request_id == 5u);
+}
+
+static void test_budget_and_watchdog(void)
+{
+    uint8_t out[SDOS_PAYLOAD_MAX];
+    uint16_t n = 0u;
+    sdos_stats stats;
+
+    reset();
+    rt.cycles_per_us = 1u; /* the fake clock advances 1000 cycles per read: every RUN takes 1000 us */
+    next_budget_us = 500u;
+    CHECK_EQ("a run over its budget is reported late", run(SDOS_ALG_COPY, range(0u, 16u), range(256u, 16u), NULL, 0u,
+                                                          NULL), SDOS_E_DEADLINE);
+    CHECK("the late output was still written back", written_offset == 256u && written_length == 16u);
+    next_budget_us = 2000u;
+    CHECK_EQ("a run within its budget succeeds", run(SDOS_ALG_COPY, range(0u, 16u), range(256u, 16u), NULL, 0u, NULL),
+             SDOS_OK);
+    next_budget_us = 0u;
+    CHECK_EQ("no budget means the watchdog limit", run(SDOS_ALG_COPY, range(0u, 16u), range(256u, 16u), NULL, 0u, NULL),
+             SDOS_OK);
+    CHECK_EQ("status succeeds", call(SDOS_MSG_STATUS, NULL, 0u, out, &n), SDOS_OK);
+    CHECK_EQ("status decodes", sdos_stats_decode(out, n, &stats), SDOS_OK);
+    CHECK_EQ("the deadline miss is counted", stats.deadline_misses, 1);
+    CHECK_EQ("a late result is not a fault", stats.state, SDOS_STATE_OK);
+
+    /* A request still running past the watchdog limit faults the firmware. */
+    rt.busy = 1;
+    rt.run_algorithm = 77u;
+    rt.run_start = clock_now;
+    sdos_runtime_monitor(&rt);
+    CHECK_EQ("a short run does not trip the watchdog", rt.stats.state, SDOS_STATE_OK);
+    clock_now += (uint64_t)SDOS_WATCHDOG_US + 1u;
+    sdos_runtime_monitor(&rt);
+    CHECK("the watchdog faults a stuck request", rt.stats.state == SDOS_STATE_FAULTED &&
+                                                     rt.stats.fault == SDOS_FAULT_WATCHDOG &&
+                                                     rt.stats.fault_info == 77u);
+    CHECK_EQ("the monitor advances the heartbeat", rt.stats.heartbeat, 2);
+    rt.busy = 0;
+}
+
+static void test_safe_state(void)
+{
+    uint8_t out[SDOS_PAYLOAD_MAX];
+    uint16_t n = 0u;
+    sdos_stats stats;
+
+    reset();
+    memset(&rt.stats, 0, sizeof rt.stats); /* back to STARTING */
+    CHECK_EQ("RUN waits for the start-up checks", run(SDOS_ALG_COPY, range(0u, 16u), range(256u, 16u), NULL, 0u, NULL),
+             SDOS_E_BUSY);
+    sdos_runtime_fault(&rt, SDOS_FAULT_ACCESS, 0xA7100000u, 0x10u);
+    sdos_runtime_ready(&rt);
+    CHECK_EQ("a fault is not cleared by readiness", rt.stats.state, SDOS_STATE_FAULTED);
+    sdos_runtime_fault(&rt, SDOS_FAULT_STACK, 1u, 2u);
+    CHECK_EQ("RUN is refused in the safe state", run(SDOS_ALG_COPY, range(0u, 16u), range(256u, 16u), NULL, 0u, NULL),
+             SDOS_E_FAULTED);
+    CHECK_EQ("HELLO still answers", call(SDOS_MSG_HELLO, NULL, 0u, out, &n), SDOS_OK);
+    CHECK_EQ("STATUS still answers", call(SDOS_MSG_STATUS, NULL, 0u, out, &n), SDOS_OK);
+    CHECK_EQ("status decodes", sdos_stats_decode(out, n, &stats), SDOS_OK);
+    CHECK("the first fault is kept", stats.state == SDOS_STATE_FAULTED && stats.fault == SDOS_FAULT_ACCESS &&
+                                         stats.fault_address == 0xA7100000u && stats.fault_info == 0x10u);
+}
+
+static void test_corrupted_messages(void)
+{
+    uint8_t msg[SDOS_MSG_MAX];
+    uint8_t reply[SDOS_MSG_MAX];
+    const uint8_t text[4] = {1, 2, 3, 4};
+    sdos_header h = {SDOS_PROTO_MAJOR, 0u, SDOS_MSG_ECHO, 0u, 9u, 4u, 0u, 0u};
+    sdos_header got;
+    size_t n;
+    reset();
+    n = sdos_encode(&h, text, msg, sizeof msg);
+    msg[SDOS_HEADER_SIZE + 1u] ^= 0x40u;
+    n = sdos_runtime_handle(&rt, msg, n, reply, sizeof reply);
+    CHECK("a corrupted request is answered with an integrity error and no payload",
+          sdos_decode_header(reply, n, &got) == SDOS_OK && got.status == SDOS_E_INTEGRITY && got.request_id == 9u &&
+              got.payload_length == 0u);
+    CHECK_EQ("corrupted requests are counted", rt.stats.integrity_errors, 1);
 }
 
 int main(void)
@@ -254,5 +337,8 @@ int main(void)
     test_fir_q15_moving_average();
     test_run_refusals();
     test_responses_are_never_handled_as_requests();
+    test_budget_and_watchdog();
+    test_safe_state();
+    test_corrupted_messages();
     return TEST_EXIT();
 }

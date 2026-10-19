@@ -11,7 +11,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
-from . import course_smoke, dsp_ipc, flash, guards, network, report, serial_capture
+from . import course_smoke, dsp_ipc, fault_injection, flash, guards, network, report, serial_capture
 from .discovery import Discovery, FixtureHost, HostView, LiveHost, discover
 
 
@@ -188,6 +188,21 @@ def cmd_course_smoke(args: argparse.Namespace) -> int:
     return 0 if all(r["passed"] for r in results) else 1
 
 
+def cmd_fault_injection(args: argparse.Namespace) -> int:
+    try:
+        selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
+        results = fault_injection.run(args.host, args.key, args.out, selected)
+    except (ValueError, RuntimeError) as exc:
+        print(f"fault-injection: {exc}", file=sys.stderr)
+        return 1
+    for result in results:
+        missed = [f"{name} ({case['outcome']})" for name, case in result["cases"].items()
+                  if not (case["detected"] and case["recovered"])]
+        print(f"{result['core']:8} {result['runtime']:10} {'pass' if result['passed'] else 'FAIL'}"
+              + (f"  missed: {', '.join(missed)}" if missed else ""))
+    return 0 if all(r["passed"] for r in results) else 1
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="python3 -m tests.target.sdos_board", description=__doc__)
     parser.add_argument("--fixture", type=Path, help="read a recorded host listing instead of this machine")
@@ -243,6 +258,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--core", action="append", help="c66x_0, c66x_1, or c71x_0; repeat; default all")
     sub.add_argument("--out", type=Path, required=True, help="directory for per-core, per-runtime results")
     sub.set_defaults(handler=cmd_course_smoke)
+
+    sub = commands.add_parser("fault-injection", help="Task 042: every safety mechanism catches its fault")
+    sub.add_argument("--host", default="192.168.7.2")
+    sub.add_argument("--key", type=Path, help="SSH private key for root on the board")
+    sub.add_argument("--core", action="append", help="c66x_0, c66x_1, or c71x_0; repeat; default all")
+    sub.add_argument("--out", type=Path, required=True, help="directory for per-core, per-runtime results")
+    sub.set_defaults(handler=cmd_fault_injection)
 
     sub = commands.add_parser("flash", help="write a pinned image to an approved card and verify it")
     sub.add_argument("--id", required=True, help="exact /dev/disk/by-id name of the card")

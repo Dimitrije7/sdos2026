@@ -89,18 +89,21 @@ comma-separated list.
 |---|---|---|
 | `host` | `host-{gcc,clang}-{debug,release}`, `host-gcc-sanitize`, `host-gcc-coverage` | Libraries and unit tests for the PC; `sanitize` adds AddressSanitizer and UndefinedBehaviorSanitizer, and `coverage` writes `build/host-gcc-coverage/coverage.json` and prints line and branch coverage per file |
 | `board-host` | `aarch64-gcc-{debug,release}` | Linux programs for the board's Cortex-A72 cores |
-| `firmware` | `{c66x_0,c66x_1,c71x_0}-{freertos,baremetal}-{debug,release}` | Course firmware for each DSP, built with the TI C6000 or C7000 compiler |
+| `firmware` | `{c66x_0,c66x_1,c71x_0}-{freertos,baremetal}-{debug,release}`, the example layouts `c66x_0-baremetal-release-l2` and `c71x_0-freertos-release-ddr`, and `{c66x_0,c66x_1,c71x_0}-{freertos,baremetal}-fi` | Course firmware for each DSP, built with the TI C6000 or C7000 compiler; the `-fi` presets are fault-injection test firmware for the board suite ([`safety.md`](safety.md#fault-injection)) |
 | `ti-reference` | `ti-reference-{c66x_0,c66x_1,c71x_0}-{debug,release}` | TI's IPC echo firmware rebuilt from the pinned PDK |
-| `all` | All 26 | |
+| `all` | All 34 | |
 
 Each preset builds into `build/<preset>/` and writes `compile_commands.json`
 there for editors.
 
 A firmware preset produces `build/<preset>/firmware/sdos-<core>-<runtime>.xe66`
-(`.xe71` for the C71x) and its map file. Every build checks the result with
-[`ci/firmware_elf.py`](../ci/firmware_elf.py) and fails when a segment leaves
-the core's carve-out or the resource table is missing; see
-[`firmware.md`](firmware.md). Without the TI layer, configuring a firmware
+(`.xe71` for the C71x) and its map file. Every build runs
+[`ci/firmware_postlink.py`](../ci/firmware_postlink.py), which enforces the
+memory-protection rules and writes the integrity record, then checks the
+stripped file with [`ci/firmware_elf.py`](../ci/firmware_elf.py). The build
+fails when a segment leaves the core's carve-out, the resource table is
+missing, or a protection rule is broken; see [`firmware.md`](firmware.md) and
+[`safety.md`](safety.md). Without the TI layer, configuring a firmware
 preset stops with a message naming the missing compiler. A compiler whose
 version differs from the manifest is rejected.
 

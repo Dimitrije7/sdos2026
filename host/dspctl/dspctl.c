@@ -1,21 +1,25 @@
 /* dspctl: list, load, start, stop, and talk to the DSPs. See docs/dspctl.md.
  *
- * Exit status: 0 success, 1 the operation failed, 2 usage error. */
+ * Exit status: 0 success, 1 the operation failed, 2 usage error, 3 the
+ * firmware reports a fault or stopped advancing its heartbeat. */
 #define _POSIX_C_SOURCE 200809L
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "sdos/dsp.h"
 #include "sdos/runtime.h"
 
 #define EXIT_FAIL 1
 #define EXIT_USAGE 2
+#define EXIT_FAULT 3
 
 static const char usage[] =
-    "usage: dspctl [--backend linux|mock] [--root DIR] [--timeout MS] [--json] <command> [args]\n"
+    "usage: dspctl [--backend linux|mock] [--root DIR] [--timeout MS] [--budget-us US] [--json]\n"
+    "              <command> [args]\n"
     "\n"
     "  list                          every DSP, its state, and its firmware\n"
     "  status <dsp>                  state, and identity and counters when running\n"
@@ -24,17 +28,24 @@ static const char usage[] =
     "  stop <dsp>                    stop the DSP\n"
     "  recover <dsp>                 stop if running or crashed, then start\n"
     "  trace <dsp>                   print the firmware trace buffer\n"
+    "  health <dsp>                  state, fault record, heartbeat, and stack margin from the trace\n"
+    "  supervise <dsp> [--interval MS] [--stale MS] [--restart] [--count N]\n"
+    "                                watch the health line; on a fault or a stopped heartbeat,\n"
+    "                                print the trace and restart the DSP (--restart) or exit 3\n"
     "  echo <dsp> [text]             send text and print the reply\n"
     "  run <dsp> <algorithm> <in> <out> [gain | coefficients]\n"
     "                                run copy, gain_q15 (gain), or fir_q15 (comma-separated\n"
-    "                                Q15 coefficients) on file <in>, write <out>\n"
+    "                                Q15 coefficients) on file <in>, write <out>; a numeric\n"
+    "                                algorithm id takes its parameters as hexadecimal bytes\n"
     "\n"
     "<dsp> is c66x_0, c66x_1, or c71x_0. The mock backend runs the DSP runtime on\n"
-    "this computer; it needs no board. --json makes list and status print one JSON\n"
-    "object for scripts.\n";
+    "this computer; it needs no board. --json makes list, status, and health print one\n"
+    "JSON object for scripts. --budget-us sets the time budget of run (default: the\n"
+    "firmware watchdog limit); a late result fails with \"deadline missed\".\n";
 
 typedef struct cli {
     sdos_dsp_options options;
+    uint32_t budget_us;
     int json;
 } cli;
 
@@ -193,7 +204,16 @@ static int cmd_status_json(sdos_dsp *dsp)
                "\"last_error\": ",
                (unsigned)stats.uptime_ms, (unsigned)stats.requests, (unsigned)stats.errors, (unsigned)stats.runs);
         json_string(sdos_status_name(stats.last_error));
-        printf("}");
+        printf(", \"state\": ");
+        json_string(sdos_state_name(stats.state));
+        printf(", \"fault\": ");
+        json_string(sdos_fault_name(stats.fault));
+        printf(", \"fault_info\": %u, \"fault_address\": %llu, \"heartbeat\": %u, \"deadline_misses\": %u, "
+               "\"integrity_errors\": %u, \"foreign_messages\": %u, \"stack_margin\": %u, "
+               "\"integrity_passes\": %u}",
+               (unsigned)stats.fault_info, (unsigned long long)stats.fault_address, (unsigned)stats.heartbeat,
+               (unsigned)stats.deadline_misses, (unsigned)stats.integrity_errors, (unsigned)stats.foreign_messages,
+               (unsigned)stats.stack_margin, (unsigned)stats.integrity_passes);
     }
     printf("}\n");
     return 0;
@@ -222,7 +242,161 @@ static int cmd_status(sdos_dsp *dsp)
     }
     printf("  requests   %u, errors %u, runs %u, last error %s\n", (unsigned)stats.requests,
            (unsigned)stats.errors, (unsigned)stats.runs, sdos_status_name(stats.last_error));
+    printf("  state      %s", sdos_state_name(stats.state));
+    if (stats.fault != (uint8_t)SDOS_FAULT_NONE) {
+        printf(", fault %s at 0x%llx (info 0x%x)", sdos_fault_name(stats.fault),
+               (unsigned long long)stats.fault_address, (unsigned)stats.fault_info);
+    }
+    printf("\n  safety     heartbeat %u, %u late, %u corrupted messages, %u from other processors, "
+           "%u integrity passes\n",
+           (unsigned)stats.heartbeat, (unsigned)stats.deadline_misses, (unsigned)stats.integrity_errors,
+           (unsigned)stats.foreign_messages, (unsigned)stats.integrity_passes);
     return 0;
+}
+
+static void print_health(const char *name, const sdos_health *h)
+{
+    printf("%s %s, heartbeat %u, up %u ms", name, sdos_state_name(h->state), (unsigned)h->heartbeat,
+           (unsigned)h->uptime_ms);
+    if (h->fault != (uint8_t)SDOS_FAULT_NONE) {
+        printf(", fault %s at 0x%llx (info 0x%x)", sdos_fault_name(h->fault), (unsigned long long)h->fault_address,
+               (unsigned)h->fault_info);
+    }
+    if (h->stack_margin != 0xFFFFFFFFu) {
+        printf(", stack margin %u bytes", (unsigned)h->stack_margin);
+    }
+    printf(", %u integrity passes, %u late\n", (unsigned)h->integrity_passes, (unsigned)h->deadline_misses);
+}
+
+static int healthy(const sdos_health *h)
+{
+    return h->state == (uint8_t)SDOS_STATE_OK || h->state == (uint8_t)SDOS_STATE_STARTING;
+}
+
+static int cmd_health(const cli *c, sdos_dsp *dsp, const char *name)
+{
+    sdos_health h;
+    sdos_status status = sdos_dsp_health(dsp, &h);
+    if (status != SDOS_OK) {
+        return fail(dsp, "health", status);
+    }
+    if (c->json) {
+        printf("{\"name\": ");
+        json_string(name);
+        printf(", \"state\": ");
+        json_string(sdos_state_name(h.state));
+        printf(", \"fault\": ");
+        json_string(sdos_fault_name(h.fault));
+        printf(", \"fault_info\": %u, \"fault_address\": %llu, \"heartbeat\": %u, \"uptime_ms\": %u, "
+               "\"stack_margin\": %u, \"integrity_passes\": %u, \"deadline_misses\": %u}\n",
+               (unsigned)h.fault_info, (unsigned long long)h.fault_address, (unsigned)h.heartbeat,
+               (unsigned)h.uptime_ms, (unsigned)h.stack_margin, (unsigned)h.integrity_passes,
+               (unsigned)h.deadline_misses);
+    } else {
+        print_health(name, &h);
+    }
+    return healthy(&h) ? 0 : EXIT_FAULT;
+}
+
+static uint64_t now_ms(void)
+{
+    struct timespec t;
+    (void)clock_gettime(CLOCK_MONOTONIC, &t);
+    return (uint64_t)t.tv_sec * 1000u + (uint64_t)t.tv_nsec / 1000000u;
+}
+
+static void sleep_ms(uint32_t ms)
+{
+    struct timespec t;
+    t.tv_sec = (time_t)(ms / 1000u);
+    t.tv_nsec = (long)(ms % 1000u) * 1000000L;
+    (void)nanosleep(&t, NULL);
+}
+
+static void dump_trace(sdos_dsp *dsp)
+{
+    static char text[1u << 16];
+    size_t n = 0u;
+    if (sdos_dsp_trace(dsp, text, sizeof text, &n) == SDOS_OK) {
+        fputs("dspctl: trace follows\n", stderr);
+        fwrite(text, 1u, n, stderr);
+    }
+}
+
+/* Supervisor: a fault, a stopped heartbeat, or an unreadable health line is a
+ * failure. The stale limit must exceed the longest RUN on bare metal, whose
+ * loop advances the heartbeat only between requests. */
+static int cmd_supervise(sdos_dsp *dsp, const char *name, int argc, char **argv)
+{
+    uint32_t interval = 200u;
+    uint32_t stale = 3000u;
+    unsigned long count = 0u;
+    unsigned long polls = 0u;
+    int restart = 0;
+    unsigned restarts = 0u;
+    uint32_t last_heartbeat = 0u;
+    uint64_t last_change = now_ms();
+    int have = 0;
+    int i;
+    for (i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "--restart") == 0) {
+            restart = 1;
+        } else if (i + 1 < argc && strcmp(argv[i], "--interval") == 0) {
+            interval = (uint32_t)strtoul(argv[++i], NULL, 10);
+        } else if (i + 1 < argc && strcmp(argv[i], "--stale") == 0) {
+            stale = (uint32_t)strtoul(argv[++i], NULL, 10);
+        } else if (i + 1 < argc && strcmp(argv[i], "--count") == 0) {
+            count = strtoul(argv[++i], NULL, 10);
+        } else {
+            fputs(usage, stderr);
+            return EXIT_USAGE;
+        }
+    }
+    if (interval == 0u || stale <= interval) {
+        fprintf(stderr, "dspctl: --stale must exceed --interval, and both must be positive\n");
+        return EXIT_USAGE;
+    }
+    for (;;) {
+        sdos_health h;
+        const char *problem = NULL;
+        sdos_status status = sdos_dsp_health(dsp, &h);
+        uint64_t now = now_ms();
+        if (status != SDOS_OK) {
+            problem = sdos_dsp_error(dsp);
+        } else if (!healthy(&h)) {
+            problem = "the firmware reports a fault";
+        } else if (!have || h.heartbeat != last_heartbeat) {
+            last_heartbeat = h.heartbeat;
+            last_change = now;
+            have = 1;
+        } else if (now - last_change >= stale) {
+            problem = "the heartbeat stopped";
+        }
+        if (problem != NULL) {
+            printf("%s: %s\n", name, problem);
+            if (status == SDOS_OK) {
+                print_health(name, &h);
+            }
+            dump_trace(dsp);
+            if (!restart) {
+                return EXIT_FAULT;
+            }
+            status = sdos_dsp_recover(dsp, NULL);
+            restarts++;
+            printf("%s: restart %u %s\n", name, restarts, status == SDOS_OK ? "succeeded" : sdos_dsp_error(dsp));
+            if (status != SDOS_OK) {
+                return EXIT_FAIL;
+            }
+            have = 0;
+            last_change = now_ms();
+        }
+        fflush(stdout);
+        polls++;
+        if (count != 0u && polls >= count) {
+            return 0;
+        }
+        sleep_ms(interval);
+    }
 }
 
 static int cmd_echo(sdos_dsp *dsp, int argc, char **argv)
@@ -271,6 +445,23 @@ static long read_file(const char *path, uint8_t *data, size_t capacity)
     }
     (void)fclose(file);
     return (long)n;
+}
+
+/* A whole-string number, decimal or 0x-prefixed. */
+static int parse_id(const char *text, uint32_t *id)
+{
+    char *end = NULL;
+    unsigned long v;
+    if (text[0] < '0' || text[0] > '9') {
+        return 0;
+    }
+    errno = 0;
+    v = strtoul(text, &end, 0);
+    if (errno != 0 || *end != '\0' || v > 0xFFFFFFFFul) {
+        return 0;
+    }
+    *id = (uint32_t)v;
+    return 1;
 }
 
 static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
@@ -325,8 +516,29 @@ static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
         params[1] = (uint8_t)(taps >> 8);
         algorithm = SDOS_ALG_FIR_Q15;
         params_length = 2u + 2u * taps;
+    } else if (parse_id(argv[0], &algorithm)) {
+        const char *hex = argc > 3 ? argv[3] : "";
+        size_t digits = strlen(hex);
+        size_t k;
+        if (digits % 2u != 0u || digits / 2u > SDOS_RUN_PARAMS_MAX) {
+            fprintf(stderr, "dspctl: parameters are an even number of hexadecimal digits, at most %u bytes\n",
+                    (unsigned)SDOS_RUN_PARAMS_MAX);
+            return EXIT_USAGE;
+        }
+        for (k = 0u; k < digits / 2u; k++) {
+            char byte[3] = {hex[2u * k], hex[2u * k + 1u], '\0'};
+            char *end = NULL;
+            unsigned long v = strtoul(byte, &end, 16);
+            if (end != byte + 2) {
+                fprintf(stderr, "dspctl: '%s' is not hexadecimal\n", hex);
+                return EXIT_USAGE;
+            }
+            params[k] = (uint8_t)v;
+        }
+        params_length = digits / 2u;
     } else {
-        fprintf(stderr, "dspctl: unknown algorithm '%s'; known: copy, gain_q15, fir_q15\n", argv[0]);
+        fprintf(stderr, "dspctl: unknown algorithm '%s'; known: copy, gain_q15, fir_q15, or a numeric id\n",
+                argv[0]);
         return EXIT_USAGE;
     }
     status = sdos_dsp_buffer_acquire(dsp, 0u, half, &in);
@@ -361,10 +573,16 @@ static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
     return 0;
 }
 
-static int dispatch(const cli *c, const char *command, sdos_dsp *dsp, int argc, char **argv)
+static int dispatch(const cli *c, const char *command, const char *name, sdos_dsp *dsp, int argc, char **argv)
 {
     sdos_identity id;
     sdos_status status;
+    if (strcmp(command, "health") == 0) {
+        return cmd_health(c, dsp, name);
+    }
+    if (strcmp(command, "supervise") == 0) {
+        return cmd_supervise(dsp, name, argc, argv);
+    }
     if (strcmp(command, "status") == 0) {
         return c->json ? cmd_status_json(dsp) : cmd_status(dsp);
     }
@@ -403,7 +621,8 @@ static int dispatch(const cli *c, const char *command, sdos_dsp *dsp, int argc, 
         return cmd_echo(dsp, argc, argv);
     }
     if (strcmp(command, "run") == 0) {
-        return cmd_run(dsp, argc, argv);
+        status = sdos_dsp_set_run_budget(dsp, c->budget_us);
+        return status == SDOS_OK ? cmd_run(dsp, argc, argv) : fail(dsp, "run", status);
     }
     fprintf(stderr, "dspctl: unknown command '%s'\n\n%s", command, usage);
     return EXIT_USAGE;
@@ -437,6 +656,8 @@ int main(int argc, char **argv)
             c.options.root = argv[i + 1];
         } else if (strcmp(argv[i], "--timeout") == 0) {
             c.options.timeout_ms = (uint32_t)strtoul(argv[i + 1], NULL, 10);
+        } else if (strcmp(argv[i], "--budget-us") == 0) {
+            c.budget_us = (uint32_t)strtoul(argv[i + 1], NULL, 10);
         } else {
             fprintf(stderr, "dspctl: unknown option %s\n\n%s", argv[i], usage);
             return EXIT_USAGE;
@@ -458,7 +679,7 @@ int main(int argc, char **argv)
     if (dsp == NULL) {
         return EXIT_USAGE;
     }
-    result = dispatch(&c, argv[i], dsp, argc - i - 2, argv + i + 2);
+    result = dispatch(&c, argv[i], argv[i + 1], dsp, argc - i - 2, argv + i + 2);
     sdos_dsp_close(dsp);
     return result;
 }

@@ -47,6 +47,78 @@ def elf32(machine: int, loads: list[tuple[int, int]], table: bytes | None) -> by
     return header + programs + (table or b"") + names + b"".join(sections)
 
 
+def image_elf(parts: list[tuple[str, int, int, bytes]], machine: int = 140) -> bytes:
+    """An ELF32 whose parts (name, address, p_flags, bytes) are each one PT_LOAD
+    segment holding one section of that name, with real file contents."""
+    names = b"\0.shstrtab\0" + b"".join(name.encode() + b"\0" for name, _a, _f, _d in parts)
+    phoff = 52
+    data_off = phoff + 32 * len(parts)
+    offsets, blob = [], b""
+    for _name, _address, _flags, data in parts:
+        offsets.append(data_off + len(blob))
+        blob += data
+    names_off = data_off + len(blob)
+    shoff = names_off + len(names)
+    sections = [struct.pack("<10I", *([0] * 10)), struct.pack("<10I", 1, 3, 0, 0, names_off, len(names), 0, 0, 1, 0)]
+    name_at = 11
+    for (name, address, flags, data), offset in zip(parts, offsets):
+        sh_flags = 2 | (4 if flags & 1 else 0) | (1 if flags & 2 else 0)
+        sections.append(struct.pack("<10I", name_at, 1, sh_flags, address, offset, len(data), 0, 0, 4, 0))
+        name_at += len(name) + 1
+    header = b"\x7fELF" + bytes([1, 1, 1]) + bytes(9)
+    header += struct.pack("<HHIIIIIHHHHHH", 2, machine, 1, parts[0][1], phoff, shoff, 0, 52, 32, len(parts), 40,
+                          len(sections), 1)
+    programs = b"".join(struct.pack("<8I", 1, offset, address, address, len(data), len(data), flags, 4)
+                        for (_n, address, flags, data), offset in zip(parts, offsets))
+    return header + programs + blob + names + b"".join(sections)
+
+
+def with_record(data: bytes) -> bytes:
+    """What ci/firmware_postlink.py does: write the record into .sdos.integrity."""
+    elf = firmware_elf.read_elf(data)
+    section = elf.section(firmware_elf.INTEGRITY_SECTION)
+    assert section is not None
+    record = firmware_elf.integrity_record(firmware_elf.integrity_ranges(elf))
+    return data[: section.offset] + record + data[section.offset + len(record) :]
+
+
+class IntegrityTests(unittest.TestCase):
+    CODE = bytes(range(256)) * 4
+    RODATA = b"coefficients" * 10
+
+    def image(self, code_flags: int = 5) -> bytes:
+        marker = struct.pack("<II", firmware_elf.INTEGRITY_MAGIC, 1).ljust(firmware_elf.INTEGRITY_SIZE, b"\0")
+        return image_elf([(".text", 0xA6200000, code_flags, self.CODE), (".const", 0xA6600000, 4, self.RODATA),
+                          (".resource_table", 0xA6111000, 4, b"\x01" + bytes(15)),
+                          (firmware_elf.INTEGRITY_SECTION, 0xA6110000, 4, marker)])
+
+    def test_the_record_covers_read_only_segments_except_linux_written_ones(self) -> None:
+        ranges = firmware_elf.integrity_ranges(firmware_elf.read_elf(self.image()))
+        self.assertEqual([(a, n) for a, n, _c in ranges], [(0xA6200000, len(self.CODE)), (0xA6600000, len(self.RODATA))])
+        self.assertEqual(ranges[0][2], firmware_elf.crc32c(self.CODE))
+
+    def test_a_patched_image_passes_and_any_later_change_is_caught(self) -> None:
+        data = with_record(self.image())
+        self.assertEqual(firmware_elf.integrity_problems(firmware_elf.read_elf(data)), [])
+        code_at = data.index(self.CODE)
+        changed = data[:code_at] + b"\xff" + data[code_at + 1 :]
+        self.assertIn("does not match the image", firmware_elf.integrity_problems(firmware_elf.read_elf(changed))[0])
+
+    def test_an_unpatched_image_is_refused(self) -> None:
+        problems = firmware_elf.integrity_problems(firmware_elf.read_elf(self.image()))
+        self.assertIn("does not match the image", problems[0])
+
+    def test_writable_and_executable_segments_are_refused(self) -> None:
+        problems = firmware_elf.integrity_problems(firmware_elf.read_elf(with_record(self.image(code_flags=7))))
+        self.assertIn("both writable and executable", problems[0])
+
+    def test_the_record_format_matches_the_firmware_parser(self) -> None:
+        record = firmware_elf.integrity_record([(0xA6200000, 16, 0x12345678)])
+        magic, version, count, crc = struct.unpack_from("<IIII", record)
+        self.assertEqual((magic, version, count, len(record)), (0x52494453, 1, 1, firmware_elf.INTEGRITY_SIZE))
+        self.assertEqual(crc, firmware_elf.crc32c(record[:12] + record[16:32]))
+
+
 class FirmwareElfTests(unittest.TestCase):
     def check(self, core: str, data: bytes, require_trace: bool = False) -> firmware_elf.Report:
         with tempfile.TemporaryDirectory() as tmp:

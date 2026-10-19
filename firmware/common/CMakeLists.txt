@@ -8,10 +8,17 @@ target_include_directories(sdos_runtime PUBLIC runtime/include)
 target_link_libraries(sdos_runtime PUBLIC sdos_protocol PRIVATE sdos_fir_q15)
 sdos_target_warnings(sdos_runtime)
 
+# Portable safety mechanisms (docs/safety.md): stacks, image integrity, and
+# protection planning.
+add_library(sdos_safety STATIC safety/src/safety.c)
+target_include_directories(sdos_safety PUBLIC safety/include)
+target_link_libraries(sdos_safety PUBLIC sdos_protocol)
+sdos_target_warnings(sdos_safety)
+
 if(SDOS_PRODUCT STREQUAL "host")
-  foreach(name protocol runtime)
+  foreach(name protocol runtime safety)
     add_executable(test_${name} ${name}/tests/test_${name}.c)
-    target_link_libraries(test_${name} PRIVATE sdos_runtime sdos_test_support)
+    target_link_libraries(test_${name} PRIVATE sdos_runtime sdos_safety sdos_test_support)
     sdos_target_warnings(test_${name})
     add_test(NAME ${name} COMMAND test_${name})
   endforeach()

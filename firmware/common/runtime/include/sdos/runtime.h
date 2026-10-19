@@ -47,8 +47,14 @@ typedef struct sdos_runtime {
     void (*cache_writeback)(void *address, size_t length);
     uint64_t (*cycles)(void);    /* free-running cycle counter; NULL reports 0 */
     uint32_t (*uptime_ms)(void); /* NULL reports 0 */
+    uint32_t cycles_per_us;      /* 0: budgets and the watchdog are not measured */
+    /* stats.state and the fault fields are the fault record; see
+     * sdos_runtime_fault. A monitor task may write them concurrently with the
+     * request handler, so they are only ever set, never cleared. */
     sdos_stats stats;
-    int busy;
+    volatile int busy;
+    volatile uint64_t run_start;  /* cycles when the current RUN started */
+    volatile uint32_t run_algorithm;
     /* Per-instance scratch, so no request state lives on a small DSP stack
      * and two runtimes in one process (the host mock) never share it. */
     sdos_run_request request;
@@ -59,6 +65,19 @@ typedef struct sdos_runtime {
  * or 0 when nothing can be answered (the request was shorter than a header). */
 size_t sdos_runtime_handle(sdos_runtime *runtime, const uint8_t *request, size_t length, uint8_t *response,
                            size_t capacity);
+
+/* Record a fault and enter the safe state: RUN is refused with SDOS_E_FAULTED
+ * while HELLO and STATUS still answer. The first fault is kept and later ones
+ * are dropped: the first is the cause, the rest are usually consequences.
+ * Only a restart clears it. */
+void sdos_runtime_fault(sdos_runtime *runtime, sdos_fault fault, uint64_t address, uint32_t info);
+
+/* Start-up checks passed: accept RUN, unless a fault was recorded. */
+void sdos_runtime_ready(sdos_runtime *runtime);
+
+/* Periodic supervision, from a monitor task or the bare-metal loop: advances
+ * the heartbeat and faults a RUN that has exceeded SDOS_WATCHDOG_US. */
+void sdos_runtime_monitor(sdos_runtime *runtime);
 
 /* Algorithms every course firmware carries. */
 #define SDOS_ALG_COPY 1u     /* output = input */

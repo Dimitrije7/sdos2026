@@ -123,7 +123,8 @@ def resource_table(blob: bytes) -> list[dict[str, Any]]:
     return entries
 
 
-def inspect(path: Path, core: dict[str, Any], require_trace: bool = False, runtime: str | None = None) -> Report:
+def inspect(path: Path, core: dict[str, Any], require_trace: bool = False, runtime: str | None = None,
+            require_integrity: bool = False) -> Report:
     data = path.read_bytes()
     if data[:4] != b"\x7fELF":
         raise ElfError(f"{path.name} is not an ELF file")
@@ -154,6 +155,8 @@ def inspect(path: Path, core: dict[str, Any], require_trace: bool = False, runti
     if entry % alignment:
         report.problems.append(f"entry point {entry:#x} is not {alignment:#x}-aligned, so remoteproc cannot boot "
                                f"{core['name']} from it")
+    if require_integrity:
+        report.problems += integrity_problems(read_elf(data))
     sections = _sections(data, is64, shoff, shentsize, shnum, shstrndx) if shoff else {}
     if ".resource_table" not in sections:
         report.problems.append("no .resource_table section; remoteproc cannot set up RPMsg or trace")
@@ -176,6 +179,179 @@ def inspect(path: Path, core: dict[str, Any], require_trace: bool = False, runti
             report.problems.append(f"trace buffer {trace['address']:#x}+{trace['length']:#x} is not in memory Linux "
                                    f"can read through remoteproc")
     return report
+
+
+@dataclass
+class ElfSegment:
+    kind: int
+    flags: int  # PF_X 1, PF_W 2, PF_R 4
+    offset: int
+    vaddr: int  # run address
+    paddr: int  # load address
+    file_size: int
+    memory_size: int
+
+
+@dataclass
+class ElfSection:
+    name: str
+    kind: int  # SHT_NOBITS 8 has no file bytes
+    flags: int  # SHF_WRITE 1, SHF_ALLOC 2, SHF_EXECINSTR 4
+    address: int
+    offset: int
+    size: int
+
+
+@dataclass
+class ElfFile:
+    data: bytes
+    is64: bool
+    machine: int
+    entry: int
+    segments: list[ElfSegment]
+    sections: list[ElfSection]
+    symbols: dict[str, int]
+
+    def section(self, name: str) -> ElfSection | None:
+        return next((s for s in self.sections if s.name == name), None)
+
+
+def read_elf(data: bytes) -> ElfFile:
+    """Program headers, section headers, and global symbol values of an ELF."""
+    if data[:4] != b"\x7fELF" or data[5] != 1:
+        raise ElfError("not a little-endian ELF file")
+    is64 = data[4] == 2
+    if is64:
+        _t, machine, _v, entry, phoff, shoff, _f, _eh, phentsize, phnum, shentsize, shnum, shstrndx = _unpack(
+            "<HHIQQQIHHHHHH", data, 16)
+    else:
+        _t, machine, _v, entry, phoff, shoff, _f, _eh, phentsize, phnum, shentsize, shnum, shstrndx = _unpack(
+            "<HHIIIIIHHHHHH", data, 16)
+    segments = []
+    for i in range(phnum):
+        if is64:
+            kind, flags, off, vaddr, paddr, filesz, memsz, _align = _unpack("<IIQQQQQQ", data, phoff + i * phentsize)
+        else:
+            kind, off, vaddr, paddr, filesz, memsz, flags, _align = _unpack("<IIIIIIII", data, phoff + i * phentsize)
+        segments.append(ElfSegment(kind, flags, off, vaddr, paddr, filesz, memsz))
+    raw = []
+    if shoff:
+        fmt = "<IIQQQQIIQQ" if is64 else "<IIIIIIIIII"
+        raw = [_unpack(fmt, data, shoff + i * shentsize) for i in range(shnum)]
+    def name_at(table_offset: int, name_offset: int) -> str:
+        end = data.find(b"\0", table_offset + name_offset)
+        return data[table_offset + name_offset : end].decode("ascii", errors="replace")
+    sections = []
+    if raw and shstrndx < len(raw):
+        names = raw[shstrndx][4]
+        for h in raw:
+            sections.append(ElfSection(name_at(names, h[0]), h[1], h[2], h[3], h[4], h[5]))
+    symbols: dict[str, int] = {}
+    for h in raw:
+        if h[1] != 2:  # SHT_SYMTAB
+            continue
+        strtab = raw[h[6]][4]
+        entsize = h[9] or (24 if is64 else 16)
+        for i in range(h[5] // entsize):
+            at = h[4] + i * entsize
+            if is64:
+                name, info, _other, shndx, value, _size = _unpack("<IBBHQQ", data, at)
+            else:
+                name, value, _size, info, _other, shndx = _unpack("<IIIBBH", data, at)
+            if name and info >> 4 in (1, 2) and shndx != 0:  # defined global or weak
+                symbols[name_at(strtab, name)] = value
+    return ElfFile(data, is64, machine, entry, segments, sections, symbols)
+
+
+# Integrity record (firmware/common/safety/include/sdos/safety.h).
+INTEGRITY_SECTION = ".sdos.integrity"
+INTEGRITY_MAGIC = 0x52494453
+INTEGRITY_MAX = 32
+INTEGRITY_SIZE = 16 + 16 * INTEGRITY_MAX
+# Read-only sections that Linux writes at run time, or that hold the record.
+INTEGRITY_EXCLUDED = (".resource_table", INTEGRITY_SECTION)
+
+
+def crc32c(data: bytes, crc: int = 0) -> int:
+    crc ^= 0xFFFFFFFF
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            crc = (crc >> 1) ^ (0x82F63B78 if crc & 1 else 0)
+    return crc ^ 0xFFFFFFFF
+
+
+def _table_entry(index: int) -> int:
+    crc = index
+    for _ in range(8):
+        crc = (crc >> 1) ^ (0x82F63B78 if crc & 1 else 0)
+    return crc
+
+
+_CRC_TABLE = [_table_entry(i) for i in range(256)]
+
+
+def _crc32c_fast(data: bytes) -> int:
+    table = _CRC_TABLE
+    crc = 0xFFFFFFFF
+    for byte in data:
+        crc = table[(crc ^ byte) & 0xFF] ^ (crc >> 8)
+    return crc ^ 0xFFFFFFFF
+
+
+def integrity_ranges(elf: ElfFile) -> list[tuple[int, int, int]]:
+    """(address, length, CRC-32C) for every read-only loaded segment.
+
+    A segment copied before main() (load and run addresses differ) is checked
+    at both addresses, unless something else is placed at its run address,
+    as in a linker UNION, which would overwrite the copy."""
+    excluded = [s for s in elf.sections if s.name in INTEGRITY_EXCLUDED and s.kind != 8 and s.size]
+    allocated = [s for s in elf.sections if s.flags & 2 and s.size]
+    ranges = []
+    for seg in elf.segments:
+        if seg.kind != PT_LOAD or seg.file_size == 0 or seg.flags & 2:
+            continue
+        if any(seg.offset <= s.offset < seg.offset + seg.file_size for s in excluded):
+            continue
+        crc = _crc32c_fast(elf.data[seg.offset : seg.offset + seg.file_size])
+        ranges.append((seg.paddr, seg.file_size, crc))
+        if seg.vaddr != seg.paddr:
+            run_end = seg.vaddr + seg.file_size
+            shared = [s for s in allocated if s.address < run_end and seg.vaddr < s.address + s.size
+                      and not seg.offset <= s.offset < seg.offset + seg.file_size]
+            if not shared:
+                ranges.append((seg.vaddr, seg.file_size, crc))
+    return sorted(ranges)
+
+
+def integrity_record(ranges: list[tuple[int, int, int]]) -> bytes:
+    if not 0 < len(ranges) <= INTEGRITY_MAX:
+        raise ElfError(f"{len(ranges)} read-only ranges; the integrity record holds 1 to {INTEGRITY_MAX}")
+    body = b"".join(struct.pack("<QII", a, n, c) for a, n, c in ranges)
+    head = struct.pack("<III", INTEGRITY_MAGIC, 1, len(ranges))
+    crc = _crc32c_fast(head + body)
+    return (head + struct.pack("<I", crc) + body).ljust(INTEGRITY_SIZE, b"\0")
+
+
+def integrity_problems(elf: ElfFile) -> list[str]:
+    """The record in the file matches the file, and no segment is writable and executable."""
+    problems = []
+    for seg in elf.segments:
+        if seg.kind == PT_LOAD and seg.memory_size and seg.flags & 3 == 3:
+            problems.append(f"segment {seg.paddr:#x} is both writable and executable")
+    section = elf.section(INTEGRITY_SECTION)
+    if section is None or section.kind == 8:
+        problems.append(f"no {INTEGRITY_SECTION} section; the firmware cannot check its own image")
+        return problems
+    stored = elf.data[section.offset : section.offset + INTEGRITY_SIZE]
+    try:
+        expected = integrity_record(integrity_ranges(elf))
+    except ElfError as exc:
+        return problems + [str(exc)]
+    if stored != expected:
+        problems.append("the integrity record does not match the image: run ci/firmware_postlink.py after "
+                        "linking and do not modify the file afterwards")
+    return problems
 
 
 def _hex(value: Any) -> int:
@@ -243,10 +419,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--require-trace", action="store_true", help="course firmware must expose a trace buffer")
     parser.add_argument("--runtime", choices=("freertos", "baremetal"),
                         help="the firmware's runtime, which decides how much local SRAM is cache")
+    parser.add_argument("--require-integrity", action="store_true",
+                        help="course firmware must carry a matching integrity record and keep W^X")
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args(argv)
     try:
-        report = inspect(args.elf, load_core(args.core), args.require_trace, args.runtime)
+        report = inspect(args.elf, load_core(args.core), args.require_trace, args.runtime, args.require_integrity)
     except (ElfError, ValueError, OSError) as exc:
         print(f"firmware check: {exc}", file=sys.stderr)
         return 1

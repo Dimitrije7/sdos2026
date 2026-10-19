@@ -325,6 +325,66 @@
       "cacheVariables": {
         "SDOS_CORE": "c71x_0"
       }
+    },
+    {
+      "name": "c66x_0-freertos-fi",
+      "displayName": "c66x_0 firmware, FreeRTOS, release, fault injection (connected-board suite only)",
+      "inherits": [
+        "c66x_0-freertos-release"
+      ],
+      "cacheVariables": {
+        "SDOS_FAULT_INJECTION": "ON"
+      }
+    },
+    {
+      "name": "c66x_0-baremetal-fi",
+      "displayName": "c66x_0 firmware, bare metal, release, fault injection (connected-board suite only)",
+      "inherits": [
+        "c66x_0-baremetal-release"
+      ],
+      "cacheVariables": {
+        "SDOS_FAULT_INJECTION": "ON"
+      }
+    },
+    {
+      "name": "c66x_1-freertos-fi",
+      "displayName": "c66x_1 firmware, FreeRTOS, release, fault injection (connected-board suite only)",
+      "inherits": [
+        "c66x_1-freertos-release"
+      ],
+      "cacheVariables": {
+        "SDOS_FAULT_INJECTION": "ON"
+      }
+    },
+    {
+      "name": "c66x_1-baremetal-fi",
+      "displayName": "c66x_1 firmware, bare metal, release, fault injection (connected-board suite only)",
+      "inherits": [
+        "c66x_1-baremetal-release"
+      ],
+      "cacheVariables": {
+        "SDOS_FAULT_INJECTION": "ON"
+      }
+    },
+    {
+      "name": "c71x_0-freertos-fi",
+      "displayName": "c71x_0 firmware, FreeRTOS, release, fault injection (connected-board suite only)",
+      "inherits": [
+        "c71x_0-freertos-release"
+      ],
+      "cacheVariables": {
+        "SDOS_FAULT_INJECTION": "ON"
+      }
+    },
+    {
+      "name": "c71x_0-baremetal-fi",
+      "displayName": "c71x_0 firmware, bare metal, release, fault injection (connected-board suite only)",
+      "inherits": [
+        "c71x_0-baremetal-release"
+      ],
+      "cacheVariables": {
+        "SDOS_FAULT_INJECTION": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -415,6 +475,30 @@
     {
       "name": "c71x_0-baremetal-release",
       "configurePreset": "c71x_0-baremetal-release"
+    },
+    {
+      "name": "c66x_0-freertos-fi",
+      "configurePreset": "c66x_0-freertos-fi"
+    },
+    {
+      "name": "c66x_0-baremetal-fi",
+      "configurePreset": "c66x_0-baremetal-fi"
+    },
+    {
+      "name": "c66x_1-freertos-fi",
+      "configurePreset": "c66x_1-freertos-fi"
+    },
+    {
+      "name": "c66x_1-baremetal-fi",
+      "configurePreset": "c66x_1-baremetal-fi"
+    },
+    {
+      "name": "c71x_0-freertos-fi",
+      "configurePreset": "c71x_0-freertos-fi"
+    },
+    {
+      "name": "c71x_0-baremetal-fi",
+      "configurePreset": "c71x_0-baremetal-fi"
     }
   ],
   "testPresets": [

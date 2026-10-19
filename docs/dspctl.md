@@ -3,7 +3,7 @@
 `dspctl` lists, loads, starts, stops, and talks to the three DSPs of the
 BeagleBone AI-64. It uses [`libsdos_dsp`](../host/libsdos_dsp/include/sdos/dsp.h),
 the same library a lab application links, and speaks
-[protocol 1.0](protocol.md).
+[protocol 2.0](protocol.md).
 
 A DSP is always named by its logical name, never by a `remoteprocN` number:
 
@@ -33,16 +33,25 @@ A DSP is always named by its logical name, never by a `remoteprocN` number:
 | `dspctl start <dsp>` | Start and wait until the firmware answers HELLO |
 | `dspctl stop <dsp>` | Stop the DSP |
 | `dspctl recover <dsp>` | Stop it if running or crashed, then start it |
-| `dspctl trace <dsp>` | Print the firmware trace buffer |
+| `dspctl trace <dsp>` | Print the firmware trace buffer, which starts with the health line |
+| `dspctl health <dsp>` | The firmware's state, fault record, heartbeat, and stack margin, read from the trace without IPC |
+| `dspctl supervise <dsp> [--interval MS] [--stale MS] [--restart] [--count N]` | Watch the health line; on a fault or a heartbeat stopped for `--stale` ms (default 3000), print the trace and restart the DSP (`--restart`) or exit 3 |
 | `dspctl echo <dsp> [text]` | Send text and print the reply |
-| `dspctl run <dsp> <algorithm> <in> <out> [gain \| coefficients]` | Run `copy`, `gain_q15`, or `fir_q15` over a file |
+| `dspctl run <dsp> <algorithm> <in> <out> [gain \| coefficients \| hex]` | Run `copy`, `gain_q15`, or `fir_q15` over a file; a numeric algorithm id takes its parameters as hexadecimal bytes |
 
 Options go before the command: `--backend linux|mock` (default `linux`),
-`--timeout <ms>` (default 2000), `--json`, and `--root <dir>`, which tests use
-to point the tool at a fake sysfs tree. With `--json`, `list` prints
+`--timeout <ms>` (default 2000), `--budget-us <us>`, `--json`, and
+`--root <dir>`, which tests use to point the tool at a fake sysfs tree.
+`--budget-us` is the time budget of `run`, at most 2,000,000; the default 0
+means the firmware's watchdog limit. With `--json`, `list` prints
 `{"dsps": [{"name", "device", "remoteproc", "state", "firmware"}, ...]}`, and
 `status` prints the same fields for one DSP, plus `identity` and `stats` when
-it is running.
+it is running. `health --json` prints the decoded health line.
+
+`supervise` must use a `--stale` limit longer than the longest RUN on bare
+metal, whose loop advances the heartbeat only between requests.
+[`safety.md`](safety.md) describes the health line, the fault codes, and the
+mechanisms behind them.
 
 `load` copies the file to `/lib/firmware/sdos/<dsp>.xe66` (`.xe71` for the
 C71x) and selects it. Before that, it refuses:
@@ -71,6 +80,11 @@ C66x_0 (4d80800000.dsp) running
   runtime    mock 0.1.0
   region     1048576 bytes, 128-byte alignment
   requests   2, errors 0, runs 0, last error ok
+  state      ok
+  safety     heartbeat 2, 0 late, 0 corrupted messages, 0 from other processors, 0 integrity passes
+
+$ dspctl --backend mock health c66x_0
+c66x_0 ok, heartbeat 1, up 5000 ms, 0 integrity passes, 0 late
 
 $ dspctl --backend mock echo c71x_0 hello from linux
 hello from linux
@@ -93,6 +107,7 @@ little-endian integers; the result is rounded half up and saturated.
 | 0 | Success |
 | 1 | The operation failed; the message says why |
 | 2 | Usage error, an unknown DSP, or an unknown algorithm |
+| 3 | `health` or `supervise`: the firmware reports a fault, or its heartbeat stopped |
 
 ## Failure modes and recovery
 
@@ -106,6 +121,10 @@ little-endian integers; the result is rounded half up and saturated.
 | `crashed while starting` | The firmware faulted during start | `dspctl trace <dsp>`; `dspctl recover <dsp>` after fixing it |
 | `checksum mismatch` | Data changed between the DSP and the host, usually a cache step | Report it with the trace; the buffers are not trusted |
 | `bad buffer state` | A buffer is still quarantined after a timeout | `dspctl recover <dsp>` frees it; acquire it again |
+| `firmware faulted` | A safety mechanism found a fault; the firmware refuses RUN | `dspctl health <dsp>` names the fault; fix the cause, then `dspctl recover <dsp>` |
+| `deadline missed` | The algorithm finished after its budget; its output is discarded | Raise `--budget-us` or make the algorithm faster |
+| `message corrupted` | A message failed its CRC | Count it with `dspctl status`; repeated corruption is a fault to report with the trace |
+| `the ... trace has no health line` | The firmware predates protocol 2.0 | Rebuild it from this repository |
 | `shared buffers on the board wait for the Task 027 data-path decision` | `run` on the board before the data path exists | Use `--backend mock` on the PC for now |
 
 ## Status

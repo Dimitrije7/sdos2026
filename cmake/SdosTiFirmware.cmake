@@ -39,15 +39,28 @@ function(sdos_add_ti_firmware target)
   set(pdk "${SDOS_PDK}")
   set(examples "${pdk}/ti/drv/ipc/examples/common/j721e/freertos")
 
+  # Fault-injection builds (the *-fi presets) add algorithms that commit
+  # faults on request, for the connected-board suite; never for course use.
+  option(SDOS_FAULT_INJECTION "Build test firmware that can inject faults (docs/safety.md)" OFF)
+  set(suffix "")
+  set(label "${SDOS_RTOS}")
+  if(SDOS_FAULT_INJECTION)
+    list(APPEND ARG_SOURCES "${PROJECT_SOURCE_DIR}/firmware/common/platform/src/fault_injection.c")
+    set(suffix "-fi")
+    set(label "${SDOS_RTOS} FI")
+  endif()
   add_executable(${target} ${ARG_SOURCES})
+  if(SDOS_FAULT_INJECTION)
+    target_compile_definitions(${target} PRIVATE SDOS_FAULT_INJECTION=1)
+  endif()
   # The linked ELF keeps debug data, which differs between builds in a few
   # bytes; the stripped copy is what boards load, and it is reproducible.
-  set(name "sdos-${SDOS_CORE}-${SDOS_RTOS}")
+  set(name "sdos-${SDOS_CORE}-${SDOS_RTOS}${suffix}")
   set_target_properties(${target} PROPERTIES OUTPUT_NAME "${name}.debug" SUFFIX ".${_ext}")
   target_compile_definitions(${target} PRIVATE
     SOC_J721E j721e_evm=j721e_evm ${rtos_define} ${_defines_${SDOS_CORE}}
     SDOS_VERSION_CODE=0x${PROJECT_VERSION_MAJOR}0${PROJECT_VERSION_MINOR}0${PROJECT_VERSION_PATCH}u
-    "SDOS_FIRMWARE_NAME=\"sdos ${PROJECT_VERSION} ${SDOS_RTOS}\"")
+    "SDOS_FIRMWARE_NAME=\"sdos ${PROJECT_VERSION} ${label}\"")
   target_include_directories(${target} PRIVATE
     "${pdk}" "${pdk}/ti/kernel" "${examples}"
     "${pdk}/ti/kernel/freertos/FreeRTOS-LTS/FreeRTOS-Kernel/include"
@@ -61,7 +74,7 @@ function(sdos_add_ti_firmware target)
   else()
     target_compile_options(${target} PRIVATE -mi10)
   endif()
-  target_link_libraries(${target} PRIVATE sdos_runtime sdos_cores sdos_fir_q15)
+  target_link_libraries(${target} PRIVATE sdos_runtime sdos_safety sdos_cores sdos_fir_q15)
   sdos_target_warnings(${target})
 
   # Libraries in TI's link order. TI ships release builds only; debug firmware
@@ -140,11 +153,15 @@ function(sdos_add_ti_firmware target)
     set(strip "${SDOS_TI_ROOT}/bin/strip7x")
   endif()
   set(stripped "$<TARGET_FILE_DIR:${target}>/${name}.${_ext}")
+  # The post-link step enforces the protection rules and writes the integrity
+  # record into the linked ELF before it is stripped (docs/safety.md).
   add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/firmware_postlink.py" "${SDOS_CORE}" "${SDOS_RTOS}"
+            "$<TARGET_FILE:${target}>"
     COMMAND "${strip}" -p "$<TARGET_FILE:${target}>" -o "${stripped}"
-    COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/firmware_elf.py" --require-trace --runtime "${SDOS_RTOS}"
-            "${SDOS_CORE}" "${stripped}"
+    COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/firmware_elf.py" --require-trace --require-integrity
+            --runtime "${SDOS_RTOS}" "${SDOS_CORE}" "${stripped}"
     COMMAND python3 "${PROJECT_SOURCE_DIR}/ci/linker_report.py" "${CMAKE_BINARY_DIR}/${target}.map"
             "$<TARGET_FILE_DIR:${target}>/${name}"
-    COMMENT "Stripping, checking, and reporting ${name}.${_ext} against ${SDOS_CORE}'s memory map")
+    COMMENT "Checking, stripping, and reporting ${name}.${_ext} against ${SDOS_CORE}'s memory map")
 endfunction()

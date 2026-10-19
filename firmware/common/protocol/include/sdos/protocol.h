@@ -1,5 +1,5 @@
 /*
- * SDOS host/DSP protocol, version 1.0. The specification is docs/protocol.md.
+ * SDOS host/DSP protocol, version 2.0. The specification is docs/protocol.md.
  *
  * One source for both sides: Linux (libsdos_dsp) and every DSP firmware build
  * compile this file. It is C99 because the TI C6000 compiler builds in C99
@@ -16,16 +16,19 @@
 extern "C" {
 #endif
 
-#define SDOS_PROTO_MAJOR 1u
+#define SDOS_PROTO_MAJOR 2u
 #define SDOS_PROTO_MINOR 0u
 
 /* Course firmware announces this service at this fixed RPMsg endpoint. */
 #define SDOS_RPMSG_SERVICE "sdos-dsp"
 #define SDOS_RPMSG_ENDPOINT 40u
 
-/* An RPMsg buffer is 512 bytes, 16 of which are the RPMsg header. */
+/* An RPMsg buffer is 512 bytes, 16 of which are the RPMsg header. The SDOS
+ * header ends with a CRC-32C over the header's first 16 bytes and the payload
+ * (end-to-end protection, docs/safety.md). */
 #define SDOS_MSG_MAX 496u
-#define SDOS_HEADER_SIZE 16u
+#define SDOS_HEADER_SIZE 20u
+#define SDOS_HEADER_CRC_OFFSET 16u
 #define SDOS_PAYLOAD_MAX (SDOS_MSG_MAX - SDOS_HEADER_SIZE)
 
 #define SDOS_FLAG_RESPONSE 0x0001u
@@ -53,7 +56,10 @@ typedef enum sdos_status {
     SDOS_E_INTERNAL = 11,  /* the algorithm or runtime failed */
     SDOS_E_TIMEOUT = 12,   /* host side only: no response in time */
     SDOS_E_TRANSPORT = 13, /* host side only: the transport failed */
-    SDOS_STATUS_COUNT = 14
+    SDOS_E_INTEGRITY = 14, /* the message CRC does not match: corrupted in transit */
+    SDOS_E_FAULTED = 15,   /* the firmware detected a fault and is in its safe state */
+    SDOS_E_DEADLINE = 16,  /* the algorithm finished after its time budget; output is invalid */
+    SDOS_STATUS_COUNT = 17
 } sdos_status;
 
 typedef struct sdos_header {
@@ -64,6 +70,7 @@ typedef struct sdos_header {
     uint32_t request_id;
     uint16_t payload_length;
     uint16_t status;
+    uint32_t crc; /* set by sdos_encode, checked by sdos_decode_header */
 } sdos_header;
 
 /* HELLO response payload. */
@@ -78,6 +85,11 @@ typedef enum sdos_runtime_kind { SDOS_RUNTIME_FREERTOS = 1, SDOS_RUNTIME_BAREMET
 #define SDOS_CAP_RUN 0x0004u
 #define SDOS_CAP_CHECKSUM 0x0008u
 #define SDOS_CAP_CYCLES 0x0010u
+#define SDOS_CAP_HEALTH 0x0020u     /* health line at the start of the trace */
+#define SDOS_CAP_BUDGET 0x0040u     /* RUN time budgets are measured */
+#define SDOS_CAP_PROTECTION 0x0080u /* memory protection is configured */
+#define SDOS_CAP_INTEGRITY 0x0100u  /* code and read-only data are CRC-checked */
+#define SDOS_CAP_FAULT_INJECTION 0x8000u /* a test build that can commit faults on request */
 
 typedef struct sdos_identity {
     uint8_t core;
@@ -90,8 +102,35 @@ typedef struct sdos_identity {
     char firmware[SDOS_FIRMWARE_NAME_MAX]; /* NUL-terminated within the field */
 } sdos_identity;
 
+/* Firmware state, as STATUS and the health line report it. */
+typedef enum sdos_fw_state {
+    SDOS_STATE_STARTING = 0, /* start-up checks are running */
+    SDOS_STATE_OK = 1,
+    SDOS_STATE_FAULTED = 2,  /* safe state: RUN is refused, HELLO and STATUS answer */
+    SDOS_STATE_HALTED = 3    /* fatal fault: the core stopped; only the health line remains */
+} sdos_fw_state;
+
+/* What the firmware detected; docs/safety.md lists each mechanism. */
+typedef enum sdos_fault {
+    SDOS_FAULT_NONE = 0,
+    SDOS_FAULT_INTEGRITY = 1,  /* code or read-only data differs from its CRC record */
+    SDOS_FAULT_STACK = 2,      /* a stack reached its guard */
+    SDOS_FAULT_PROTECTION = 3, /* memory protection could not be configured */
+    SDOS_FAULT_ACCESS = 4,     /* memory protection blocked an access */
+    SDOS_FAULT_EXCEPTION = 5,  /* the CPU raised an exception */
+    SDOS_FAULT_WATCHDOG = 6,   /* a request ran past the watchdog limit */
+    SDOS_FAULT_LAYOUT = 7,     /* the load/run copy or placement check failed */
+    SDOS_FAULT_SELF_TEST = 8,  /* a start-up self-test of a safety mechanism failed */
+    SDOS_FAULT_HEAP = 9,       /* the kernel heap changed after start-up */
+    SDOS_FAULT_IPC = 10,       /* IPC could not be brought up */
+    SDOS_FAULT_COUNT = 11
+} sdos_fault;
+
+/* Longest a single request may run, and the largest RUN budget. */
+#define SDOS_WATCHDOG_US 2000000u
+
 /* STATUS response payload. */
-#define SDOS_STATS_SIZE 24u
+#define SDOS_STATS_SIZE 64u
 
 typedef struct sdos_stats {
     uint32_t uptime_ms;
@@ -100,6 +139,16 @@ typedef struct sdos_stats {
     uint32_t last_error;
     uint32_t last_request_id;
     uint32_t runs;
+    uint8_t state;            /* sdos_fw_state */
+    uint8_t fault;            /* sdos_fault; the first fault is kept */
+    uint32_t fault_info;      /* fault-specific detail, docs/safety.md */
+    uint64_t fault_address;
+    uint32_t heartbeat;       /* advanced by the firmware's monitor */
+    uint32_t deadline_misses;
+    uint32_t integrity_errors;  /* requests with a bad message CRC */
+    uint32_t foreign_messages;  /* messages from a processor other than the Linux host */
+    uint32_t stack_margin;      /* least unused bytes of any guarded stack; 0xFFFFFFFF unknown */
+    uint32_t integrity_passes;  /* completed background checks of code and read-only data */
 } sdos_stats;
 
 /* A range of the shared buffer region. */
@@ -107,7 +156,7 @@ typedef struct sdos_stats {
 #define SDOS_DESC_CHECKSUM 0x0001u
 
 typedef struct sdos_descriptor {
-    uint32_t region; /* 0 is the core's shared region; no other region exists in 1.0 */
+    uint32_t region; /* 0 is the core's shared region; no other region exists in 2.0 */
     uint32_t offset;
     uint32_t length;
     uint32_t sequence;
@@ -122,6 +171,7 @@ typedef struct sdos_descriptor {
 
 typedef struct sdos_run_request {
     uint32_t algorithm;
+    uint32_t budget_us; /* 0: the watchdog limit; at most SDOS_WATCHDOG_US */
     sdos_descriptor input;
     sdos_descriptor output;
     uint16_t params_length;
@@ -160,6 +210,8 @@ typedef enum sdos_buf_event {
 /* Message framing. Encoders return the bytes written, or 0 when `cap` is too
  * small or an input is out of range. Decoders validate every field. */
 size_t sdos_encode(const sdos_header *header, const uint8_t *payload, uint8_t *out, size_t cap);
+/* Fills every header field whenever `length` covers a header, even when it
+ * then rejects the message. */
 sdos_status sdos_decode_header(const uint8_t *in, size_t length, sdos_header *header);
 
 size_t sdos_identity_encode(const sdos_identity *identity, uint8_t *out, size_t cap);
@@ -182,6 +234,33 @@ sdos_status sdos_buf_next(sdos_buf_state state, sdos_buf_event event, sdos_buf_s
 uint32_t sdos_crc32c(uint32_t crc, const uint8_t *data, size_t length);
 
 const char *sdos_status_name(uint32_t status);
+const char *sdos_fault_name(uint32_t fault);
+const char *sdos_state_name(uint32_t state);
+
+/* Health line: a fixed-size text line at the start of the trace buffer, so
+ * Linux can read the firmware's state through remoteproc even when IPC does
+ * not answer. The line begins with seq= and ends with end=; a reader that sees
+ * different values read it while it was being rewritten and tries again. */
+#define SDOS_HEALTH_SIZE 192u
+
+typedef struct sdos_health {
+    uint32_t sequence;
+    uint32_t heartbeat;
+    uint32_t uptime_ms;
+    uint8_t state;
+    uint8_t fault;
+    uint32_t fault_info;
+    uint64_t fault_address;
+    uint32_t stack_margin;
+    uint32_t integrity_passes;
+    uint32_t deadline_misses;
+} sdos_health;
+
+/* Write exactly SDOS_HEALTH_SIZE bytes, the last a newline, none NUL. */
+void sdos_health_format(const sdos_health *health, char out[SDOS_HEALTH_SIZE]);
+/* SDOS_OK, SDOS_E_MAGIC when `text` does not start with a health line,
+ * SDOS_E_FIELD for a malformed one, SDOS_E_STATE when torn (seq != end). */
+sdos_status sdos_health_parse(const char *text, size_t length, sdos_health *health);
 
 #ifdef __cplusplus
 }

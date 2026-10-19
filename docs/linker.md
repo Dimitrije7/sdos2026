@@ -11,8 +11,9 @@ links with a native TI linker command file. You may edit its `MEMORY` and
 
 There is no placement API or configuration language in between. The only limits
 are the ones listed under [Mandatory rules](#mandatory-rules), each with a
-hardware, loader, ownership, or interoperability reason. The validator enforces
-them, whatever your layout looks like.
+hardware, loader, ownership, or interoperability reason, and the
+[protection rules](#protection-rules) the run-time memory protection relies
+on. The validators enforce them, whatever your layout looks like.
 
 This replaces the earlier course policy that reserved linker layout to the
 course runtime: policy P-002 was amended on 2026-10-19
@@ -27,6 +28,13 @@ course runtime: policy P-002 was amended on 2026-10-19
 | [`firmware/linker/modules/*_memory.cmd`](../firmware/linker/modules/) | One fragment per module, for example [`fir_memory.cmd`](../firmware/linker/modules/fir_memory.cmd) and [`buffers_memory.cmd`](../firmware/linker/modules/buffers_memory.cmd) |
 | `build/<preset>/generated/linker/sdos_memory.cmd` | Generated from [`manifest/dsp-cores.json`](../manifest/dsp-cores.json): region origins, lengths, and usable sizes for the preset's core and runtime |
 | [`firmware/linker/examples/`](../firmware/linker/examples/) | Complete alternative layouts |
+
+Each default `SDOS.cmd` defines the carve-out split as `#define`d boundaries
+(`CODE_ORIGIN`, `RODATA_ORIGIN`, `DATA_ORIGIN`) and builds both its `MEMORY`
+regions and the protection zones from them, so moving a boundary moves the
+protection with it. The regions are `DDR_META` (resource table, trace, and
+integrity record), `DDR_CODE`, `DDR_RODATA` (constants and initialization
+tables), `DDR_DATA`, and `L2SRAM`.
 
 `SDOS.cmd` serves both runtimes of its core. The build defines
 `SDOS_RTOS_FREERTOS` or `SDOS_RTOS_BAREMETAL` for `#if` blocks. The fragments
@@ -104,6 +112,26 @@ The alignments leave holes. On the C71x, a code region must be large enough for
 three aligned slots: the entry point and both vector tables. The linker reports
 an alignment failure otherwise, as `c71x_0_ddr.cmd` notes.
 
+## Protection rules
+
+The C66x MPAX and the C71x MMU map memory by zones the linker files define
+([`safety.md`](safety.md#memory-partition)). Lines marked PROTECTION in the
+default files serve them:
+
+| Rule | Reason |
+|---|---|
+| `sdos_zone_code_start/end` and `sdos_zone_rodata_start/end` defined, 4 KiB-aligned, in loadable memory | The MPAX and MMU map these ranges read-only |
+| Executable sections only in the code zone or local L2 | Everything else is mapped without execute permission |
+| Nothing writable in the code or read-only data zone | Writes there fault |
+| `.sdos.integrity` in loaded memory | The firmware checks its image against this record |
+| `-heap 0`, no `malloc()` | Static allocation only |
+| C71x: guarded stacks (`.stack`, `.sdos.stack.*`) on 4 KiB pages; the MMU tables in a page-padded group | The lowest page of each stack, and the tables, become read-only after start |
+| C71x: the map within TI's 16 page tables; C66x: the zones within 14 MPAX segments | TI's MMU code has no tables to spare; the MPAX has 16 segments, 2 kept for TI's windows |
+
+[`ci/firmware_postlink.py`](../ci/firmware_postlink.py) checks every rule after
+linking and names the one a layout breaks. The full list, with what each
+protects, is in [`safety.md`](safety.md#rules-for-your-own-layout).
+
 ## Load and run addresses
 
 Give a section `load = <region>, run = <region>, table(BINIT)` and the linker
@@ -153,16 +181,21 @@ Whole object files and library members can be placed by name too:
 Every link treats linker warnings as errors. Afterwards it runs these steps,
 from [`cmake/SdosTiFirmware.cmake`](../cmake/SdosTiFirmware.cmake):
 
-1. `strip6x` or `strip7x` writes the loadable file.
-2. [`ci/firmware_elf.py`](../ci/firmware_elf.py) checks it against the
+1. [`ci/firmware_postlink.py`](../ci/firmware_postlink.py) checks the
+   [protection rules](#protection-rules) on the linked ELF and writes the
+   integrity record into it.
+2. `strip6x` or `strip7x` writes the loadable file.
+3. [`ci/firmware_elf.py`](../ci/firmware_elf.py) checks it against the
    manifest for the build's runtime. The check covers:
    - region ownership and cache reserves;
    - overlap;
    - entry-point alignment;
-   - the resource table, RPMsg vdev, and trace placement.
+   - the resource table, RPMsg vdev, and trace placement;
+   - the integrity record against the file, and no segment both writable and
+     executable.
 
    Each refusal names the region and its reason.
-3. [`ci/linker_report.py`](../ci/linker_report.py) writes
+4. [`ci/linker_report.py`](../ci/linker_report.py) writes
    `<name>.layout.txt` and `.layout.json` beside the firmware. These list every
    region with its first and last address and its use, and every output
    section with its run and load address, size, and region.
@@ -170,8 +203,12 @@ from [`cmake/SdosTiFirmware.cmake`](../cmake/SdosTiFirmware.cmake):
 `dspctl load` runs the same check on the board, without knowing the runtime.
 It therefore allows the smaller of the runtimes' cache reserves.
 [`ci/test_linker_layouts.py`](../ci/test_linker_layouts.py) relinks real
-variants to prove that valid layouts build, and that a section in the vring
-pool, in FreeRTOS's L2 cache, or a misaligned entry point is refused.
+variants to prove that valid layouts build, and that these are refused:
+
+- a section in the vring pool or in FreeRTOS's L2 cache;
+- a misaligned entry point or zone;
+- writable data in the read-only zone, or code outside the code zone;
+- zones that need more MPAX segments than the firmware has.
 
 ## Not yet proven on a board
 

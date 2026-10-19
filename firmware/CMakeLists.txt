@@ -20,6 +20,7 @@ if(SDOS_PRODUCT STREQUAL "firmware")
     common/platform/src/resource_table.c
     common/platform/src/trace.c
     common/platform/src/layout.c
+    common/platform/src/monitor.c
     ${family_sources})
   target_include_directories(sdos_firmware PRIVATE common/platform/include)
 endif()

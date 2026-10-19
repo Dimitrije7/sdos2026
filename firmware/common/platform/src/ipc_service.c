@@ -5,7 +5,8 @@
  * The bring-up follows TI's PDK echo examples (ipc_testsetup.c, BSD-3-Clause),
  * with one deliberate difference: this firmware talks only to Linux on the
  * A72 (IPC_MPU1_0). It never waits for R5F cores, which may run no firmware
- * on a BeagleBone AI-64.
+ * on a BeagleBone AI-64, and it drops messages from any other processor
+ * (docs/safety.md, communication interference).
  */
 #include <string.h>
 
@@ -33,7 +34,7 @@ static uint8_t control_buffer[RPMSG_BUFFER_SIZE] __attribute__((section("ipc_dat
 static uint8_t endpoint_buffer[RPMSG_BUFFER_SIZE] __attribute__((section("ipc_data_buffer"), aligned(8)));
 static uint8_t vq_buffer[VQ_BUFFER_SIZE] __attribute__((section("ipc_data_buffer"), aligned(8)));
 #if !defined(BAREMETAL)
-static uint8_t control_stack[CTRL_STACK_SIZE] __attribute__((aligned(TASK_STACK_ALIGN)));
+static uint8_t control_stack[CTRL_STACK_SIZE] __attribute__((section(".sdos.stack.ipc"), aligned(TASK_STACK_ALIGN)));
 #endif
 
 static uint32_t remote_procs[1] = {IPC_MPU1_0};
@@ -95,6 +96,7 @@ static int bring_up(void)
     while (Ipc_isRemoteReady(IPC_MPU1_0) == 0u) {
 #if defined(BAREMETAL)
         sdos_mailbox_poll();
+        sdos_monitor_poll();
 #else
         TaskP_sleep(10u);
 #endif
@@ -122,6 +124,9 @@ static int bring_up(void)
         sdos_trace("RPMessage_init failed");
         return -1;
     }
+#if !defined(BAREMETAL)
+    sdos_monitor_stack("ipc", control_stack, sizeof control_stack);
+#endif
 #if defined(BAREMETAL)
     /* Polling alone serves the mailbox; an interrupt the OSAL may have
      * enabled must not race it. */
@@ -154,8 +159,11 @@ void sdos_service_run(sdos_runtime *runtime)
 #endif
 
     if (bring_up() != 0) {
+        sdos_runtime_fault(runtime, SDOS_FAULT_IPC, 0u, 2u);
         return;
     }
+    /* Start-up is over: protection is complete and RUN is accepted. */
+    sdos_monitor_started();
     while (shutdown_requested == 0u) {
         uint16_t length = (uint16_t)sizeof request;
         uint32_t remote_endpoint = 0u;
@@ -165,6 +173,7 @@ void sdos_service_run(sdos_runtime *runtime)
 #if defined(BAREMETAL)
         while (messages_arrived == seen && shutdown_requested == 0u) {
             sdos_mailbox_poll();
+            sdos_monitor_poll();
         }
         seen = messages_arrived;
         status = RPMessage_recvNb(endpoint, request, &length, &remote_endpoint, &remote_proc);
@@ -173,6 +182,10 @@ void sdos_service_run(sdos_runtime *runtime)
                                 IPC_RPMESSAGE_TIMEOUT_FOREVER);
 #endif
         if (status != IPC_SOK) {
+            continue;
+        }
+        if (remote_proc != IPC_MPU1_0) {
+            runtime->stats.foreign_messages++; /* only Linux on the A72 may send requests */
             continue;
         }
         n = sdos_runtime_handle(runtime, request, length, response, sizeof response);

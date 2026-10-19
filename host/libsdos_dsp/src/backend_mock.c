@@ -7,7 +7,13 @@
  * SDOS_MOCK_FAULT injects one fault for tests and demonstrations:
  *   drop     never answer RUN (the host times out and quarantines buffers)
  *   corrupt  flip an output byte after the DSP checksummed it
- *   stale    answer each request twice, so the next request sees a stale reply */
+ *   stale    answer each request twice, so the next request sees a stale reply
+ *   faulted  start in the safe state after a blocked memory access
+ *   hang     stop the heartbeat and never answer, as a stuck bare-metal core
+ * faulted and hang last until the mock DSP is restarted.
+ *
+ * The mock advances its heartbeat once per request and per health read, as a
+ * firmware monitor would with time. */
 #define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
@@ -26,6 +32,7 @@ typedef struct mock_state {
     sdos_dsp_state state;
     char firmware[128];
     char fault[16];
+    int hung;
     uint8_t queue[QUEUE][SDOS_MSG_MAX];
     size_t queue_length[QUEUE];
     size_t head;
@@ -73,7 +80,10 @@ static sdos_status mock_set_running(sdos_dsp *dsp, int running)
     st->state = running ? SDOS_DSP_RUNNING : SDOS_DSP_OFFLINE;
     st->count = 0u;
     if (running) {
-        memset(&st->runtime.stats, 0, sizeof st->runtime.stats);
+        memset(&st->runtime.stats, 0, sizeof st->runtime.stats); /* a restart clears faults */
+        st->runtime.stats.stack_margin = 0xFFFFFFFFu;
+        sdos_runtime_ready(&st->runtime);
+        st->hung = 0;
     }
     trace(st, running ? "started" : "stopped");
     return SDOS_OK;
@@ -112,6 +122,10 @@ static sdos_status mock_send(sdos_dsp *dsp, const uint8_t *message, size_t lengt
     if (st->state != SDOS_DSP_RUNNING) {
         return sdos__fail(dsp, SDOS_E_TRANSPORT, "%s is not running", dsp->core->name);
     }
+    if (st->hung) {
+        return SDOS_OK; /* swallowed: the host times out */
+    }
+    sdos_runtime_monitor(&st->runtime);
     n = sdos_runtime_handle(&st->runtime, message, length, reply, sizeof reply);
     if (n == 0u) {
         return SDOS_OK;
@@ -120,8 +134,8 @@ static sdos_status mock_send(sdos_dsp *dsp, const uint8_t *message, size_t lengt
         return SDOS_OK;
     }
     if (strcmp(st->fault, "corrupt") == 0 && length > 5u && message[4] == SDOS_MSG_RUN) {
-        uint32_t offset = (uint32_t)message[16 + 32 + 4] | ((uint32_t)message[16 + 32 + 5] << 8) |
-                          ((uint32_t)message[16 + 32 + 6] << 16) | ((uint32_t)message[16 + 32 + 7] << 24);
+        const uint8_t *o = message + SDOS_HEADER_SIZE + 32u + 4u; /* output descriptor offset */
+        uint32_t offset = (uint32_t)o[0] | ((uint32_t)o[1] << 8) | ((uint32_t)o[2] << 16) | ((uint32_t)o[3] << 24);
         if (offset < MOCK_REGION) {
             st->region[offset] ^= 0x01u;
         }
@@ -166,9 +180,30 @@ static void mock_sync(sdos_dsp *dsp, uint32_t offset, uint32_t length)
     (void)length;
 }
 
+/* Like the firmware: the health line first, then the log. */
 static sdos_status mock_trace(sdos_dsp *dsp, char *text, size_t capacity, size_t *length)
 {
-    (void)snprintf(text, capacity, "%s", state_of(dsp)->trace);
+    mock_state *st = state_of(dsp);
+    const sdos_stats *s = &st->runtime.stats;
+    char line[SDOS_HEALTH_SIZE + 1u];
+    sdos_health h;
+    if (!st->hung) {
+        sdos_runtime_monitor(&st->runtime);
+    }
+    memset(&h, 0, sizeof h);
+    h.sequence = s->heartbeat;
+    h.heartbeat = s->heartbeat;
+    h.uptime_ms = mock_uptime();
+    h.state = s->state;
+    h.fault = s->fault;
+    h.fault_info = s->fault_info;
+    h.fault_address = s->fault_address;
+    h.stack_margin = s->stack_margin;
+    h.integrity_passes = s->integrity_passes;
+    h.deadline_misses = s->deadline_misses;
+    sdos_health_format(&h, line);
+    line[SDOS_HEALTH_SIZE] = '\0';
+    (void)snprintf(text, capacity, "%s%s", line, st->trace);
     *length = strlen(text);
     return SDOS_OK;
 }
@@ -198,7 +233,8 @@ sdos_status sdos__mock_init(sdos_dsp *dsp)
     (void)snprintf(st->fault, sizeof st->fault, "%s", fault != NULL ? fault : "");
     st->runtime.identity.core = (uint8_t)dsp->core_index;
     st->runtime.identity.runtime = SDOS_RUNTIME_MOCK;
-    st->runtime.identity.capabilities = SDOS_CAP_ECHO | SDOS_CAP_STATUS | SDOS_CAP_RUN | SDOS_CAP_CHECKSUM;
+    st->runtime.identity.capabilities =
+        SDOS_CAP_ECHO | SDOS_CAP_STATUS | SDOS_CAP_RUN | SDOS_CAP_CHECKSUM | SDOS_CAP_HEALTH;
     st->runtime.identity.max_payload = SDOS_PAYLOAD_MAX;
     st->runtime.identity.buffer_alignment = 128u;
     st->runtime.identity.runtime_version = 0x000100u;
@@ -210,6 +246,13 @@ sdos_status sdos__mock_init(sdos_dsp *dsp)
     st->runtime.algorithms = sdos_builtin_algorithms;
     st->runtime.algorithm_count = sdos_builtin_algorithm_count;
     st->runtime.uptime_ms = mock_uptime;
+    st->runtime.stats.stack_margin = 0xFFFFFFFFu;
+    sdos_runtime_ready(&st->runtime);
+    if (strcmp(st->fault, "faulted") == 0) {
+        /* As the C66x MPAX reports a blocked write into C66x_1's memory. */
+        sdos_runtime_fault(&st->runtime, SDOS_FAULT_ACCESS, 0xA7100000u, 0x10u);
+    }
+    st->hung = strcmp(st->fault, "hang") == 0;
     trace(st, "course runtime running");
     dsp->backend = st;
     dsp->ops = &mock_ops;

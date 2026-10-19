@@ -51,6 +51,8 @@ class ShellBoard:
             status = 0
             if step == "start":
                 out.append("running")
+            elif step == "health":
+                out.append('{"name": "x", "state": "ok", "fault": "none", "heartbeat": 3}')
             elif step == "echo":
                 out.append(echo_words[-1] if self.echo_works else "dspctl: echo: did not answer")
                 status = 0 if self.echo_works else 1

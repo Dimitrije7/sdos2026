@@ -17,3 +17,6 @@ UNION : > L2SRAM, align = 0x80
     .sdos.scratch_b : type = NOLOAD {}
 }
 .sdos.noinit  : type = NOINIT {} > DDR_DATA, align = 0x80
+/* Fault-injection builds only: read-only data deliberately in writable memory,
+ * so a test can change it and the integrity check must notice. */
+.sdos.fi_target : {} > DDR_DATA, align = 0x80

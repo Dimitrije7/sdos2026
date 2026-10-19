@@ -1,6 +1,6 @@
 {
   "schema": "sdos-dsp-cores/2",
-  "revision": 2,
+  "revision": 3,
   "updated": "2026-10-19",
   "description": "Stable logical identity and memory contract of each DSP. Tools resolve a core by its device-tree unit address, never by remoteprocN. Every region a DSP can address is listed with its owner, whether remoteproc can load ELF segments into it, how much of it the runtime reserves as cache, and the reason for each limit. Linker command files, the C core table, and the ELF validators are generated from or checked against this file (Task 041); section placement itself stays in the editable linker files.",
   "evidence": "release/evidence/task-008/20261018T175900Z-dmesg.txt lists every reserved-memory node and the dma_pool each DSP is assigned. The firmware regions follow TI's PDK memory_map_defines.inc, which swaps the two C66x IPC pools on purpose; TI's pinned echo firmware links inside them. Task 012 confirms every region against the live device tree.",
@@ -282,13 +282,46 @@
         }
       ],
       "boot_alignment": "0x200000",
-      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 2 MiB-aligned address on the C71x; it refuses to start firmware whose entry point is not aligned."
+      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 2 MiB-aligned address on the C71x; it refuses to start firmware whose entry point is not aligned.",
+      "mmio_windows": [
+        {
+          "base": "0x00000000",
+          "size": "0x20000000",
+          "reason": "Peripheral space: timers, interrupt routers, mailboxes, and the system-firmware proxies the IPC and Sciclient drivers use.",
+          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+        },
+        {
+          "base": "0x20000000",
+          "size": "0x20000000",
+          "reason": "Peripheral space (navigator subsystem and secure proxies).",
+          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+        },
+        {
+          "base": "0x40000000",
+          "size": "0x20000000",
+          "reason": "MCU-domain peripherals.",
+          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+        },
+        {
+          "base": "0x60000000",
+          "size": "0x10000000",
+          "reason": "Compute-cluster space; holds this core's L2 SRAM, which the firmware maps separately as executable memory.",
+          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+        },
+        {
+          "base": "0x78000000",
+          "size": "0x08000000",
+          "reason": "CLEC, the C7x interrupt event controller.",
+          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+        }
+      ]
     }
   ],
   "fields": {
     "loadable": "remoteproc can copy an ELF segment here: the region is in this core's device-tree memory-region list or is the core's own internal memory.",
     "runtime_use": "any: code and data; none: firmware must not use it; audit: usable only after Task 012 confirms nothing else owns it, and then only at run time (NOLOAD or copied in).",
     "cache_reserve": "bytes at the top of a local SRAM that the runtime configures as cache; firmware may not place anything there under that runtime.",
-    "boot_alignment": "Required alignment of the ELF entry point, with the loader's reason."
+    "boot_alignment": "Required alignment of the ELF entry point, with the loader's reason.",
+    "mmio_windows": "C71x only: address windows the MMU maps as device memory, never executable, so drivers can reach peripherals. Every other address outside the core's own memory faults (docs/safety.md)."
   }
 }

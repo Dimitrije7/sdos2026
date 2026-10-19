@@ -162,6 +162,7 @@ static void *firmware(void *argument) /* cppcheck-suppress constParameterCallbac
     rt->region_size = sizeof region;
     rt->algorithms = sdos_builtin_algorithms;
     rt->algorithm_count = sdos_builtin_algorithm_count;
+    sdos_runtime_ready(rt);
     while ((n = read(dsp_side, msg, sizeof msg)) > 0) {
         size_t r = sdos_runtime_handle(rt, msg, (size_t)n, reply, sizeof reply);
         if (r > 0u && write(dsp_side, reply, r) != (ssize_t)r) {
@@ -233,6 +234,31 @@ int main(void)
     CHECK_EQ("course endpoint", last_endpoint, (int)SDOS_RPMSG_ENDPOINT);
     CHECK_EQ("echo over the endpoint", sdos_dsp_echo(dsp, "board", 5u, text, sizeof text, &n), SDOS_OK);
     CHECK("echo reply", n == 5u && memcmp(text, "board", 5u) == 0);
+    {
+        /* The health line comes from the remoteproc trace in debugfs. */
+        sdos_health h;
+        char line[SDOS_HEALTH_SIZE + 64u];
+        char dir[700];
+        memset(&h, 0, sizeof h);
+        h.sequence = 3u;
+        h.heartbeat = 41u;
+        h.state = SDOS_STATE_FAULTED;
+        h.fault = SDOS_FAULT_STACK;
+        h.fault_address = 0xA6680000u;
+        sdos_health_format(&h, line);
+        (void)strcpy(line + SDOS_HEALTH_SIZE, "[0.001] log\n");
+        (void)sdos__format(dir, sizeof dir, "%s/sys/kernel/debug/remoteproc/remoteproc2", root);
+        mkdirs(dir);
+        (void)sdos__format(path, sizeof path, "%s/trace0", dir);
+        write_file(path, line);
+        memset(&h, 0, sizeof h);
+        CHECK_EQ("health from the trace", sdos_dsp_health(dsp, &h), SDOS_OK);
+        CHECK("health fields", h.heartbeat == 41u && h.state == SDOS_STATE_FAULTED && h.fault == SDOS_FAULT_STACK &&
+                                   h.fault_address == 0xA6680000u);
+        line[SDOS_HEALTH_SIZE - 33u] = '9'; /* inside end=: a line torn on every read */
+        write_file(path, line);
+        CHECK_EQ("a torn health line is reported", sdos_dsp_health(dsp, &h), SDOS_E_STATE);
+    }
     CHECK_EQ("load while running is refused", sdos_dsp_load(dsp, elf), SDOS_E_STATE);
     CHECK_EQ("stop", sdos_dsp_stop(dsp), SDOS_OK);
     (void)sdos_dsp_info_get(dsp, &info);

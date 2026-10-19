@@ -29,6 +29,36 @@ static uint64_t now_cycles(const sdos_runtime *runtime)
     return runtime->cycles != NULL ? runtime->cycles() : 0u;
 }
 
+void sdos_runtime_fault(sdos_runtime *runtime, sdos_fault fault, uint64_t address, uint32_t info)
+{
+    if (runtime->stats.fault == (uint8_t)SDOS_FAULT_NONE) {
+        runtime->stats.fault_address = address;
+        runtime->stats.fault_info = info;
+        runtime->stats.fault = (uint8_t)fault;
+    }
+    if (runtime->stats.state != (uint8_t)SDOS_STATE_HALTED) {
+        runtime->stats.state = (uint8_t)SDOS_STATE_FAULTED;
+    }
+}
+
+void sdos_runtime_ready(sdos_runtime *runtime)
+{
+    if (runtime->stats.state == (uint8_t)SDOS_STATE_STARTING) {
+        runtime->stats.state = (uint8_t)SDOS_STATE_OK;
+    }
+}
+
+void sdos_runtime_monitor(sdos_runtime *runtime)
+{
+    runtime->stats.heartbeat++;
+    if (runtime->busy != 0 && runtime->cycles != NULL && runtime->cycles_per_us != 0u) {
+        uint64_t elapsed = runtime->cycles() - runtime->run_start;
+        if (elapsed > (uint64_t)SDOS_WATCHDOG_US * runtime->cycles_per_us) {
+            sdos_runtime_fault(runtime, SDOS_FAULT_WATCHDOG, 0u, runtime->run_algorithm);
+        }
+    }
+}
+
 static sdos_status run(sdos_runtime *runtime, const uint8_t *payload, uint16_t length, uint8_t *out, uint16_t *out_length)
 {
     sdos_run_request *const request = &runtime->request;
@@ -37,13 +67,17 @@ static sdos_status run(sdos_runtime *runtime, const uint8_t *payload, uint16_t l
     sdos_run_args args;
     uint64_t start;
     uint32_t alignment = runtime->identity.buffer_alignment;
-    sdos_status status = sdos_run_request_decode(payload, length, request);
+    sdos_status status;
 
+    if (runtime->stats.state == (uint8_t)SDOS_STATE_FAULTED || runtime->stats.state == (uint8_t)SDOS_STATE_HALTED) {
+        return SDOS_E_FAULTED;
+    }
+    if (runtime->stats.state != (uint8_t)SDOS_STATE_OK || runtime->busy != 0) {
+        return SDOS_E_BUSY;
+    }
+    status = sdos_run_request_decode(payload, length, request);
     if (status != SDOS_OK) {
         return status;
-    }
-    if (runtime->busy != 0) {
-        return SDOS_E_BUSY;
     }
     status = sdos_descriptor_check(&request->input, runtime->region_size, alignment);
     if (status == SDOS_OK) {
@@ -60,6 +94,8 @@ static sdos_status run(sdos_runtime *runtime, const uint8_t *payload, uint16_t l
         return SDOS_E_ALGORITHM;
     }
 
+    runtime->run_algorithm = request->algorithm;
+    runtime->run_start = now_cycles(runtime);
     runtime->busy = 1;
     /* The host wrote its cache back before sending RUN; drop any stale lines. */
     if (runtime->cache_invalidate != NULL && request->input.length > 0u) {
@@ -83,10 +119,19 @@ static sdos_status run(sdos_runtime *runtime, const uint8_t *payload, uint16_t l
     if (status == SDOS_OK && result.output_length > request->output.length) {
         status = SDOS_E_INTERNAL; /* the algorithm claims more than it was given */
     }
-    if (status == SDOS_OK) {
-        if (runtime->cache_writeback != NULL && result.output_length > 0u) {
-            runtime->cache_writeback(args.output, result.output_length);
+    /* Whatever the outcome, the host gets the output range back without
+     * stale lines in this core's cache. */
+    if (runtime->cache_writeback != NULL && request->output.length > 0u) {
+        runtime->cache_writeback(args.output, request->output.length);
+    }
+    if (status == SDOS_OK && runtime->cycles != NULL && runtime->cycles_per_us != 0u) {
+        uint32_t budget = request->budget_us != 0u ? request->budget_us : SDOS_WATCHDOG_US;
+        if (result.cycles > (uint64_t)budget * runtime->cycles_per_us) {
+            runtime->stats.deadline_misses++;
+            status = SDOS_E_DEADLINE; /* a late result is a wrong result */
         }
+    }
+    if (status == SDOS_OK) {
         result.output_checksum = (request->output.flags & SDOS_DESC_CHECKSUM) != 0u
                                      ? sdos_crc32c(0u, args.output, result.output_length)
                                      : 0u;
@@ -110,12 +155,10 @@ size_t sdos_runtime_handle(sdos_runtime *runtime, const uint8_t *request, size_t
     if (length < SDOS_HEADER_SIZE || capacity < SDOS_MSG_MAX) {
         return 0u;
     }
+    /* Even a rejected request has its type and id decoded, so the reply names it. */
     status = sdos_decode_header(request, length, &header);
-    if (status == SDOS_E_MAGIC) {
-        /* Echo the raw type and id so the sender can still match the reply. */
-        header.type = (uint16_t)(request[4] | (uint16_t)(request[5] << 8));
-        header.request_id = (uint32_t)request[8] | ((uint32_t)request[9] << 8) | ((uint32_t)request[10] << 16) |
-                            ((uint32_t)request[11] << 24);
+    if (status == SDOS_E_INTEGRITY) {
+        runtime->stats.integrity_errors++;
     }
     if (status == SDOS_OK && (header.flags & SDOS_FLAG_RESPONSE) != 0u) {
         status = SDOS_E_FIELD; /* a response is never a request */

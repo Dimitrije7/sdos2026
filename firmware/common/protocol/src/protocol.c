@@ -1,4 +1,4 @@
-/* SDOS protocol 1.0 encoding, validation, and buffer ownership. See protocol.h. */
+/* SDOS protocol 2.0 encoding, validation, and buffer ownership. See protocol.h. */
 #include "sdos/protocol.h"
 
 #include <string.h>
@@ -28,6 +28,13 @@ static uint32_t get32(const uint8_t *p)
     return (uint32_t)get16(p) | ((uint32_t)get16(p + 2) << 16);
 }
 
+/* CRC-32C over the header's first 16 bytes and the payload. */
+static uint32_t message_crc(const uint8_t *message, size_t payload_length)
+{
+    uint32_t crc = sdos_crc32c(0u, message, SDOS_HEADER_CRC_OFFSET);
+    return sdos_crc32c(crc, message + SDOS_HEADER_SIZE, payload_length);
+}
+
 size_t sdos_encode(const sdos_header *header, const uint8_t *payload, uint8_t *out, size_t cap)
 {
     size_t total = SDOS_HEADER_SIZE + (size_t)header->payload_length;
@@ -49,17 +56,17 @@ size_t sdos_encode(const sdos_header *header, const uint8_t *payload, uint8_t *o
     if (header->payload_length > 0u) {
         memmove(out + SDOS_HEADER_SIZE, payload, header->payload_length);
     }
+    put32(out + SDOS_HEADER_CRC_OFFSET, message_crc(out, header->payload_length));
     return total;
 }
 
 sdos_status sdos_decode_header(const uint8_t *in, size_t length, sdos_header *header)
 {
-    if (length < SDOS_HEADER_SIZE || length > SDOS_MSG_MAX) {
+    if (length < SDOS_HEADER_SIZE) {
         return SDOS_E_LENGTH;
     }
-    if (in[0] != MAGIC0 || in[1] != MAGIC1) {
-        return SDOS_E_MAGIC;
-    }
+    /* Fields are filled even for a rejected message, so a reply can name the
+     * request it refuses. */
     header->version_major = in[2];
     header->version_minor = in[3];
     header->type = get16(in + 4);
@@ -67,8 +74,19 @@ sdos_status sdos_decode_header(const uint8_t *in, size_t length, sdos_header *he
     header->request_id = get32(in + 8);
     header->payload_length = get16(in + 12);
     header->status = get16(in + 14);
+    header->crc = get32(in + SDOS_HEADER_CRC_OFFSET);
+    if (length > SDOS_MSG_MAX) {
+        return SDOS_E_LENGTH;
+    }
+    if (in[0] != MAGIC0 || in[1] != MAGIC1) {
+        return SDOS_E_MAGIC;
+    }
     if (header->version_major != SDOS_PROTO_MAJOR) {
         return SDOS_E_VERSION;
+    }
+    /* Over the bytes actually received, so a corrupted length is caught too. */
+    if (header->crc != message_crc(in, length - SDOS_HEADER_SIZE)) {
+        return SDOS_E_INTEGRITY;
     }
     if ((size_t)header->payload_length != length - SDOS_HEADER_SIZE) {
         return SDOS_E_LENGTH;
@@ -146,6 +164,18 @@ size_t sdos_stats_encode(const sdos_stats *stats, uint8_t *out, size_t cap)
     put32(out + 12, stats->last_error);
     put32(out + 16, stats->last_request_id);
     put32(out + 20, stats->runs);
+    out[24] = stats->state;
+    out[25] = stats->fault;
+    put16(out + 26, 0u);
+    put32(out + 28, stats->fault_info);
+    put32(out + 32, (uint32_t)(stats->fault_address & 0xFFFFFFFFu));
+    put32(out + 36, (uint32_t)(stats->fault_address >> 32));
+    put32(out + 40, stats->heartbeat);
+    put32(out + 44, stats->deadline_misses);
+    put32(out + 48, stats->integrity_errors);
+    put32(out + 52, stats->foreign_messages);
+    put32(out + 56, stats->stack_margin);
+    put32(out + 60, stats->integrity_passes);
     return SDOS_STATS_SIZE;
 }
 
@@ -160,6 +190,19 @@ sdos_status sdos_stats_decode(const uint8_t *in, size_t length, sdos_stats *stat
     stats->last_error = get32(in + 12);
     stats->last_request_id = get32(in + 16);
     stats->runs = get32(in + 20);
+    stats->state = in[24];
+    stats->fault = in[25];
+    stats->fault_info = get32(in + 28);
+    stats->fault_address = (uint64_t)get32(in + 32) | ((uint64_t)get32(in + 36) << 32);
+    stats->heartbeat = get32(in + 40);
+    stats->deadline_misses = get32(in + 44);
+    stats->integrity_errors = get32(in + 48);
+    stats->foreign_messages = get32(in + 52);
+    stats->stack_margin = get32(in + 56);
+    stats->integrity_passes = get32(in + 60);
+    if (get16(in + 26) != 0u || stats->state > (uint8_t)SDOS_STATE_HALTED || stats->fault >= (uint8_t)SDOS_FAULT_COUNT) {
+        return SDOS_E_FIELD;
+    }
     return SDOS_OK;
 }
 
@@ -194,8 +237,11 @@ size_t sdos_run_request_encode(const sdos_run_request *request, uint8_t *out, si
     if (request->params_length > SDOS_RUN_PARAMS_MAX || cap < total) {
         return 0u;
     }
+    if (request->budget_us > SDOS_WATCHDOG_US) {
+        return 0u;
+    }
     put32(out, request->algorithm);
-    put32(out + 4, 0u);
+    put32(out + 4, request->budget_us);
     descriptor_encode(&request->input, out + 8);
     descriptor_encode(&request->output, out + 32);
     put16(out + 56, request->params_length);
@@ -213,8 +259,9 @@ sdos_status sdos_run_request_decode(const uint8_t *in, size_t length, sdos_run_r
         return SDOS_E_LENGTH;
     }
     request->algorithm = get32(in);
+    request->budget_us = get32(in + 4);
     request->params_length = get16(in + 56);
-    if (get32(in + 4) != 0u || get16(in + 58) != 0u) {
+    if (request->budget_us > SDOS_WATCHDOG_US || get16(in + 58) != 0u) {
         return SDOS_E_FIELD;
     }
     if ((size_t)request->params_length != length - SDOS_RUN_FIXED_SIZE) {
@@ -378,7 +425,136 @@ const char *sdos_status_name(uint32_t status)
     static const char *const names[SDOS_STATUS_COUNT] = {
         "ok", "bad magic", "unsupported version", "unknown type", "bad length", "bad field",
         "bad descriptor", "checksum mismatch", "unknown algorithm", "busy", "bad buffer state",
-        "internal error", "timeout", "transport error",
+        "internal error", "timeout", "transport error", "message corrupted", "firmware faulted",
+        "deadline missed",
     };
     return status < (uint32_t)SDOS_STATUS_COUNT ? names[status] : "unknown status";
+}
+
+const char *sdos_fault_name(uint32_t fault)
+{
+    static const char *const names[SDOS_FAULT_COUNT] = {
+        "none", "integrity", "stack", "protection", "access", "exception", "watchdog", "layout", "self-test",
+        "heap", "ipc",
+    };
+    return fault < (uint32_t)SDOS_FAULT_COUNT ? names[fault] : "unknown fault";
+}
+
+const char *sdos_state_name(uint32_t state)
+{
+    static const char *const names[] = {"starting", "ok", "faulted", "halted"};
+    return state <= (uint32_t)SDOS_STATE_HALTED ? names[state] : "unknown state";
+}
+
+/* Health line. Hexadecimal fields of fixed width, written and read without
+ * printf, so every DSP library and the host produce identical bytes. */
+#define HEALTH_TAG "SDOS-HEALTH 1"
+
+static size_t put_text(char *out, size_t at, const char *text)
+{
+    while (*text != '\0') {
+        out[at] = *text;
+        at++;
+        text++;
+    }
+    return at;
+}
+
+static size_t put_hex(char *out, size_t at, const char *key, uint64_t value, unsigned digits)
+{
+    static const char hex[] = "0123456789abcdef";
+    unsigned i;
+    at = put_text(out, at, key);
+    for (i = 0u; i < digits; i++) {
+        out[at + digits - 1u - i] = hex[(value >> (4u * i)) & 0xFu];
+    }
+    return at + digits;
+}
+
+void sdos_health_format(const sdos_health *h, char out[SDOS_HEALTH_SIZE])
+{
+    size_t at = put_text(out, 0u, HEALTH_TAG);
+    at = put_hex(out, at, " seq=", h->sequence, 8u);
+    at = put_hex(out, at, " hb=", h->heartbeat, 8u);
+    at = put_hex(out, at, " up=", h->uptime_ms, 8u);
+    at = put_hex(out, at, " state=", h->state, 1u);
+    at = put_hex(out, at, " fault=", h->fault, 2u);
+    at = put_hex(out, at, " info=", h->fault_info, 8u);
+    at = put_hex(out, at, " addr=", h->fault_address, 16u);
+    at = put_hex(out, at, " margin=", h->stack_margin, 8u);
+    at = put_hex(out, at, " passes=", h->integrity_passes, 8u);
+    at = put_hex(out, at, " late=", h->deadline_misses, 8u);
+    at = put_hex(out, at, " end=", h->sequence, 8u);
+    while (at < SDOS_HEALTH_SIZE - 1u) {
+        out[at] = ' ';
+        at++;
+    }
+    out[SDOS_HEALTH_SIZE - 1u] = '\n';
+}
+
+static int get_hex(const char *text, size_t *at, const char *key, unsigned digits, uint64_t *value)
+{
+    unsigned i;
+    *value = 0u;
+    while (*key != '\0') {
+        if (text[*at] != *key) {
+            return -1;
+        }
+        (*at)++;
+        key++;
+    }
+    for (i = 0u; i < digits; i++) {
+        char c = text[*at];
+        uint64_t nibble;
+        if (c >= '0' && c <= '9') {
+            nibble = (uint64_t)(c - '0');
+        } else if (c >= 'a' && c <= 'f') {
+            nibble = (uint64_t)(c - 'a') + 10u;
+        } else {
+            return -1;
+        }
+        *value = (*value << 4) | nibble;
+        (*at)++;
+    }
+    return 0;
+}
+
+sdos_status sdos_health_parse(const char *text, size_t length, sdos_health *h)
+{
+    static const char tag[] = HEALTH_TAG;
+    static const char *const keys[11] = {" seq=",    " hb=",     " up=",     " state=",  " fault=", " info=",
+                                         " addr=",   " margin=", " passes=", " late=",   " end="};
+    static const unsigned digits[11] = {8u, 8u, 8u, 1u, 2u, 8u, 16u, 8u, 8u, 8u, 8u};
+    uint64_t v[11];
+    size_t at;
+    size_t i;
+    if (length < SDOS_HEALTH_SIZE || memcmp(text, tag, sizeof tag - 1u) != 0) {
+        return SDOS_E_MAGIC;
+    }
+    at = sizeof tag - 1u;
+    for (i = 0u; i < 11u; i++) {
+        if (get_hex(text, &at, keys[i], digits[i], &v[i]) != 0) {
+            return SDOS_E_FIELD;
+        }
+    }
+    if (text[SDOS_HEALTH_SIZE - 1u] != '\n') {
+        return SDOS_E_FIELD;
+    }
+    if (v[0] != v[10]) {
+        return SDOS_E_STATE;
+    }
+    if (v[3] > (uint64_t)SDOS_STATE_HALTED || v[4] >= (uint64_t)SDOS_FAULT_COUNT) {
+        return SDOS_E_FIELD;
+    }
+    h->sequence = (uint32_t)v[0];
+    h->heartbeat = (uint32_t)v[1];
+    h->uptime_ms = (uint32_t)v[2];
+    h->state = (uint8_t)v[3];
+    h->fault = (uint8_t)v[4];
+    h->fault_info = (uint32_t)v[5];
+    h->fault_address = v[6];
+    h->stack_margin = (uint32_t)v[7];
+    h->integrity_passes = (uint32_t)v[8];
+    h->deadline_misses = (uint32_t)v[9];
+    return SDOS_OK;
 }

@@ -26,7 +26,7 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(len(found["host"]), 6)  # GCC and Clang, debug and release, sanitizers, coverage
         self.assertEqual(len(found["ti-reference"]), 6)
         self.assertEqual(len(found["board-host"]), 2)
-        self.assertEqual(len(found["firmware"]), 14)  # 3 cores x 2 runtimes x 2 builds, and 2 example layouts
+        self.assertEqual(len(found["firmware"]), 20)  # 3 cores x 2 runtimes x 2 builds, 2 example layouts, 6 fault injection
         for core in ("c66x_0", "c66x_1", "c71x_0"):
             for runtime in ("freertos", "baremetal"):
                 for build in ("debug", "release"):
@@ -70,7 +70,7 @@ class CommandTests(unittest.TestCase):
     def test_quality_builds_every_firmware_preset_when_ti_is_installed(self, _ti: mock.Mock) -> None:
         code, text = run("quality", "--dry-run")
         self.assertEqual(code, facade.EXIT_OK)
-        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 20)  # 6 host, 14 firmware
+        self.assertEqual(text.count("-DSDOS_WERROR=ON"), 26)  # 6 host, 20 firmware
         self.assertEqual(text.count("+ ctest"), 6)  # DSP code is not run on the PC
         self.assertIn("ci/coverage.py build/host-gcc-coverage", text)
         self.assertEqual(text.count("ipc_echo_test_freertos BOARD=j721e_evm"), 3)  # TI references, release only

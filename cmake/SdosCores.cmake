@@ -29,6 +29,24 @@ foreach(_i RANGE ${_last})
   endif()
   string(APPEND _rows "    {\"${_name}\", \"${_label}\", \"${_device}\", \"${_kernel_firmware}\", ${_machine}u, \"${_ext}\", ${_boot_alignment}u},\n")
 
+  # C71x device windows: {base, size} pairs the MMU maps as non-executable
+  # device memory (docs/safety.md).
+  string(JSON _nwindows ERROR_VARIABLE _no_windows LENGTH "${_json}" cores ${_i} mmio_windows)
+  if(NOT _no_windows AND _nwindows GREATER 0)
+    math(EXPR _wlast "${_nwindows} - 1")
+    set(_windows "")
+    foreach(_w RANGE ${_wlast})
+      string(JSON _w_base GET "${_json}" cores ${_i} mmio_windows ${_w} base)
+      string(JSON _w_size GET "${_json}" cores ${_i} mmio_windows ${_w} size)
+      if(_w GREATER 0)
+        string(APPEND _windows ", ")
+      endif()
+      string(APPEND _windows "{${_w_base}u, ${_w_size}u}")
+    endforeach()
+    string(APPEND _macros "#define SDOS_${_upper}_MMIO_COUNT ${_nwindows}u\n"
+                          "#define SDOS_${_upper}_MMIO_WINDOWS {${_windows}}\n")
+  endif()
+
   string(JSON _nregions LENGTH "${_json}" cores ${_i} regions)
   math(EXPR _rlast "${_nregions} - 1")
   foreach(_r RANGE ${_rlast})

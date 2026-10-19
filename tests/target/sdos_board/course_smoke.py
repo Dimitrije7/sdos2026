@@ -3,7 +3,7 @@
 The host checks each locally built firmware against its core's carve-out,
 uploads ``dspctl`` and the firmware with SHA-256 checks on the board, then runs
 one shell script per core and runtime. The script drives ``dspctl`` through
-load, start, status, echo, trace, and stop, and restores the core's original
+load, start, status, health, echo, trace, and stop, and restores the core's original
 firmware name. Each step is recorded with its exit status and output.
 """
 
@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[3]
 REMOTE_DIR = "/tmp/sdos-smoke"
 RUNTIMES = ("freertos", "baremetal")
 EXTENSION = {"c6000": "xe66", "c7000": "xe71"}
-STEPS = ("stop", "load", "start", "status", "echo", "trace", "stop-again")
+STEPS = ("stop", "load", "start", "status", "health", "echo", "trace", "stop-again")
 
 Runner = Callable[[Sequence[str], bytes | None], tuple[int, bytes]]
 
@@ -80,6 +80,7 @@ def remote_script(core: Core, firmware: str, token: str) -> str:
         "load": f"{dspctl} load {core.name} {shlex.quote(firmware)}",
         "start": f"{dspctl} --timeout 10000 start {core.name}",
         "status": f"{dspctl} status {core.name}",
+        "health": f"{dspctl} --json health {core.name}",
         "echo": f"{dspctl} echo {core.name} {shlex.quote(token)}",
         "trace": f"{dspctl} trace {core.name} | tail -n 30",
         "stop-again": f"{dspctl} stop {core.name}",
@@ -119,6 +120,9 @@ def evaluate(steps: dict[str, dict[str, Any]], token: str) -> dict[str, bool]:
         "loaded": ok("load"),
         "started": ok("start") and any("running" in line for line in steps.get("start", {}).get("output", [])),
         "status": ok("status"),
+        # The health line is readable through remoteproc and every start-up
+        # check passed: protection, integrity, layout (docs/safety.md).
+        "healthy": ok("health") and any('"state": "ok"' in line for line in steps.get("health", {}).get("output", [])),
         "echo": ok("echo") and token in steps.get("echo", {}).get("output", []),
         "stopped": ok("stop-again"),
         # "<state> <firmware now> <firmware before>"

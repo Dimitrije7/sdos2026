@@ -21,13 +21,15 @@ class Core:
     regions: tuple[dict[str, object], ...]
     boot_alignment: str
     boot_alignment_reason: str
+    mmio_windows: tuple[dict[str, object], ...] = ()  # C71x MMU device windows (docs/safety.md)
 
     def region(self, name: str) -> dict[str, object]:
         return next(r for r in self.regions if r["name"] == name)
 
 
 def _core(item: dict[str, object]) -> Core:
-    return Core(**{**item, "regions": tuple(item["regions"])})  # type: ignore[arg-type]
+    return Core(**{**item, "regions": tuple(item["regions"]),  # type: ignore[arg-type]
+                   "mmio_windows": tuple(item.get("mmio_windows", ()))})
 
 
 def load(manifest: Path = MANIFEST) -> dict[str, Core]:
