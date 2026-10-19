@@ -1,0 +1,114 @@
+{
+  "schema": "sdos-dsp-ipc/1",
+  "core": "c66x_0",
+  "device": "4d80800000.dsp",
+  "captured_utc": "2026-10-19T15:42:20Z",
+  "kernel": "6.18.55-arm64-k3-r59",
+  "firmware": {
+    "input": "local:ipc_echo_test_freertos_c66xdsp_1_release_strip.xe66",
+    "file": "ipc_echo_test_freertos_c66xdsp_1_release_strip.xe66",
+    "sha256": "1e264565d6d2a0c3df6b305997b9c842da59b87d7469de74ac04bfc0d4c077be"
+  },
+  "plan": {
+    "device": "4d80800000.dsp",
+    "firmware": "sdos/ti-ipc/ipc_echo_test_freertos_c66xdsp_1_release_strip.xe66",
+    "service": "rpmsg_chrdev",
+    "endpoint": 14,
+    "count": 10,
+    "cycles": 1,
+    "payload": 200,
+    "reply_timeout": 2.0,
+    "start_timeout": 15.0,
+    "stop_timeout": 10.0
+  },
+  "agent_exit": 1,
+  "events": [
+    {
+      "ok": true,
+      "device": "4d80800000.dsp",
+      "remoteproc": "remoteproc0",
+      "state": "offline",
+      "firmware": "sdos/c66x_0.xe66",
+      "event": "resolve",
+      "t": 56.188451
+    },
+    {
+      "ok": true,
+      "seconds": 0.0,
+      "event": "offline",
+      "t": 56.188792
+    },
+    {
+      "ok": true,
+      "firmware": "sdos/ti-ipc/ipc_echo_test_freertos_c66xdsp_1_release_strip.xe66",
+      "event": "load",
+      "t": 56.189238
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0002,
+      "state": "running",
+      "event": "start",
+      "t": 56.195564
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0039,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 56.19967
+    },
+    {
+      "cycle": 1,
+      "text": "IPC_echo_test (core : C66X_1) .....\n",
+      "event": "trace",
+      "t": 56.200433
+    },
+    {
+      "cycle": 1,
+      "ok": false,
+      "endpoint": "/dev/rpmsg1",
+      "sent": 11,
+      "received": 0,
+      "mismatches": [
+        {
+          "sent": "ping 1",
+          "reply": null
+        }
+      ],
+      "rtt_us": {
+        "min": null,
+        "max": null,
+        "mean": null
+      },
+      "event": "echo",
+      "t": 58.205996
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0014,
+      "event": "stop",
+      "t": 58.213308
+    },
+    {
+      "state": "offline",
+      "firmware": "sdos/c66x_0.xe66",
+      "event": "final",
+      "t": 58.21598
+    }
+  ],
+  "passed": false,
+  "checks": {
+    "resolved": true,
+    "loaded": true,
+    "started": true,
+    "rpmsg": true,
+    "echo": false,
+    "stopped": true,
+    "no_errors": true,
+    "left_offline": true
+  }
+}

@@ -1,0 +1,176 @@
+2026-10-09T20:35:58,856355+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:35:58,863788+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:35:58,873720+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:35:58,885502+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:35:58,885543+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:35:58,885549+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:35:58,891967+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:03,440594+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:03,449149+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:03,449633+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:03,450998+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:03,473142+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:03,473178+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:03,473184+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:03,482089+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:03,511236+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:03,512451+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:03,525876+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:03,527158+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:03,534497+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:03,534551+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:03,534557+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:03,541251+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:08,088275+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:08,089611+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:08,090050+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:08,091514+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:08,092649+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:08,092693+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:08,092698+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:08,105616+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:08,143793+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:08,146809+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:08,147457+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:08,148824+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:08,152616+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:08,152644+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:08,152649+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:08,162775+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:12,715104+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:12,716215+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:12,716655+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:12,741913+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:12,744053+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:12,744087+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:12,744093+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:12,756040+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:12,788438+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:12,797081+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:12,797534+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:12,798809+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:12,801094+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:12,801135+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:12,801140+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:12,812948+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:20,377394+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:20,378499+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:20,378955+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:20,380161+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:20,405159+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:20,405191+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:20,405196+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:20,414287+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:20,449284+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:20,450486+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:20,450935+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:20,452191+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:20,456158+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:20,456207+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:20,456212+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:20,466293+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:27,995999+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:28,004490+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:28,010973+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:28,017527+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:28,018458+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:28,018479+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:28,018484+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:28,031601+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:28,072222+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:28,081134+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:28,081582+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:28,083096+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:28,088873+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:28,088947+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:28,088953+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:28,097220+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:32,653710+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:32,654829+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:32,655266+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:32,656439+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:32,689380+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:32,689415+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:32,689420+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:32,695677+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:32,721661+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:32,722795+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:32,723238+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:32,726252+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:32,728078+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:32,728105+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:32,728110+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:32,740365+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:37,294961+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:37,296056+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:37,296512+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:37,319239+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:37,320491+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:37,320519+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:37,320525+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:37,333339+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:37,365167+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:37,366390+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:37,366811+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:37,368500+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:37,372596+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:37,372626+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:37,372631+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:37,382602+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:41,908628+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:41,918271+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:41,918742+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:41,920006+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:41,945264+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:41,945304+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:41,945310+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:41,954099+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:41,984084+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:41,993874+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:41,994320+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:42,011630+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:42,022686+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:42,022774+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:42,022781+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:42,030868+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:46,578911+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:46,580013+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:46,580472+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:46,583907+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:46,586781+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:46,586814+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:46,586820+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:46,598025+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:46,640385+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:46,648733+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:46,655130+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:46,656375+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:46,673975+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:46,674032+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:46,674039+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:46,680609+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:51,208116+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:51,217608+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:51,218095+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:51,234430+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:51,237354+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:51,237383+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:51,237388+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:51,248569+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:51,278658+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:51,279853+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:51,280278+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:51,287258+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:51,288261+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:51,288298+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:51,288303+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:51,301343+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:55,832204+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp
+2026-10-09T20:36:55,833870+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
+2026-10-09T20:36:55,834301+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 152628
+2026-10-09T20:36:55,835476+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
+2026-10-09T20:36:55,836430+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
+2026-10-09T20:36:55,836470+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+2026-10-09T20:36:55,836476+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
+2026-10-09T20:36:55,849621+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
+2026-10-09T20:36:55,872446+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp

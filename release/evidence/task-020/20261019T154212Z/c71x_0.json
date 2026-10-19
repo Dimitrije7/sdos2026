@@ -1,0 +1,114 @@
+{
+  "schema": "sdos-dsp-ipc/1",
+  "core": "c71x_0",
+  "device": "64800000.dsp",
+  "captured_utc": "2026-10-19T15:42:16Z",
+  "kernel": "6.18.55-arm64-k3-r59",
+  "firmware": {
+    "input": "local:ipc_echo_test_freertos_c7x_1_release_strip.xe71",
+    "file": "ipc_echo_test_freertos_c7x_1_release_strip.xe71",
+    "sha256": "8321bc7bc11b9c617cd7e8b638da9dc8402530341d401a5e326f5e95028ba467"
+  },
+  "plan": {
+    "device": "64800000.dsp",
+    "firmware": "sdos/ti-ipc/ipc_echo_test_freertos_c7x_1_release_strip.xe71",
+    "service": "rpmsg_chrdev",
+    "endpoint": 14,
+    "count": 10,
+    "cycles": 1,
+    "payload": 200,
+    "reply_timeout": 2.0,
+    "start_timeout": 15.0,
+    "stop_timeout": 10.0
+  },
+  "agent_exit": 1,
+  "events": [
+    {
+      "ok": true,
+      "device": "64800000.dsp",
+      "remoteproc": "remoteproc2",
+      "state": "offline",
+      "firmware": "sdos/c71x_0.xe71",
+      "event": "resolve",
+      "t": 52.352501
+    },
+    {
+      "ok": true,
+      "seconds": 0.0,
+      "event": "offline",
+      "t": 52.352867
+    },
+    {
+      "ok": true,
+      "firmware": "sdos/ti-ipc/ipc_echo_test_freertos_c7x_1_release_strip.xe71",
+      "event": "load",
+      "t": 52.353302
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "state": "running",
+      "event": "start",
+      "t": 52.393907
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.002,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 52.398157
+    },
+    {
+      "cycle": 1,
+      "text": "unavailable: [Errno 2] No such file or directory: '/sys/kernel/debug/remoteproc/remoteproc2/trace0'",
+      "event": "trace",
+      "t": 52.399087
+    },
+    {
+      "cycle": 1,
+      "ok": false,
+      "endpoint": "/dev/rpmsg1",
+      "sent": 11,
+      "received": 0,
+      "mismatches": [
+        {
+          "sent": "ping 1",
+          "reply": null
+        }
+      ],
+      "rtt_us": {
+        "min": null,
+        "max": null,
+        "mean": null
+      },
+      "event": "echo",
+      "t": 54.405001
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "event": "stop",
+      "t": 54.410387
+    },
+    {
+      "state": "offline",
+      "firmware": "sdos/c71x_0.xe71",
+      "event": "final",
+      "t": 54.419217
+    }
+  ],
+  "passed": false,
+  "checks": {
+    "resolved": true,
+    "loaded": true,
+    "started": true,
+    "rpmsg": true,
+    "echo": false,
+    "stopped": true,
+    "no_errors": true,
+    "left_offline": true
+  }
+}

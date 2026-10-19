@@ -17,6 +17,11 @@
  */
 #include "sdos_memory.cmd"
 
+/* MANDATORY: start at the reset entry, which discards stale caches before TI's
+ * C runtime (_c_int00) runs; see firmware/c66x/src/entry.c. */
+-e sdos_entry
+--diag_suppress=10063   /* "entry point other than _c_int00": intended, see above */
+
 -stack 0x2000
 -heap  0x0
 
@@ -44,6 +49,7 @@ SECTIONS
     .resource_table : {} > DDR_META, align = 0x1000   /* MANDATORY: see SDOS.cmd */
     .tracebuf       : {} > DDR_META, align = 0x400    /* MANDATORY: see SDOS.cmd */
     .sdos.integrity : {} > DDR_META, align = 0x8      /* PROTECTION: see SDOS.cmd */
+    .text:sdos_entry : {} > L2CODE, align = 0x400     /* MANDATORY: reset entry, see SDOS.cmd */
     .text:_c_int00  : {} > L2CODE, align = 0x400      /* MANDATORY: 1 KiB-aligned entry */
     .csl_vect       : {} > L2CODE, align = 0x400      /* MANDATORY: ISTP alignment */
     .text           : {} > L2CODE

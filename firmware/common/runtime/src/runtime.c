@@ -48,14 +48,19 @@ void sdos_runtime_ready(sdos_runtime *runtime)
     }
 }
 
+int sdos_runtime_overdue(const sdos_runtime *runtime)
+{
+    if (runtime->busy == 0 || runtime->cycles == NULL || runtime->cycles_per_us == 0u) {
+        return 0;
+    }
+    return runtime->cycles() - runtime->run_start > (uint64_t)SDOS_WATCHDOG_US * runtime->cycles_per_us;
+}
+
 void sdos_runtime_monitor(sdos_runtime *runtime)
 {
     runtime->stats.heartbeat++;
-    if (runtime->busy != 0 && runtime->cycles != NULL && runtime->cycles_per_us != 0u) {
-        uint64_t elapsed = runtime->cycles() - runtime->run_start;
-        if (elapsed > (uint64_t)SDOS_WATCHDOG_US * runtime->cycles_per_us) {
-            sdos_runtime_fault(runtime, SDOS_FAULT_WATCHDOG, 0u, runtime->run_algorithm);
-        }
+    if (sdos_runtime_overdue(runtime)) {
+        sdos_runtime_fault(runtime, SDOS_FAULT_WATCHDOG, 0u, runtime->run_algorithm);
     }
 }
 

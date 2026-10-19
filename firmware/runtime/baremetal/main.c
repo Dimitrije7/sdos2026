@@ -23,6 +23,7 @@ int main(void)
     Sciclient_ConfigPrms_t config;
     uint32_t capabilities;
     int32_t status;
+    sdos_tick_timer_reset(); /* unused here, but a FreeRTOS run before may have left it firing */
     (void)memset(&runtime, 0, sizeof runtime); /* .sdos.runtime may be NOLOAD (C71x L2) */
     runtime.cycles = sdos_cycles;
     runtime.uptime_ms = sdos_uptime_ms;

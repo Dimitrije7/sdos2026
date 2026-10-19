@@ -1,0 +1,92 @@
+{
+  "schema": "sdos-dsp-ipc/1",
+  "core": "c66x_1",
+  "device": "4d81800000.dsp",
+  "captured_utc": "2026-10-19T15:42:21Z",
+  "kernel": "6.18.55-arm64-k3-r59",
+  "firmware": {
+    "input": "local:ipc_echo_test_freertos_c66xdsp_2_release_strip.xe66",
+    "file": "ipc_echo_test_freertos_c66xdsp_2_release_strip.xe66",
+    "sha256": "3e5f7664d2439bdcd5ba98b9912c5d48bf1bef04f012f3480d344340decb004a"
+  },
+  "plan": {
+    "device": "4d81800000.dsp",
+    "firmware": "sdos/ti-ipc/ipc_echo_test_freertos_c66xdsp_2_release_strip.xe66",
+    "service": "rpmsg_chrdev",
+    "endpoint": 14,
+    "count": 10,
+    "cycles": 1,
+    "payload": 200,
+    "reply_timeout": 2.0,
+    "start_timeout": 15.0,
+    "stop_timeout": 10.0
+  },
+  "agent_exit": 1,
+  "events": [
+    {
+      "ok": true,
+      "device": "4d81800000.dsp",
+      "remoteproc": "remoteproc1",
+      "state": "offline",
+      "firmware": "j7-c66_1-fw",
+      "event": "resolve",
+      "t": 59.881953
+    },
+    {
+      "ok": true,
+      "seconds": 0.0,
+      "event": "offline",
+      "t": 59.882288
+    },
+    {
+      "ok": true,
+      "firmware": "sdos/ti-ipc/ipc_echo_test_freertos_c66xdsp_2_release_strip.xe66",
+      "event": "load",
+      "t": 59.882732
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0003,
+      "state": "running",
+      "event": "start",
+      "t": 59.890416
+    },
+    {
+      "cycle": 1,
+      "ok": true,
+      "seconds": 0.0012,
+      "path": "/dev/rpmsg_ctrl1",
+      "event": "rpmsg_ctrl",
+      "t": 59.891733
+    },
+    {
+      "cycle": 1,
+      "text": "",
+      "event": "trace",
+      "t": 59.896749
+    },
+    {
+      "message": "OSError: [Errno 22] Invalid argument",
+      "event": "error",
+      "t": 59.906362
+    },
+    {
+      "state": "offline",
+      "firmware": "j7-c66_1-fw",
+      "event": "final",
+      "t": 59.912238
+    }
+  ],
+  "passed": false,
+  "checks": {
+    "resolved": true,
+    "loaded": true,
+    "started": true,
+    "rpmsg": true,
+    "echo": false,
+    "stopped": false,
+    "no_errors": false,
+    "left_offline": true
+  }
+}

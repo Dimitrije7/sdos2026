@@ -92,17 +92,46 @@ before the board procedures upload anything.
 |---|---|---|
 | `main()` | Starts the request task, which starts the monitor task | Runs the service loop directly |
 | Monitor | A task above every course and IPC task, every 20 ms | Called from the loop between requests |
-| Message arrival | Mailbox interrupt; the task blocks in `RPMessage_recv` | The loop polls the mailbox with interrupts off |
-| TI libraries | FreeRTOS OSAL and kernel, `ipc` | C66x: bare-metal OSAL and `ipc_baremetal`. C71x: FreeRTOS OSAL and port for startup only, and `ipc_baremetal` |
+| Message arrival | The request task polls the mailbox and sleeps one tick between polls | The loop polls the mailbox; on the C71x it idles until a 1 ms wake tick between polls |
+| Watchdog | The monitor task halts a RUN past 2 s | C71x: the wake tick halts it. C66x: none; the heartbeat stops |
+| TI libraries | FreeRTOS OSAL and kernel, `ipc_baremetal` | C66x: bare-metal OSAL and `ipc_baremetal`. C71x: FreeRTOS OSAL and port for startup only, and `ipc_baremetal` |
 
-Bare metal polls on both DSP families. TI's bare-metal OSAL cannot register
-C7x interrupts in PDK 11.02 (its C7x `HwiP` code is a TODO), and polling keeps
-the C66x and the C71x behaving the same. The poll walks TI's private mailbox
-table, whose layout
-[`mailbox_poll.c`](../firmware/runtime/baremetal/mailbox_poll.c) mirrors from
+Both runtimes link TI's bare-metal IPC library and poll the mailbox. TI's RTOS
+IPC library routes a mailbox interrupt through the device manager, which this
+board's boot configuration refuses to the C66x, and TI's bare-metal OSAL cannot
+register C7x interrupts at all (its C7x `HwiP` code is a TODO in PDK 11.02).
+The poll walks TI's private mailbox table, whose layout
+[`mailbox_poll.c`](../firmware/common/platform/src/mailbox_poll.c) mirrors from
 PDK 11.02.01.08; recheck it whenever the PDK pin changes. The C71x boot code
 needs interrupt and exception startup that only TI's FreeRTOS port provides,
 so bare-metal C71x links those objects and never starts the scheduler.
+
+### Start and stop on this board
+
+The board session of 2026-10-19 (Task 021) found that a core's surroundings
+outlive it, and the firmware now handles each case:
+
+- **The C71x cannot be loaded into its own L2.** It has no local reset, so
+  Linux loads the ELF while the module is held in reset, and a write into L2
+  then hangs the SoC. The manifest marks C71x L2 not loadable; firmware fills
+  it at start-up (`table(BINIT)`, NOLOAD).
+- **A busy C71x cannot be powered off.** Linux stops a C71x by switching it
+  off, which completes only while the CPU idles. Bare metal therefore idles
+  between polls on a 1 ms wake tick, and every halt idles, outside exception
+  context. The C66x is stopped by local reset, busy or not.
+- **The C66x subsystem stays powered.** Its caches survive a stop, so the
+  reset entry [`entry.c`](../firmware/c66x/src/entry.c) discards them before
+  TI's C runtime runs. Its interrupt router keeps the previous run's tick
+  route, which the device manager then refuses to set again or release; the
+  firmware replaces TI's `OS_init` on the C66x, requests the route, and
+  accepts a refusal only when the route is verifiably in place.
+- **The DM timers stay powered** and keep counting with their interrupt
+  pending, so every start resets its own timer, and a graceful shutdown
+  resets it too.
+- **Sciclient** runs polled: in interrupt mode every C66x request after the
+  first timed out.
+- **A C71x task stack** holds wide vector registers: the monitor task needs
+  64 KiB, not the 16 KiB first given.
 
 ## Trace
 
@@ -110,16 +139,14 @@ The resource table points Linux at a 64 KiB trace buffer, which
 `dspctl trace <dsp>` prints. Its first 192 bytes are the health line
 ([`safety.md`](safety.md#health-line)); a text ring follows, in which each
 line starts with the uptime. The C66x uses
-the standard trace entry. The C71x uses TI's 64-bit trace entry, as TI's own
-C71x firmware does. A kernel without TI's support for that entry ignores it,
-and `dspctl trace c71x_0` then has nothing to read. The next board session
-shows which case applies.
+the standard trace entry on both families. TI's C71x IPC type ends with a
+64-bit trace entry, which the course kernel ignores ("unsupported resource
+65538"), so the C71x table declares the standard one; `firmware_elf.py`
+refuses a firmware whose only trace is the 64-bit entry.
 
-## Known risks, checked in the next board session
+## Known limits
 
-- TI's prebuilt echo firmware waits for every remote core, including R5Fs that
-  may have no firmware on this board. If it stalls, the course firmware does
-  not have that dependency.
-- The kernel's RPMsg character driver must accept the endpoint the library
-  creates with `RPMSG_CREATE_EPT_IOCTL`.
-- Bare-metal timing and polling cost have not been measured.
+- The C71x stack-overflow case is contained but not reported, and needs a
+  board reboot ([safety.md](safety.md#residual-risks)).
+- Polling adds up to one tick (1 ms) of latency per request under FreeRTOS;
+  bare-metal polling cost has not been measured.

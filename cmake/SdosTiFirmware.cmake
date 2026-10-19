@@ -95,7 +95,12 @@ function(sdos_add_ti_firmware target)
     list(APPEND libs
       "ti/osal/lib/freertos/j721e/${_isa}/release/ti.osal.${_lib_ext}"
       "ti/kernel/lib/j721e/${core}/release/ti.kernel.freertos.${_lib_ext}"
-      "ti/drv/ipc/lib/j721e/${core}/release/ipc.${_lib_ext}")
+      # TI's bare-metal IPC library under FreeRTOS too: it polls the mailbox
+      # and asks the device manager for no interrupt route. The RTOS library
+      # needs one, which this board's boot configuration refuses the C66x
+      # (Task 021), and routes outlive a core restart. One IPC design for
+      # every core and runtime.
+      "ti/drv/ipc/lib/j721e/${core}/release/ipc_baremetal.${_lib_ext}")
   elseif(_isa STREQUAL "c66")
     list(APPEND libs
       "ti/osal/lib/nonos/j721e/c66/release/ti.osal.ae66"

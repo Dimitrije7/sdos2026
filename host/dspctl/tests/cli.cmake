@@ -36,6 +36,7 @@ expect("run fir" 0 "fir_q15: 1024 bytes in, 1022 bytes out" ${DSPCTL} --backend 
        "${WORK}/in.bin" "${WORK}/fir.bin" 16384,16384)
 expect("numeric algorithm id" 0 "0x1: 1024 bytes in, 1024 bytes out" ${DSPCTL} --backend mock run c66x_0 0x1
        "${WORK}/in.bin" "${WORK}/num.bin" "")
+expect("run without data" 0 "copy: no data, [0-9]+ DSP cycles" ${DSPCTL} --backend mock run c66x_0 copy - -)
 expect("unknown numeric algorithm" 1 "unknown algorithm" ${DSPCTL} --backend mock run c66x_0 0xfa000006
        "${WORK}/in.bin" "${WORK}/x.bin" 0a0b)
 expect("odd hexadecimal parameters" 2 "even number of hexadecimal digits" ${DSPCTL} --backend mock run c66x_0 7

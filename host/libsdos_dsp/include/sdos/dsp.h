@@ -89,6 +89,11 @@ sdos_status sdos_dsp_buffer_acquire(sdos_dsp *dsp, uint32_t offset, uint32_t len
 sdos_status sdos_dsp_buffer_release(sdos_dsp *dsp, sdos_buffer *buffer);
 sdos_status sdos_dsp_run(sdos_dsp *dsp, uint32_t algorithm, sdos_buffer *input, sdos_buffer *output,
                          const void *params, size_t params_length, sdos_run_result *result);
+/* RUN with parameters only: empty input and output, so no shared buffer is
+ * needed (for algorithms that take no data, such as the fault-injection
+ * cases). Works on every backend, the board's included. */
+sdos_status sdos_dsp_run_control(sdos_dsp *dsp, uint32_t algorithm, const void *params, size_t params_length,
+                                 sdos_run_result *result);
 
 /* Time budget for each later RUN on this handle, in microseconds; 0 (the
  * default) means the firmware's watchdog limit, SDOS_WATCHDOG_US. A RUN that

@@ -1,0 +1,88 @@
+{
+  "schema": "sdos-course-smoke/1",
+  "core": "c71x_0",
+  "runtime": "baremetal",
+  "firmware": "sdos-c71x_0-baremetal.xe71",
+  "captured_utc": "2026-10-19T15:31:45Z",
+  "ssh_exit": 0,
+  "checks": {
+    "loaded": true,
+    "started": true,
+    "status": true,
+    "healthy": true,
+    "echo": true,
+    "stopped": true,
+    "restored": true
+  },
+  "passed": true,
+  "steps": {
+    "stop": {
+      "output": [
+        "dspctl: stop: stop needs c71x_0 running, but it is offline (bad buffer state)"
+      ],
+      "status": 0
+    },
+    "load": {
+      "output": [
+        "loaded /tmp/sdos-smoke/sdos-c71x_0-baremetal.xe71"
+      ],
+      "status": 0
+    },
+    "start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "status": {
+      "output": [
+        "C71x_0 (64800000.dsp) running",
+        "  firmware   sdos 0.1.0 baremetal",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "  requests   3, errors 0, runs 0, last error ok",
+        "  state      ok",
+        "  safety     heartbeat 1, 0 late, 0 corrupted messages, 0 from other processors, 1 integrity passes"
+      ],
+      "status": 0
+    },
+    "health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 1, \"uptime_ms\": 38, \"stack_margin\": 65536, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "echo": {
+      "output": [
+        "sdos-smoke c71x_0 baremetal 1792423903"
+      ],
+      "status": 0
+    },
+    "trace": {
+      "output": [
+        "SDOS-HEALTH 1 seq=00000004 hb=00000002 up=0000003a state=1 fault=00 info=00000000 addr=0000000000000000 margin=00010000 passes=00000001 late=00000000 end=00000004                             ",
+        "[0.013] integrity: 9 read-only ranges match their CRC record",
+        "[0.016] mmu: only this core's memory and 7 device windows mapped; code read-only, data not executable, L2 code 0x64800000..0x64804000 read-only, page tables 0",
+        "[0.016] layout: fir code loaded at a8200000, runs at 64800000, 384 bytes; check passed",
+        "[0.016] sdos 0.1.0 baremetal, bare metal, starting",
+        "[0.016] waiting for Linux to set up the vrings",
+        "[0.017] serving protocol 2.0 on endpoint 40 as sdos-dsp",
+        "[0.017] monitor: 1 guarded stacks, kernel heap absent; ready"
+      ],
+      "status": 0
+    },
+    "stop-again": {
+      "output": [],
+      "status": 0
+    },
+    "restored": {
+      "output": [
+        "offline j7-c71_0-fw j7-c71_0-fw"
+      ],
+      "status": 0
+    }
+  }
+}

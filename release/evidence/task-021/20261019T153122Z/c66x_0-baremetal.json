@@ -1,0 +1,102 @@
+{
+  "schema": "sdos-course-smoke/1",
+  "core": "c66x_0",
+  "runtime": "baremetal",
+  "firmware": "sdos-c66x_0-baremetal.xe66",
+  "captured_utc": "2026-10-19T15:31:26Z",
+  "ssh_exit": 0,
+  "checks": {
+    "loaded": true,
+    "started": true,
+    "status": true,
+    "healthy": true,
+    "echo": true,
+    "stopped": true,
+    "restored": true
+  },
+  "passed": true,
+  "steps": {
+    "stop": {
+      "output": [
+        "dspctl: stop: stop needs c66x_0 running, but it is offline (bad buffer state)"
+      ],
+      "status": 0
+    },
+    "load": {
+      "output": [
+        "loaded /tmp/sdos-smoke/sdos-c66x_0-baremetal.xe66"
+      ],
+      "status": 0
+    },
+    "start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 baremetal",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "status": {
+      "output": [
+        "C66x_0 (4d80800000.dsp) running",
+        "  firmware   sdos 0.1.0 baremetal",
+        "  runtime    baremetal 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "  requests   3, errors 0, runs 0, last error ok",
+        "  state      ok",
+        "  safety     heartbeat 2, 0 late, 0 corrupted messages, 0 from other processors, 1 integrity passes"
+      ],
+      "status": 0
+    },
+    "health": {
+      "output": [
+        "{\"name\": \"c66x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 2, \"uptime_ms\": 131, \"stack_margin\": 14864, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "echo": {
+      "output": [
+        "sdos-smoke c66x_0 baremetal 1792423885"
+      ],
+      "status": 0
+    },
+    "trace": {
+      "output": [
+        "SDOS-HEALTH 1 seq=00000005 hb=00000003 up=00000097 state=1 fault=00 info=00000000 addr=0000000000000000 margin=00003a10 passes=00000001 late=00000000 end=00000005                             ",
+        "[0.060] integrity: 7 read-only ranges match their CRC record",
+        "[0.060] mpax: segment 0 0000001e 000000bf, segment 1 8000001e 080000bf (as found)",
+        "[0.060] mpax:  0 0000001e 00000080   1 8000001e 08000080",
+        "[0.061] mpax:  2 0000001b 000000b6   3 20ac000b 020ac0b6",
+        "[0.061] mpax:  4 3114000b 031140b6   5 31f8000f 031f80b6",
+        "[0.061] mpax:  6 32400013 032400b6   7 32800013 032800b6",
+        "[0.061] mpax:  8 32c00013 032c00b6   9 a6100013 0a6100b6",
+        "[0.061] mpax: 10 a6200014 0a6200b6  11 a6400015 0a6400b6",
+        "[0.061] mpax: 12 a6800016 0a6800b6  13 a7000013 0a7000b6",
+        "[0.061] mpax: 14 a6200014 0a6200a4  15 a6400015 0a6400ad",
+        "[0.061] mpax: fault status 00000000 address 00000000; l2: fault status 00000000 address 00000000",
+        "[0.062] mpax write: probe 0x70020000 read 4ed735c0; fault status 00000110, address 70020000: refused",
+        "[0.062] mpax read: probe 0xa7100000 read 5e4f267f; fault status 00000000, address 00000000: NOT refused",
+        "[0.062] mpax: 14 segments; writes reach only this core's DDR (0xa6100000..0xa6ffffff), its vring pool, and 7 device windows; code read-only; reads are not iso",
+        "[0.062] l2: 18 pages protected (page 0 was 0000ffff); code 0x00800000..0x00804000 read-only, the rest not executable, no other master admitted",
+        "[0.063] l2: probe 0x00800000 read 11c68cf7; fault status 00000110, address 00800000: refused",
+        "[0.063] layout: fir code loaded at a6400000, runs at 800000, 384 bytes; check passed",
+        "[0.063] sdos 0.1.0 baremetal, bare metal, starting",
+        "[0.063] waiting for Linux to set up the vrings",
+        "[0.095] serving protocol 2.0 on endpoint 40 as sdos-dsp",
+        "[0.095] monitor: 1 guarded stacks, kernel heap absent; ready"
+      ],
+      "status": 0
+    },
+    "stop-again": {
+      "output": [],
+      "status": 0
+    },
+    "restored": {
+      "output": [
+        "offline j7-c66_0-fw j7-c66_0-fw"
+      ],
+      "status": 0
+    }
+  }
+}

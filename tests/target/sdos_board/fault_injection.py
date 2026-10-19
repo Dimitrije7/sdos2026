@@ -58,19 +58,26 @@ def _e(**outcomes: set[str]) -> tuple[tuple[str, frozenset[str]], ...]:
 
 CASES = (
     Case("write_foreign", 0xFA000001, expected=_e(**{"*": {"access"}})),
-    Case("read_foreign", 0xFA000002, expected=_e(**{"*": {"access"}})),
+    # The C66x XMC refuses writes outside its grants but not reads (board,
+    # Task 042; docs/safety.md): a read of foreign memory goes unnoticed there.
+    Case("read_foreign", 0xFA000002, expected=_e(c6000={"undetected"}, c7000={"access"})),
     Case("write_code", 0xFA000003, expected=_e(**{"*": {"access"}})),
     # A blocked C66x instruction fetch may also stop the core outright.
     Case("exec_data", 0xFA000004, expected=_e(c6000={"access", "exception", "stale"},
                                                c7000={"access", "exception"})),
-    Case("stack", 0xFA000005, expected=_e(**{"*": {"stack"}})),
-    Case("hang", 0xFA000006, expected=_e(freertos={"watchdog"}, baremetal={"stale"})),
+    # The bare-metal C71x wake tick doubles as watchdog; a bare-metal C66x has
+    # no interrupt at all, so only its heartbeat stops (Linux stops it anyway).
+    Case("hang", 0xFA000006, expected=_e(freertos={"watchdog"}, c7000_baremetal={"watchdog"},
+                                          baremetal={"stale"})),
     Case("overrun", 0xFA000007, params="88130000", budget_us=1000,  # 5 ms against a 1 ms budget
          expected=_e(**{"*": {"deadline"}})),
     Case("corrupt_image", 0xFA000008, expected=_e(**{"*": {"integrity"}})),
     Case("heap", 0xFA000009, expected=_e(freertos={"heap"}, baremetal={"unsupported"})),
     Case("write_l2_code", 0xFA00000A, expected=_e(**{"*": {"access"}})),
-    Case("read_shared", 0xFA00000B, expected=_e(**{"*": {"access"}})),
+    Case("read_shared", 0xFA00000B, expected=_e(c6000={"undetected"}, c7000={"access"})),
+    # Last: on the C71x an overflow into the guard page still hangs the core
+    # beyond recovery (Task 042 handoff), which would fail every later case.
+    Case("stack", 0xFA000005, expected=_e(**{"*": {"stack"}})),
 )
 
 
@@ -108,7 +115,7 @@ def remote_script(core: Core, firmware: str) -> str:
              f"echo '@@step load'; ( {dspctl} load {core.name} {shlex.quote(firmware)} ) 2>&1; echo \"@@status $?\""]
     for case in CASES:
         run = (f"{dspctl} --timeout {case.run_timeout_ms} --budget-us {case.budget_us} run {core.name} "
-               f"{case.algorithm:#x} {REMOTE_DIR}/fi.in {REMOTE_DIR}/fi.out {shlex.quote(case.params)}")
+               f"{case.algorithm:#x} - - {shlex.quote(case.params)}")  # no data: no shared buffer needed
         for step, command in ((f"{case.name}:start", f"{dspctl} --timeout 10000 recover {core.name}"),
                               (f"{case.name}:run", run),
                               (f"{case.name}:health", f"sleep 1; {dspctl} --json health {core.name}"),
@@ -120,8 +127,7 @@ def remote_script(core: Core, firmware: str) -> str:
               f"[ \"$was\" = 1 ] && {dspctl} start {neighbour} >/dev/null 2>&1",
               "echo '@@step restored'", 'echo "$(cat "$rp/state") $(cat "$rp/firmware") $original"',
               "echo '@@status 0'"]
-    prelude = f"head -c 4096 /dev/zero > {REMOTE_DIR}/fi.in"
-    return prelude + "\n" + "\n".join(lines) + "\n"
+    return "\n".join(lines) + "\n"
 
 
 def _health(step: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -170,7 +176,8 @@ def evaluate(steps: dict[str, dict[str, Any]], core: Core, runtime: str) -> dict
 
 
 def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: Runner = _run,
-        build: Path = ROOT / "build", follow_kernel: bool = False) -> list[dict[str, Any]]:
+        build: Path = ROOT / "build", follow_kernel: bool = False,
+        runtimes: Sequence[str] = RUNTIMES) -> list[dict[str, Any]]:
     found = artifacts(build)
     problems = check_artifacts(found)
     if problems:
@@ -179,7 +186,7 @@ def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: R
     out.mkdir(parents=True, exist_ok=True)
     results = []
     for core in cores:
-        for runtime in RUNTIMES:
+        for runtime in runtimes:
             local = found[f"{core.name}-{runtime}"]
             remote = f"{REMOTE_DIR}/{local.name}"
             upload(host, key, local, remote, "0644", runner)

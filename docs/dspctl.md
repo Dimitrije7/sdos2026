@@ -37,7 +37,7 @@ A DSP is always named by its logical name, never by a `remoteprocN` number:
 | `dspctl health <dsp>` | The firmware's state, fault record, heartbeat, and stack margin, read from the trace without IPC |
 | `dspctl supervise <dsp> [--interval MS] [--stale MS] [--restart] [--count N]` | Watch the health line; on a fault or a heartbeat stopped for `--stale` ms (default 3000), print the trace and restart the DSP (`--restart`) or exit 3 |
 | `dspctl echo <dsp> [text]` | Send text and print the reply |
-| `dspctl run <dsp> <algorithm> <in> <out> [gain \| coefficients \| hex]` | Run `copy`, `gain_q15`, or `fir_q15` over a file; a numeric algorithm id takes its parameters as hexadecimal bytes |
+| `dspctl run <dsp> <algorithm> <in> <out> [gain \| coefficients \| hex]` | Run `copy`, `gain_q15`, or `fir_q15` over a file; a numeric algorithm id takes its parameters as hexadecimal bytes; `-` for both `<in>` and `<out>` runs it with no data, which needs no shared buffer and works on the board today |
 
 Options go before the command: `--backend linux|mock` (default `linux`),
 `--timeout <ms>` (default 2000), `--budget-us <us>`, `--json`, and
@@ -130,6 +130,9 @@ little-endian integers; the result is rounded half up and saturated.
 ## Status
 
 The protocol, library, and mock run on the PC, and the Linux backend is tested
-against a simulated kernel. The board run comes in the next board session,
-with the firmware from Task 021. Shared buffers on the board follow the Task
+against a simulated kernel. On the board (2026-10-19) `load`, `start`,
+`status`, `health`, `echo`, `trace`, `stop`, `recover`, and `run` without data
+work on all three DSPs in both runtimes (Tasks 021 and 042). `start` resends
+HELLO every 500 ms until the timeout, because a HELLO sent before the firmware
+announces its endpoint is lost. Shared buffers on the board follow the Task
 027 decision.

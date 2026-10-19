@@ -6,17 +6,15 @@ add_subdirectory(common)
 if(SDOS_PRODUCT STREQUAL "firmware")
   include(${PROJECT_SOURCE_DIR}/cmake/SdosTiFirmware.cmake)
   if(SDOS_CORE MATCHES "^c66x")
-    set(family_sources c66x/src/c66x.c)
+    set(family_sources c66x/src/entry.c c66x/src/c66x.c)
   else()
     set(family_sources c71x/src/c71x.c)
   endif()
   set(runtime_sources runtime/${SDOS_RTOS}/main.c)
-  if(SDOS_RTOS STREQUAL "baremetal")
-    list(APPEND runtime_sources runtime/baremetal/mailbox_poll.c)
-  endif()
   sdos_add_ti_firmware(sdos_firmware SOURCES
     ${runtime_sources}
     common/platform/src/ipc_service.c
+    common/platform/src/mailbox_poll.c
     common/platform/src/resource_table.c
     common/platform/src/trace.c
     common/platform/src/layout.c

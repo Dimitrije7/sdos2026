@@ -1,0 +1,32 @@
+=== c66x_0 l2.xe66
+running
+layout-1
+{"name": "c66x_0", "state": "ok", "fault": "none", "fault_info": 0, "fault_address": 0, "heartbeat": 3, "uptime_ms": 63, "stack_margin": 6672, "integrity_passes": 1, "deadline_misses": 0}
+[0.003] mpax: fault status 00000000 address 00000000; l2: fault status 00000000 address 00000000
+[0.003] mpax: 13 segments; writes reach only this core's DDR (0xa6100000..0xa6ffffff), its vring pool, and 7 device windows; code read-only; reads are not iso
+[0.003] l2: 18 pages protected (page 0 was 0000ffff); code 0x00800000..0x00820000 read-only, the rest not executable, no other master admitted
+[0.003] l2: probe 0x00800000 read 10293010; fault status 00000110, address 00800000: refused
+[0.003] layout: fir code loaded at a6200000, runs at 814ae0, 384 bytes; check passed
+stop=0
+running
+layout-2
+{"name": "c66x_0", "state": "ok", "fault": "none", "fault_info": 0, "fault_address": 0, "heartbeat": 1, "uptime_ms": 23, "stack_margin": 6672, "integrity_passes": 1, "deadline_misses": 0}
+[0.003] mpax: fault status 00000000 address 00000000; l2: fault status 00000000 address 00000000
+[0.003] mpax: 13 segments; writes reach only this core's DDR (0xa6100000..0xa6ffffff), its vring pool, and 7 device windows; code read-only; reads are not iso
+[0.003] l2: 18 pages protected (page 0 was 0000ffff); code 0x00800000..0x00820000 read-only, the rest not executable, no other master admitted
+[0.003] l2: probe 0x00800000 read 10293010; fault status 00000110, address 00800000: refused
+[0.003] layout: fir code loaded at a6200000, runs at 814ae0, 384 bytes; check passed
+stop=0
+=== c71x_0 ddr.xe71
+running
+layout-1
+{"name": "c71x_0", "state": "ok", "fault": "none", "fault_info": 0, "fault_address": 0, "heartbeat": 2, "uptime_ms": 43, "stack_margin": 44312, "integrity_passes": 1, "deadline_misses": 0}
+[0.018] mmu: only this core's memory and 7 device windows mapped; code read-only, data not executable, L2 code 0x64800000..0x64800000 read-only, page tables 0
+[0.021] layout: fir code loaded at a8824500, runs at a8824500, 384 bytes; check passed
+stop=0
+running
+layout-2
+{"name": "c71x_0", "state": "ok", "fault": "none", "fault_info": 0, "fault_address": 0, "heartbeat": 22, "uptime_ms": 502, "stack_margin": 44312, "integrity_passes": 3, "deadline_misses": 0}
+[0.018] mmu: only this core's memory and 7 device windows mapped; code read-only, data not executable, L2 code 0x64800000..0x64800000 read-only, page tables 0
+[0.021] layout: fir code loaded at a8824500, runs at a8824500, 384 bytes; check passed
+stop=0

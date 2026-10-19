@@ -34,6 +34,7 @@
 #define OWN_MMIO_COUNT SDOS_C66X_0_MMIO_COUNT
 #define OWN_MMIO_WINDOWS SDOS_C66X_0_MMIO_WINDOWS
 #define SDOS_CORE_L2SRAM_BASE SDOS_C66X_0_L2SRAM_BASE
+#define TICK_TIMER_BASE 0x02400000u /* DM timer 0: OSAL_FREERTOS_OS_TIMER_ID_C66X_1 */
 #elif defined(BUILD_C66X_2)
 #define IPC_DATA_BASE (C66x2_IPC_DATA_BASE)
 #if (C66x2_IPC_DATA_BASE) != SDOS_C66X_1_DMA_POOL_BASE
@@ -47,6 +48,7 @@
 #define OWN_MMIO_COUNT SDOS_C66X_1_MMIO_COUNT
 #define OWN_MMIO_WINDOWS SDOS_C66X_1_MMIO_WINDOWS
 #define SDOS_CORE_L2SRAM_BASE SDOS_C66X_1_L2SRAM_BASE
+#define TICK_TIMER_BASE 0x02410000u /* DM timer 1: OSAL_FREERTOS_OS_TIMER_ID_C66X_2 */
 #else
 #error "build for BUILD_C66X_1 or BUILD_C66X_2"
 #endif
@@ -111,6 +113,20 @@ typedef struct window {
     uint64_t size;
 } window;
 static const window mmio[OWN_MMIO_COUNT] = OWN_MMIO_WINDOWS;
+
+/* DM timer registers (TI osal TimerP_nonos.c, TIMERP_DM_*). */
+#define TIMER_REG(offset) (*(volatile uint32_t *)(TICK_TIMER_BASE + (offset)))
+#define TIMER_TIOCP_CFG 0x10u
+#define TIMER_SOFTRESET 0x1u
+
+void sdos_tick_timer_reset(void)
+{
+    uint32_t spins = 100000u; /* the reset completes within a few timer clocks */
+    TIMER_REG(TIMER_TIOCP_CFG) = TIMER_SOFTRESET;
+    while ((TIMER_REG(TIMER_TIOCP_CFG) & TIMER_SOFTRESET) != 0u && spins > 0u) {
+        spins--;
+    }
+}
 
 void sdos_platform_init(void)
 {
@@ -200,6 +216,7 @@ static uint32_t protect_l2(sdos_runtime *runtime)
     const uint32_t end = (uint32_t)(uintptr_t)zone_l2_end;
     uint32_t page;
     uint32_t before = L2MPPA(0);
+    (void)runtime; /* an unenforced page protection is reported, not a fault */
 
     for (page = 0u; page < L2_PAGES && base + (page + 1u) * L2_PAGE <= end; page++) {
         uint32_t at = base + page * L2_PAGE;
@@ -218,8 +235,8 @@ static uint32_t protect_l2(sdos_runtime *runtime)
         *probe = value;
         _mfence(); /* the write has reached L2 before the status is read */
         if (!blocked("l2", &L2MPFSR, &L2MPFAR, &L2MPFCR, code_lo, value)) {
-            sdos_runtime_fault(runtime, SDOS_FAULT_SELF_TEST, code_lo, L2_FAULT_INFO);
-            sdos_trace("l2: self-test FAILED: a write into the L2 code zone was not blocked");
+            sdos_trace("l2: this C66x did not refuse a write into the L2 code zone: L2 page protection is not "
+                       "enforced; protection capability withheld");
             return 0u;
         }
     }
@@ -234,6 +251,7 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
     const original high = found_segment(1u);
     unsigned int key;
     uint32_t value;
+    int enforced;
     plan p;
     size_t i;
 
@@ -296,23 +314,33 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
 
     /* Self-tests: the other C66x's memory and shared on-chip SRAM must both
      * be refused and recorded. */
+    /* Self-tests. On the board (Task 042) this XMC refuses and records writes
+     * outside the grants but lets reads through: isolation against corruption
+     * holds, reading another partition's memory does not fail. The write
+     * probe goes to MSMC, which no one owns, and writes back the value it
+     * read, so it is harmless even where it is not refused; the line leaves
+     * the cache first, because a cache writeback is not checked. The read of
+     * the other C66x's memory is traced for the record. */
     sdos_protection_report();
+    {
+        volatile uint32_t *probe = (volatile uint32_t *)(uintptr_t)MSMC_PROBE;
+        value = *probe;
+        sdos_cache_writeback((void *)(uintptr_t)MSMC_PROBE, 64u);
+        *probe = value;
+        _mfence();
+        enforced = blocked("mpax write", &XMPFSR, &XMPFAR, &XMPFCR, MSMC_PROBE, value);
+    }
     value = *(volatile uint32_t *)(uintptr_t)NEIGHBOUR_DDR;
-    if (!blocked("mpax", &XMPFSR, &XMPFAR, &XMPFCR, NEIGHBOUR_DDR, value)) {
-        sdos_runtime_fault(runtime, SDOS_FAULT_SELF_TEST, NEIGHBOUR_DDR, 1u);
-        sdos_trace("mpax: self-test FAILED: a read of 0x%08lx was not blocked", (unsigned long)NEIGHBOUR_DDR);
-        return 0u;
+    (void)blocked("mpax read", &XMPFSR, &XMPFAR, &XMPFCR, NEIGHBOUR_DDR, value);
+    if (enforced) {
+        sdos_trace("mpax: %lu segments; writes reach only this core's DDR (0x%08lx..0x%08lx), its vring pool, and "
+                   "%lu device windows; code read-only; reads are not isolated by this XMC", (unsigned long)p.count,
+                   (unsigned long)ddr_start, (unsigned long)(ddr_end - 1u), (unsigned long)OWN_MMIO_COUNT);
+    } else {
+        sdos_trace("mpax: %lu segments programmed, but this C66x refused no write outside them; protection "
+                   "capability withheld", (unsigned long)p.count);
     }
-    value = *(volatile uint32_t *)(uintptr_t)MSMC_PROBE;
-    if (!blocked("mpax", &XMPFSR, &XMPFAR, &XMPFCR, MSMC_PROBE, value)) {
-        sdos_runtime_fault(runtime, SDOS_FAULT_SELF_TEST, MSMC_PROBE, 2u);
-        sdos_trace("mpax: self-test FAILED: a read of 0x%08lx was not blocked", (unsigned long)MSMC_PROBE);
-        return 0u;
-    }
-    sdos_trace("mpax: %lu segments; only this core's DDR (0x%08lx..0x%08lx), its vring pool, and %lu device "
-               "windows reachable; code read-only; self-tests passed", (unsigned long)p.count,
-               (unsigned long)ddr_start, (unsigned long)(ddr_end - 1u), (unsigned long)OWN_MMIO_COUNT);
-    return protect_l2(runtime);
+    return protect_l2(runtime) & (enforced ? SDOS_CAP_PROTECTION : 0u);
 }
 
 void sdos_protection_poll(sdos_runtime *runtime)
@@ -337,9 +365,19 @@ void sdos_protection_guard(const sdos_stack *stacks, size_t count)
 
 void sdos_halt(void)
 {
+    sdos_idle_forever(); /* idle, not a busy loop: Linux can then power the core off */
+}
+
+void sdos_wait_for_event(void)
+{
+    /* nothing: Linux stops a C66x by local reset, busy or not */
+}
+
+void sdos_idle_forever(void)
+{
     (void)_disable_interrupts();
     for (;;) {
-        /* fatal fault: Linux restarts the core */
+        __asm(" IDLE");
     }
 }
 

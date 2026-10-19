@@ -6,7 +6,9 @@
  * with one deliberate difference: this firmware talks only to Linux on the
  * A72 (IPC_MPU1_0). It never waits for R5F cores, which may run no firmware
  * on a BeagleBone AI-64, and it drops messages from any other processor
- * (docs/safety.md, communication interference).
+ * (docs/safety.md, communication interference). Both runtimes link TI's
+ * bare-metal IPC library and poll the mailbox (mailbox_poll.c): no interrupt
+ * route, no IPC control task.
  */
 #include <string.h>
 
@@ -17,14 +19,6 @@
 #include "sdos/platform.h"
 #include "sdos/protocol.h"
 
-#if defined(BUILD_C7X)
-#define TASK_STACK_ALIGN 8192 /* the C7x FreeRTOS port needs 8 KiB alignment */
-#define CTRL_STACK_SIZE 16384u
-#else
-#define TASK_STACK_ALIGN 8
-#define CTRL_STACK_SIZE 8192u
-#endif
-
 /* RPMessage buffers: 256 messages of 496 + 32 bytes plus the object. */
 #define RPMSG_BUFFER_SIZE (256u * (496u + 32u) + 256u)
 #define VQ_BUFFER_SIZE 2048u
@@ -33,9 +27,6 @@
 static uint8_t control_buffer[RPMSG_BUFFER_SIZE] __attribute__((section("ipc_data_buffer"), aligned(8)));
 static uint8_t endpoint_buffer[RPMSG_BUFFER_SIZE] __attribute__((section("ipc_data_buffer"), aligned(8)));
 static uint8_t vq_buffer[VQ_BUFFER_SIZE] __attribute__((section("ipc_data_buffer"), aligned(8)));
-#if !defined(BAREMETAL)
-static uint8_t control_stack[CTRL_STACK_SIZE] __attribute__((section(".sdos.stack.ipc"), aligned(TASK_STACK_ALIGN)));
-#endif
 
 static uint32_t remote_procs[1] = {IPC_MPU1_0};
 static RPMessage_Handle endpoint;
@@ -59,8 +50,9 @@ static void mailbox_message(uint32_t remote, uint32_t value)
     }
 }
 
-#if defined(BAREMETAL)
-void sdos_mailbox_poll(void); /* firmware/runtime/baremetal/mailbox_poll.c */
+void sdos_mailbox_poll(void); /* mailbox_poll.c */
+/* TI's ipc_mailbox.h, private to the library: send one mailbox word. */
+int32_t Ipc_mailboxSend(uint32_t selfId, uint32_t remoteProcId, uint32_t val, uint32_t timeoutCnt);
 
 /* Called by the IPC library when a message is queued for an endpoint. */
 static void message_arrived(uint32_t source_endpoint, uint32_t source_proc)
@@ -69,7 +61,18 @@ static void message_arrived(uint32_t source_endpoint, uint32_t source_proc)
     (void)source_proc;
     messages_arrived++;
 }
+
+/* Between two polls: bare metal runs the monitor, FreeRTOS gives the CPU away
+ * for one tick (at most 1 ms of added latency; the monitor is a task). */
+static void idle(void)
+{
+#if defined(BAREMETAL)
+    sdos_monitor_poll();
+    sdos_wait_for_event();
+#else
+    TaskP_sleep(1u);
 #endif
+}
 
 static int bring_up(void)
 {
@@ -84,9 +87,7 @@ static int bring_up(void)
     IpcInitPrms_init(0u, &init);
     init.printFxn = ipc_print;
     init.rpMboxMsgFxn = mailbox_message;
-#if defined(BAREMETAL)
     init.newMsgFxn = message_arrived;
-#endif
     if (Ipc_init(&init) != IPC_SOK) {
         sdos_trace("Ipc_init failed");
         return -1;
@@ -94,12 +95,8 @@ static int bring_up(void)
     (void)Ipc_loadResourceTable((void *)sdos_resource_table_address);
     sdos_trace("waiting for Linux to set up the vrings");
     while (Ipc_isRemoteReady(IPC_MPU1_0) == 0u) {
-#if defined(BAREMETAL)
         sdos_mailbox_poll();
-        sdos_monitor_poll();
-#else
-        TaskP_sleep(10u);
-#endif
+        idle();
     }
     vq.vqObjBaseAddr = vq_buffer;
     vq.vqBufSize = Ipc_getVqObjMemoryRequiredPerCore();
@@ -113,23 +110,17 @@ static int bring_up(void)
     (void)RPMessageParams_init(&params);
     params.buf = control_buffer;
     params.bufSize = sizeof control_buffer;
-#if defined(BAREMETAL)
-    params.stackBuffer = NULL;
+    params.stackBuffer = NULL; /* the bare-metal library runs no control task */
     params.stackSize = 0u;
-#else
-    params.stackBuffer = control_stack;
-    params.stackSize = sizeof control_stack;
-#endif
     if (RPMessage_init(&params) != IPC_SOK) {
         sdos_trace("RPMessage_init failed");
         return -1;
     }
-#if !defined(BAREMETAL)
-    sdos_monitor_stack("ipc", control_stack, sizeof control_stack);
-#endif
-#if defined(BAREMETAL)
+#if defined(BAREMETAL) && !defined(BUILD_C7X)
     /* Polling alone serves the mailbox; an interrupt the OSAL may have
-     * enabled must not race it. */
+     * enabled must not race it. Not on the C71x: its only interrupt is the
+     * wake tick (sdos_wait_for_event), and switching it off here, after the
+     * vring wait had started it, left the core idling for good (Task 042). */
     (void)HwiP_disable();
 #endif
     (void)RPMessageParams_init(&params);
@@ -154,9 +145,6 @@ void sdos_service_run(sdos_runtime *runtime)
 {
     static uint8_t request[SDOS_MSG_MAX];
     static uint8_t response[SDOS_MSG_MAX];
-#if defined(BAREMETAL)
-    uint32_t seen = 0u;
-#endif
 
     if (bring_up() != 0) {
         sdos_runtime_fault(runtime, SDOS_FAULT_IPC, 0u, 2u);
@@ -170,18 +158,14 @@ void sdos_service_run(sdos_runtime *runtime)
         uint32_t remote_proc = 0u;
         int32_t status;
         size_t n;
-#if defined(BAREMETAL)
-        while (messages_arrived == seen && shutdown_requested == 0u) {
-            sdos_mailbox_poll();
-            sdos_monitor_poll();
-        }
-        seen = messages_arrived;
+        /* Drain every queued message before polling the mailbox again. */
         status = RPMessage_recvNb(endpoint, request, &length, &remote_endpoint, &remote_proc);
-#else
-        status = RPMessage_recv(endpoint, request, &length, &remote_endpoint, &remote_proc,
-                                IPC_RPMESSAGE_TIMEOUT_FOREVER);
-#endif
         if (status != IPC_SOK) {
+            uint32_t before = messages_arrived;
+            sdos_mailbox_poll();
+            if (messages_arrived == before) {
+                idle();
+            }
             continue;
         }
         if (remote_proc != IPC_MPU1_0) {
@@ -194,7 +178,14 @@ void sdos_service_run(sdos_runtime *runtime)
             sdos_trace("reply to request failed");
         }
     }
-    sdos_trace("shutdown requested by Linux");
+    /* TI's graceful shutdown (ipc_testsetup.c): stop taking interrupts, leave
+     * no tick running behind (the timer outlives the core), acknowledge, and
+     * idle so the device manager can power the core off. */
+    sdos_trace("shutdown requested by Linux; acknowledging and going idle");
+    (void)HwiP_disable();
+    sdos_tick_timer_reset();
+    (void)Ipc_mailboxSend(SDOS_IPC_SELF, IPC_MPU1_0, IPC_RP_MBOX_SHUTDOWN_ACK, 1u);
+    sdos_idle_forever();
 }
 
 void sdos_identity_init(sdos_identity *identity, uint8_t runtime_kind)

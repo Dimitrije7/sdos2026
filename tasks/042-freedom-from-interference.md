@@ -7,75 +7,51 @@ in-progress
 ## Handoff
 
 - Updated: 2026-10-19, claude.
-- State: every board-free part is implemented and passes `make quality`
-  (lint, cppcheck, Python tests, six host configurations, all 20 firmware
-  presets with warnings as errors). Left: the board proof, and the decisions
-  listed under Next.
-- Done:
-  - Protocol 2.0 (`firmware/common/protocol/`): 20-byte header with CRC-32C
-    over header and payload; `message corrupted`, `firmware faulted`,
-    `deadline missed`; RUN time budget; 64-byte STATUS with the fault record
-    and safety counters; the shared health-line format and parser. Tests: every
-    single-bit error detected, golden bytes computed independently.
-  - Runtime: fault record and safe state, start-up `busy`, budget measurement,
-    watchdog check, corrupted-request counting (`test_runtime`).
-  - `firmware/common/safety/`: stack fill and margin, integrity record and
-    incremental check, span subtraction, MPAX split (`test_safety`).
-  - Monitor (`firmware/common/platform/src/monitor.c`): heartbeat, watchdog,
-    stack guards, integrity slices, protection polling, frozen kernel heap,
-    health line; a FreeRTOS monitor task and bare-metal polling.
-  - C71x (`c71x.c`): least-privilege MMU map from linker zones and manifest
-    device windows; page tables and stack guard pages read-only after start;
-    exception hook that records and halts.
-  - C66x (`c66x.c`): MPAX partition with priority overlays, fault polling,
-    start-up self-test that requires a blocked read of the other C66x.
-  - Sender check and guarded IPC stack in `ipc_service.c`.
-  - Linker files: `#define`d boundaries, `DDR_RODATA`, zone symbols, per-stack
-    sections, `.sdos.integrity`, no heap, page-padded C71x MMU tables, TI's two
-    writable `.const` pointers moved to data; both examples updated.
-  - Post-link step `ci/firmware_postlink.py`: zones, code placement, W^X, no
-    heap, MPAX budget, C71x guard alignment and MMU table budget, integrity
-    record. `ci/firmware_elf.py --require-integrity` re-checks the stripped
-    file. Tests: `ci.test_firmware_elf`, `ci.test_firmware_postlink`, and four
-    new real-link refusals in `ci.test_linker_layouts`.
-  - Host: `sdos_dsp_health`, `sdos_dsp_set_run_budget`; `dspctl health`,
-    `supervise`, `--budget-us`, numeric algorithm ids, exit status 3; mock
-    `faulted` and `hang` states; CLI and Linux-backend tests.
-  - Fault injection: `-DSDOS_FAULT_INJECTION=ON`, six `*-fi` presets,
-    nine cases; board suite `fault-injection`
-    (`tests/target/sdos_board/fault_injection.py`) with offline tests;
-    `course-smoke` now checks the health line.
-  - On the maintainer's request of 2026-10-19 ("do this first, then I connect
-    the board"): device windows narrowed to the peripherals the linked PDK
-    drivers use, in `manifest/dsp-cores.json` with sources (C66x MPAX segment
-    0 now denies; C71x five windows of 2 MiB blocks and the CLEC); C66x L2
-    page protection (L2 code zone read-only, rest not executable, no other bus
-    master); C71x L2 split after the load/run copy; `L2CODE` region and
-    `sdos_zone_l2code_*` in every layout; C66x layout realigned to fit 13 of 14
-    MPAX segments; self-tests for MSMC and the L2 code zone; two new
-    fault-injection cases.
-  - Documents: `docs/safety.md` (mechanisms, interference analysis, partition,
-    fault codes, rules, residual risks); protocol, dspctl, firmware, linker,
-    commands, README; Task 027 records protocol 2.0.
+- State: board-proven on all three DSPs in both runtimes, with one
+  criterion open (C71x stack overflow, criterion 2) and one platform
+  limitation recorded (C66x reads). Locking the C66x protection registers and
+  the SoC firewalls come next, as the maintainer asked on 2026-10-19.
+- Done: everything in the earlier handoff (git history), and on the board
+  on 2026-10-19
+  ([evidence](../release/evidence/task-042/20261019T153122Z/)):
+  - `fault-injection` passes every case on C66x_0 and C66x_1 in both runtimes
+    and on the C71x in both runtimes, except the C71x stack case. Every core
+    recovers with `dspctl recover`. The outcomes are tabulated in
+    [`docs/safety.md`](../docs/safety.md#fault-injection).
+  - C66x MPAX: the XMC refuses and records writes outside the grants (status
+    0x110) but lets reads through. The self-test now probes with a write (to
+    unowned MSMC, writing back the value it read). Reads of foreign memory
+    are a recorded confidentiality gap, not interference.
+  - C66x L2 page protection is enforced: a write into the L2 code zone is
+    refused and recorded.
+  - Writes must leave the cache before the check sees them: the C66x checks
+    the CPU's own access, not a cache writeback (`write_through` in
+    `fault_injection.c`).
+  - Device windows confirmed. The first run granted the MCU NAVSS secure proxy
+    by mistake (DSPs use the MAIN one) and `Sciclient_init` failed; fixed in
+    the manifest.
+  - C71x: exceptions record the fault, leave exception context through TI's
+    return hook (RETE, as TI's MMA example does), and idle, so Linux can
+    power the core off. The watchdog now halts a runaway RUN: the FreeRTOS
+    monitor task does it, and on bare-metal C71x the 1 ms wake tick does.
+  - SM-16 clean restart; see `docs/safety.md` and `docs/firmware.md`.
 - Next:
-  1. Board session, after Task 013: `course-smoke` for all six firmware, then
-     `fault-injection --out release/evidence/task-042/<timestamp>/`. Record the
-     `mpax:` and `mmu:` trace lines. If a protection map stops a core from
-     booting, the trace and health line name the address; adjust the map.
-  2. Confirm the device windows on the board (`mpax:` and `mmu:` trace lines,
-     no `access` faults in course-smoke); add any window a driver turns out to
-     need, with its source, to `manifest/dsp-cores.json`.
-  3. Maintainer decisions to present, each with a recommendation: SoC
-     firewalls in TI's boot configuration; per-DSP RTI watchdogs through the
-     ESM; the MISRA subset (Task 024).
-- Decisions: on 2026-10-19 the maintainer asked for this work (quoted under
-  [Maintainer requirement](#maintainer-requirement)). Protocol 1.0 was never
-  accepted (Task 027), so 2.0 replaces it; Task 027's recommendation now
-  names 2.0.
-- Verification, 2026-10-19: `make quality` passed: validators, lint,
-  cppcheck, 160 Python tests (including 9 real-link layout cases), host tests
-  in six configurations, all 20 firmware presets and the three TI reference
-  builds with warnings as errors. Board checks not run.
+  1. Lock the C66x MPAX and L2 attribute registers (MPLK) after
+     configuration; prove it with a fault-injection case that tries to
+     rewrite them.
+  2. SoC firewalls against other bus masters (Linux, DMA, the other DSPs)
+     writing a DSP's DDR and the C71x L2: investigate what the boot
+     firmware and TI-SCI allow at run time, without changing the boot chain
+     unless the maintainer approves.
+  3. C71x stack overflow (criterion 2): the handler runs on the faulting
+     stack; it needs a separate exception stack, which means changing TI's
+     exception entry.
+  4. Maintainer decisions still open: RTI watchdogs through the ESM; the
+     MISRA subset (Task 024).
+- Decisions: on 2026-10-19 the maintainer asked for the MPLK lock and the
+  SoC firewalls after all pending board work.
+- Verification, 2026-10-19: `course-smoke` (twice) and `fault-injection` on
+  the board, evidence above; `make quality`.
 
 ## Depends on
 

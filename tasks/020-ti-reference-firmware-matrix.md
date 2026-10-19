@@ -2,40 +2,27 @@
 
 ## Status
 
-in-progress
+blocked
 
 ## Handoff
 
 - Updated: 2026-10-19, claude.
-- State: TI's Linux echo firmware rebuilds from the pinned PDK for all three
-  DSPs, through the facade; the per-core board smoke test is left.
+- State: blocked on the same decision as Task 013. The rebuilt references
+  build, fit, and start, but fail the per-core echo on this board.
 - Done:
-  - `ci/ti_reference.py` and presets `ti-reference-<core>-<debug|release>`
-    (group `ti-reference`) run TI's PDK make for `ipc_echo_test_freertos`
-    (examples/linux, `-DA72_LINUX_OS`). TI's boot-image step needs `mono` and
-    is off; its objcopy check uses the container's AArch64 binutils.
-  - Each build writes `build/<preset>/build-manifest.json`: input hashes, the
-    exact command, ELF and map hashes, the fit check, and for release a
-    comparison with TI's pinned prebuilt blob.
-  - Result: all six fit their carve-outs. Release resource tables equal TI's
-    prebuilt ones on all three cores; the C71x segment layout is identical,
-    and four C66x data segments moved, consistent with PDK 11.02.01.08 against
-    TI's 11.02.01.05 build.
-  - `make quality` builds the three release references (debug ones rebuild
-    the whole PDK from source).
-- Next:
-  1. In a board session after Task 013, per core: `dsp-ipc --core <core>
-     --firmware build/ti-reference-<core>-release/pdk/ipc_echo_test_freertos/bin/j721e_evm/<name>_strip.xe6x
-     --out release/evidence/task-020/<UTC stamp>`, and compare with the TI
-     blob's result.
-  2. Rebuild `ti-reference-c66x_1-debug` (stopped mid-build on 2026-10-19 to
-     free the CPU; the other five built).
-- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them.
-- Evidence: `release/evidence/task-020/20261019T010000Z/` holds the three
-  release build manifests and a summary. Two clean builds of the C66x_0
-  release reference gave byte-identical stripped ELFs.
-- Verification, 2026-10-19: five of six `ti-reference` presets built (C66x_1
-  debug stopped); `python3 -m unittest ci.test_facade` passed.
+  - Builds: all six `ti-reference` presets build through the facade (see
+    [build evidence](../release/evidence/task-020/20261019T010000Z/)).
+  - Board, 2026-10-19
+    ([evidence](../release/evidence/task-020/20261019T154212Z/)), one cycle
+    per core: all three load, start, and announce their channels. The device
+    manager's trace shows TI's RTOS ping-pong with C7X_1 and C66X_1 completing
+    10000 round trips. The echo to Linux failed on all three. On the C66x the
+    cause is the same as for TI's prebuilt firmware (Task 013). On the C71x the
+    result differs from the prebuilt blob, which echoed once; not pursued.
+- Next: Task 013's decision.
+- Decisions: none yet.
+- Verification, 2026-10-19: `dsp-ipc --cycles 1 --firmware <rebuilt>` per
+  core.
 
 ## Depends on
 

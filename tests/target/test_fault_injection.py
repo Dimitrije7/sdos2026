@@ -93,7 +93,8 @@ class FaultInjectionTests(unittest.TestCase):
     def test_expectations_differ_by_runtime_where_the_mechanism_does(self) -> None:
         hang = next(c for c in fi.CASES if c.name == "hang")
         self.assertEqual(hang.expects("c6000", "freertos"), {"watchdog"})
-        self.assertEqual(hang.expects("c7000", "baremetal"), {"stale"})
+        self.assertEqual(hang.expects("c7000", "baremetal"), {"watchdog"})  # the wake tick is its watchdog
+        self.assertEqual(hang.expects("c6000", "baremetal"), {"stale"})
 
     def test_a_full_run_passes_when_every_mechanism_reports(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

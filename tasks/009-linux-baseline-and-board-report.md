@@ -2,32 +2,28 @@
 
 ## Status
 
-in-progress
+done
 
 ## Handoff
 
-- Updated: 2026-10-18, claude.
-- State: `board-report` is implemented and tested against a fixture; the
-  board session that runs it is not scheduled yet. The maintainer powers the
-  board only for batched sessions.
-- Done: `tests/target/sdos_board/report.py` and the `board-report` command,
-  with tests in `tests/target/test_sdos_board.py` and the fixture
-  `tests/target/fixtures/board-report.raw.txt`.
-- Next, in one board session:
-  1. Run `board-report` twice and compare; archive both and `live.dtb`.
-  2. Reboot over SSH, time the reconnection, and confirm the previous boot's
-     journal ended with a clean shutdown.
-  3. For Task 011: list remoteproc sysfs links, traces, and any service that
-     claims the DSPs. For Task 012: decompile `live.dtb` with `dtc` in the
-     container. For Task 007: capture the USB console read-only.
-  4. Ethernet needs a cable to a network; without one the item stays failed
-     with that reason. Time cannot synchronize over the USB link alone.
-  5. When 011 and 012 pass, run Task 013's `dsp-ipc` in the same session
-     (see its handoff), then Task 021's `course-smoke`, which runs the
-     course firmware on every core and runtime through `dspctl`.
-- Decisions: the maintainer prefers batched board sessions (2026-10-18).
-- Verification, 2026-10-18: `python3 -m unittest tests.target.test_sdos_board`
-  passed 38 tests.
+- Updated: 2026-10-19, claude.
+- State: done. Every Phase 1 item has a pass or fail result with evidence.
+- Done, on the board on 2026-10-19 (BeagleBoard.org Debian 13, kernel
+  6.18.55-arm64-k3-r59, U-Boot 2026.10):
+  - `board-report` ran twice, then again after a reboot; the reports differ
+    only in time, free memory, and temperature ([`release/evidence/task-009/20261019T094327Z/`](../release/evidence/task-009/20261019T094327Z/)).
+  - `systemctl reboot` over SSH: back after 53 s, and the previous boot's
+    journal ends with a clean shutdown (`reboot.txt`).
+  - Passed: SSH, remoteproc for all three DSPs, kernel features, CMA (144
+    MiB), 20 reserved-memory nodes, storage, debugfs and tracefs,
+    temperature, persistent logs, no failed units.
+  - Failed, for lack of a network cable, not a board defect: Ethernet (no
+    link) and time (not synchronized; no RTC, so the clock restarts at the
+    image date).
+- Next: Task 010. Connecting Ethernet makes both failed items testable.
+- Decisions: none.
+- Verification, 2026-10-19: the three reports above; `ci.test_dt_memory`
+  and the board-suite unit tests pass in `make quality`.
 
 ## Depends on
 

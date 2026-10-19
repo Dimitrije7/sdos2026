@@ -36,7 +36,8 @@ static const char usage[] =
     "  run <dsp> <algorithm> <in> <out> [gain | coefficients]\n"
     "                                run copy, gain_q15 (gain), or fir_q15 (comma-separated\n"
     "                                Q15 coefficients) on file <in>, write <out>; a numeric\n"
-    "                                algorithm id takes its parameters as hexadecimal bytes\n"
+    "                                algorithm id takes its parameters as hexadecimal bytes;\n"
+    "                                <in> and <out> both '-' run it with no data (no buffers)\n"
     "\n"
     "<dsp> is c66x_0, c66x_1, or c71x_0. The mock backend runs the DSP runtime on\n"
     "this computer; it needs no board. --json makes list, status, and health print one\n"
@@ -540,6 +541,14 @@ static int cmd_run(sdos_dsp *dsp, int argc, char **argv)
         fprintf(stderr, "dspctl: unknown algorithm '%s'; known: copy, gain_q15, fir_q15, or a numeric id\n",
                 argv[0]);
         return EXIT_USAGE;
+    }
+    if (strcmp(argv[1], "-") == 0 && strcmp(argv[2], "-") == 0) {
+        status = sdos_dsp_run_control(dsp, algorithm, params, params_length, &result);
+        if (status != SDOS_OK) {
+            return fail(dsp, "run", status);
+        }
+        printf("%s: no data, %llu DSP cycles\n", argv[0], (unsigned long long)result.cycles);
+        return 0;
     }
     status = sdos_dsp_buffer_acquire(dsp, 0u, half, &in);
     if (status == SDOS_OK) {

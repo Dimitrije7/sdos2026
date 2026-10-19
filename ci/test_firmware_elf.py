@@ -189,9 +189,13 @@ class FirmwareElfTests(unittest.TestCase):
         one_ring = self.check("c66x_0", elf32(140, [(0xA6100000, 0x100)], resource_table(rings=1)))
         self.assertIn("two vrings", one_ring.problems[0])
 
-    def test_ti_64_bit_trace_entry_counts_as_a_trace(self) -> None:
+    def test_ti_64_bit_trace_entry_is_decoded_but_not_enough(self) -> None:
+        # Decoded, so TI's own firmware can be inspected, but the course kernel
+        # ignores it, so it does not satisfy a required trace.
+        self.assertEqual(self.check("c71x_0", elf32(145, [(0xA8200000, 0x100)], resource_table(trace64=True))).problems,
+                         [])
         report = self.check("c71x_0", elf32(145, [(0xA8200000, 0x100)], resource_table(trace64=True)), True)
-        self.assertEqual(report.problems, [])
+        self.assertIn("course kernel ignores", report.problems[0])
         trace = report.resources[1]
         self.assertEqual((trace["type"], trace["address"], trace["length"], trace["format"]),
                          ("trace", 0xA8C10000, 0x10000, "ti-64"))

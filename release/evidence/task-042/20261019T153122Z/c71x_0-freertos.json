@@ -1,0 +1,520 @@
+{
+  "schema": "sdos-fault-injection/1",
+  "core": "c71x_0",
+  "runtime": "freertos",
+  "firmware": "sdos-c71x_0-freertos-fi.xe71",
+  "captured_utc": "2026-10-19T15:38:08Z",
+  "ssh_exit": 0,
+  "loaded": true,
+  "cases": {
+    "write_foreign": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "read_foreign": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "write_code": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "exec_data": {
+      "outcome": "access",
+      "expected": [
+        "access",
+        "exception"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "hang": {
+      "outcome": "watchdog",
+      "expected": [
+        "watchdog"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "overrun": {
+      "outcome": "deadline",
+      "expected": [
+        "deadline"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "corrupt_image": {
+      "outcome": "integrity",
+      "expected": [
+        "integrity"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "heap": {
+      "outcome": "heap",
+      "expected": [
+        "heap"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "write_l2_code": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "read_shared": {
+      "outcome": "access",
+      "expected": [
+        "access"
+      ],
+      "detected": true,
+      "recovered": true
+    },
+    "stack": {
+      "outcome": "stale",
+      "expected": [
+        "stack"
+      ],
+      "detected": false,
+      "recovered": false
+    }
+  },
+  "restored": false,
+  "steps": {
+    "load": {
+      "output": [
+        "loaded /tmp/sdos-smoke/sdos-c71x_0-freertos-fi.xe71"
+      ],
+      "status": 0
+    },
+    "write_foreign:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "write_foreign:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "write_foreign:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 134610945, \"fault_address\": 2802843648, \"heartbeat\": 22, \"uptime_ms\": 516, \"stack_margin\": 44312, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_foreign:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 134610945, \"fault_address\": 2802843648, \"heartbeat\": 22, \"uptime_ms\": 516, \"stack_margin\": 44312, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_foreign:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "read_foreign:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "read_foreign:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "read_foreign:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 2147483648, \"heartbeat\": 22, \"uptime_ms\": 512, \"stack_margin\": 44312, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_foreign:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 2147483648, \"heartbeat\": 22, \"uptime_ms\": 512, \"stack_margin\": 44312, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_foreign:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "write_code:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "write_code:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "write_code:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135135233, \"fault_address\": 2820669440, \"heartbeat\": 23, \"uptime_ms\": 527, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_code:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135135233, \"fault_address\": 2820669440, \"heartbeat\": 23, \"uptime_ms\": 527, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_code:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "exec_data:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "exec_data:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "exec_data:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 5177345, \"fault_address\": 2832022848, \"heartbeat\": 23, \"uptime_ms\": 528, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "exec_data:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 5177345, \"fault_address\": 2832022848, \"heartbeat\": 23, \"uptime_ms\": 528, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "exec_data:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "hang:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "hang:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "hang:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"watchdog\", \"fault_info\": 4194304006, \"fault_address\": 0, \"heartbeat\": 110, \"uptime_ms\": 2520, \"stack_margin\": 44312, \"integrity_passes\": 10, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "hang:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"watchdog\", \"fault_info\": 4194304006, \"fault_address\": 0, \"heartbeat\": 110, \"uptime_ms\": 2520, \"stack_margin\": 44312, \"integrity_passes\": 10, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "hang:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "overrun:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "overrun:run": {
+      "output": [
+        "dspctl: run: c71x_0 refused the request: deadline missed (deadline missed)"
+      ],
+      "status": 1
+    },
+    "overrun:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 66, \"uptime_ms\": 1513, \"stack_margin\": 44352, \"integrity_passes\": 7, \"deadline_misses\": 1}"
+      ],
+      "status": 0
+    },
+    "overrun:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 219, \"uptime_ms\": 5026, \"stack_margin\": 44352, \"integrity_passes\": 20, \"deadline_misses\": 1}"
+      ],
+      "status": 0
+    },
+    "overrun:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "corrupt_image:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "corrupt_image:run": {
+      "output": [
+        "0xfa000008: no data, 734 DSP cycles"
+      ],
+      "status": 0
+    },
+    "corrupt_image:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"faulted\", \"fault\": \"integrity\", \"fault_info\": 9, \"fault_address\": 2832296448, \"heartbeat\": 66, \"uptime_ms\": 1513, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "corrupt_image:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"faulted\", \"fault\": \"integrity\", \"fault_info\": 9, \"fault_address\": 2832296448, \"heartbeat\": 219, \"uptime_ms\": 5026, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "corrupt_image:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 23, \"uptime_ms\": 526, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "heap:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "heap:run": {
+      "output": [
+        "0xfa000009: no data, 3511 DSP cycles"
+      ],
+      "status": 0
+    },
+    "heap:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"faulted\", \"fault\": \"heap\", \"fault_info\": 4294770784, \"fault_address\": 0, \"heartbeat\": 66, \"uptime_ms\": 1513, \"stack_margin\": 44312, \"integrity_passes\": 7, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "heap:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"faulted\", \"fault\": \"heap\", \"fault_info\": 4294770784, \"fault_address\": 0, \"heartbeat\": 218, \"uptime_ms\": 5004, \"stack_margin\": 44312, \"integrity_passes\": 20, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "heap:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44464, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "write_l2_code:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "write_l2_code:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "write_l2_code:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135200769, \"fault_address\": 1686110208, \"heartbeat\": 23, \"uptime_ms\": 526, \"stack_margin\": 44280, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_l2_code:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 135200769, \"fault_address\": 1686110208, \"heartbeat\": 23, \"uptime_ms\": 526, \"stack_margin\": 44280, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "write_l2_code:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44264, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "read_shared:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "read_shared:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "read_shared:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 1879179264, \"heartbeat\": 22, \"uptime_ms\": 516, \"stack_margin\": 44400, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_shared:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"halted\", \"fault\": \"access\", \"fault_info\": 138805249, \"fault_address\": 1879179264, \"heartbeat\": 22, \"uptime_ms\": 516, \"stack_margin\": 44400, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 3
+    },
+    "read_shared:recover": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment",
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 1, \"uptime_ms\": 22, \"stack_margin\": 44464, \"integrity_passes\": 1, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "stack:start": {
+      "output": [
+        "running",
+        "  firmware   sdos 0.1.0 freertos FI",
+        "  runtime    freertos 0.1.0",
+        "  region     0 bytes, 128-byte alignment"
+      ],
+      "status": 0
+    },
+    "stack:run": {
+      "output": [
+        "dspctl: run: c71x_0 did not answer within 3000 ms (timeout)"
+      ],
+      "status": 1
+    },
+    "stack:health": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44312, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "stack:later": {
+      "output": [
+        "{\"name\": \"c71x_0\", \"state\": \"ok\", \"fault\": \"none\", \"fault_info\": 0, \"fault_address\": 0, \"heartbeat\": 22, \"uptime_ms\": 503, \"stack_margin\": 44312, \"integrity_passes\": 3, \"deadline_misses\": 0}"
+      ],
+      "status": 0
+    },
+    "stack:recover": {
+      "output": [
+        "dspctl: recover: writing stop to /sys/class/remoteproc/remoteproc2/state failed: No such device (transport error)"
+      ],
+      "status": 1
+    },
+    "restored": {
+      "output": [
+        "running sdos/c71x_0.xe71 j7-c71_0-fw",
+        "sh: 176: echo: echo: I/O error"
+      ],
+      "status": 0
+    }
+  },
+  "passed": false
+}

@@ -110,6 +110,8 @@ source are in the manifest.
 | `.stack` 128 KiB-aligned, task stacks 8 KiB-aligned (C71x) | TI's C7x interrupt handling and FreeRTOS port require it |
 | C71x MMU tables `NOINIT` | They are written before C initialization runs |
 | Segments within loadable regions, no two overlapping | remoteproc copies every loadable segment to its address |
+| Nothing loaded into C71x L2, not even zero-filled data | The J721E C71x has no local reset: Linux loads it while the module is in reset, and a write into L2 then hangs the SoC (board, Task 021). L2 holds NOLOAD data and start-up copies only |
+| C66x entry `sdos_entry` (`-e sdos_entry`), first in the code zone | The reset entry discards the caches the powered C66x subsystem kept from the previous run before TI's `_c_int00` runs |
 
 The alignments leave holes. On the C71x, a code region must be large enough for
 three aligned slots: the entry point and both vector tables. The linker reports

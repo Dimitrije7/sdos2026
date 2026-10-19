@@ -277,9 +277,12 @@ sdos_status sdos_dsp_load(sdos_dsp *dsp, const char *elf_path)
     return dsp->ops->install(dsp, elf_path);
 }
 
+#define START_ATTEMPT_MS 500u
+
 sdos_status sdos_dsp_start(sdos_dsp *dsp, sdos_identity *identity)
 {
     uint64_t deadline;
+    uint32_t whole;
     sdos_status status = require_state(dsp, SDOS_DSP_OFFLINE, "start");
     if (status != SDOS_OK) {
         return status;
@@ -290,8 +293,13 @@ sdos_status sdos_dsp_start(sdos_dsp *dsp, sdos_identity *identity)
         return status;
     }
     dsp->generation++;
-    /* The firmware announces its endpoint some time after the state changes. */
+    /* The firmware announces its endpoint some time after the state changes,
+     * and a HELLO sent before that is lost: retry with short attempts. One
+     * attempt as long as the whole timeout made start fail on a C71x that
+     * answered a moment later (board, Task 021). */
     deadline = sdos__now_ms() + dsp->timeout_ms;
+    whole = dsp->timeout_ms;
+    dsp->timeout_ms = whole < START_ATTEMPT_MS ? whole : START_ATTEMPT_MS;
     do {
         status = sdos_dsp_hello(dsp, identity);
         if (status == SDOS_OK || status == SDOS_E_VERSION || status == SDOS_E_FIELD) {
@@ -299,6 +307,7 @@ sdos_status sdos_dsp_start(sdos_dsp *dsp, sdos_identity *identity)
         }
         disconnect(dsp);
     } while (sdos__now_ms() < deadline);
+    dsp->timeout_ms = whole;
     return status;
 }
 
@@ -395,6 +404,41 @@ static sdos_descriptor describe(const sdos_buffer *buffer, uint32_t sequence)
 {
     sdos_descriptor d = {0u, buffer->offset, buffer->length, sequence, 0u, SDOS_DESC_CHECKSUM};
     return d;
+}
+
+sdos_status sdos_dsp_run_control(sdos_dsp *dsp, uint32_t algorithm, const void *params, size_t params_length,
+                                 sdos_run_result *result)
+{
+    sdos_run_request rq;
+    uint8_t payload[SDOS_PAYLOAD_MAX];
+    uint8_t reply[SDOS_PAYLOAD_MAX];
+    size_t n = 0u;
+    sdos_status status;
+
+    if (params_length > SDOS_RUN_PARAMS_MAX) {
+        return sdos__fail(dsp, SDOS_E_FIELD, "params hold at most %u bytes", (unsigned)SDOS_RUN_PARAMS_MAX);
+    }
+    memset(&rq, 0, sizeof rq); /* both descriptors empty: offset 0, length 0, no checksum */
+    rq.algorithm = algorithm;
+    rq.budget_us = dsp->run_budget_us;
+    rq.output.sequence = 1u;
+    rq.params_length = (uint16_t)params_length;
+    if (params_length > 0u) {
+        memcpy(rq.params, params, params_length);
+    }
+    n = sdos_run_request_encode(&rq, payload, sizeof payload);
+    status = request(dsp, SDOS_MSG_RUN, payload, (uint16_t)n, reply, sizeof reply, &n);
+    if (status != SDOS_OK) {
+        return status;
+    }
+    status = sdos_run_result_decode(reply, n, result);
+    if (status != SDOS_OK) {
+        return sdos__fail(dsp, status, "%s sent an invalid RUN result", dsp->core->name);
+    }
+    if (result->output_length != 0u || result->output_sequence != rq.output.sequence) {
+        return sdos__fail(dsp, SDOS_E_FIELD, "RUN result does not match the request");
+    }
+    return SDOS_OK;
 }
 
 sdos_status sdos_dsp_run(sdos_dsp *dsp, uint32_t algorithm, sdos_buffer *input, sdos_buffer *output,

@@ -2,39 +2,39 @@
 
 ## Status
 
-in-progress
+done
 
 ## Handoff
 
 - Updated: 2026-10-19, claude.
-- State: all 12 course firmware builds (3 cores × FreeRTOS/bare metal ×
-  debug/release) link with warnings as errors and pass the carve-out check.
-  Nothing has run on a DSP yet.
+- State: done.
 - Done:
-  - Common platform in `firmware/common/platform/`: IPC service talking only
-    to the A72, TI-layout resource table, 64 KiB trace ring, identity.
-  - Adapters `firmware/c66x/` (MAR, cache, TSC) and `firmware/c71x/` (MMU,
-    cache, TSC); the manifest's IPC pools are checked against TI's map at
-    compile time.
-  - Runtimes: `firmware/runtime/freertos/` (one task, blocking receive) and
-    `firmware/runtime/baremetal/` (polling loop, interrupts off, mailbox poll
-    mirroring TI's private table).
-  - `cmake/SdosTiFirmware.cmake` links against the installed PDK in TI's order.
-    A post-build step runs `ci/firmware_elf.py --require-trace`.
-  - Documented in `docs/firmware.md`.
-- Next:
-  1. Board session: `python3 -m tests.target.sdos_board course-smoke --key
-     ~/.ssh/sdos-bench_ed25519 --out release/evidence/task-021/<UTC stamp>`
-     (tested against a simulated board shell in
-     `tests/target/test_course_smoke.py`).
-  2. Exception/crash record exposed to Linux.
-  3. Student algorithm hook (Task 032 boundary) beyond the built-ins.
-- Decisions: on 2026-10-18 the maintainer wrote "proceed with plan, but do everything except board tests, also postpone any decision making from my side because I will not be able to respond". This board-free work therefore started before its board-side dependencies were done; acceptance still needs them. Engineering choices made without a maintainer decision,
-  all reversible: bare metal polls on both DSP families (TI's bare-metal OSAL
-  cannot register C7x interrupts); bare-metal C71x links TI's FreeRTOS port
-  for startup only; course firmware uses RPMsg endpoint 40 named `sdos-dsp`.
-- Verification, 2026-10-19: `python3 ci/facade.py build --preset firmware
-  --werror` in the container built all 12; every ELF reported `fits`.
+  - All 12 builds, plus the two example layouts and six fault-injection
+    builds, link with warnings as errors.
+  - Board, 2026-10-19: `course-smoke` passes on all three DSPs in both
+    runtimes, twice in a row
+    ([evidence](../release/evidence/task-021/20261019T153122Z/); the failures
+    of the first run are kept in
+    [`20261019T095402Z`](../release/evidence/task-021/20261019T095402Z/)).
+    Each firmware reports identity and version (HELLO), echo, the trace, and a
+    fault record (STATUS and the health line).
+  - Defects the board exposed, all fixed and documented in
+    [`docs/firmware.md`](../docs/firmware.md#start-and-stop-on-this-board):
+    - a C71x ELF loading into C71x L2 hung the SoC;
+    - the MAIN NAVSS secure proxy was missing from the device windows;
+    - FreeRTOS on the C66x hung on every start after the first, because of
+      the stale tick route and caches;
+    - interrupt-mode Sciclient and the RTOS IPC library's refused interrupt
+      routes, replaced by polling in both runtimes;
+    - a C71x that never idles cannot be stopped: idle halts, the bare-metal
+      wake tick, and a graceful shutdown acknowledgement;
+    - the C71x monitor task stack was too small;
+    - the C71x 64-bit trace entry was ignored by the kernel;
+    - a HELLO sent before the endpoint existed was lost (`dspctl start` now
+      retries).
+- Next: none here. A student algorithm hook belongs to Task 032.
+- Decisions: none.
+- Verification, 2026-10-19: two board runs above; `make quality`.
 
 ## Depends on
 

@@ -37,7 +37,7 @@ static struct {
     size_t heap_baseline;
     int started;
     uint32_t sequence;
-    uint64_t last_tick;
+    uint32_t last_tick_ms;
 } m;
 
 void sdos_monitor_stack(const char *name, void *base, size_t size)
@@ -117,7 +117,7 @@ uint32_t sdos_monitor_init(sdos_runtime *runtime)
     if (runtime->cycles != NULL && runtime->cycles_per_us != 0u) {
         capabilities |= SDOS_CAP_BUDGET;
     }
-    m.last_tick = sdos_cycles();
+    m.last_tick_ms = sdos_uptime_ms();
     publish();
     return capabilities;
 }
@@ -144,6 +144,7 @@ void sdos_monitor_tick(void)
         return;
     }
     sdos_runtime_monitor(rt);
+    sdos_monitor_watchdog();
     for (i = 0u; i < m.stack_count; i++) {
         size_t unused = sdos_stack_unused(&m.stacks[i]);
         if (unused < margin) {
@@ -171,16 +172,27 @@ void sdos_monitor_tick(void)
     publish();
 }
 
+/* A RUN past the watchdog limit never returns by itself: halt, the safe state
+ * Linux recovers from. Recording the fault alone would leave the runaway
+ * algorithm on the CPU, and a busy C71x cannot even be powered off by Linux
+ * (board, Task 021). Also called from the bare-metal C71x wake tick. */
+void sdos_monitor_watchdog(void)
+{
+    if (m.runtime != NULL && sdos_runtime_overdue(m.runtime)) {
+        sdos_monitor_fatal(SDOS_FAULT_WATCHDOG, 0u, m.runtime->run_algorithm);
+    }
+}
+
 void sdos_monitor_poll(void)
 {
-    uint64_t now = sdos_cycles();
-    if (now - m.last_tick >= (uint64_t)SDOS_MONITOR_PERIOD_MS * 1000u * sdos_cycles_per_us()) {
-        m.last_tick = now;
+    uint32_t now = sdos_uptime_ms(); /* wall time: the cycle counter may stop while the CPU idles */
+    if (now - m.last_tick_ms >= SDOS_MONITOR_PERIOD_MS) {
+        m.last_tick_ms = now;
         sdos_monitor_tick();
     }
 }
 
-void sdos_monitor_fatal(sdos_fault fault, uint64_t address, uint32_t info)
+void sdos_monitor_record_fatal(sdos_fault fault, uint64_t address, uint32_t info)
 {
     if (m.runtime != NULL) {
         report_fault(fault, address, info);
@@ -188,6 +200,11 @@ void sdos_monitor_fatal(sdos_fault fault, uint64_t address, uint32_t info)
         publish();
     }
     sdos_trace("HALTED: fatal %s fault; restart the core (dspctl recover)", sdos_fault_name((uint32_t)fault));
+}
+
+void sdos_monitor_fatal(sdos_fault fault, uint64_t address, uint32_t info)
+{
+    sdos_monitor_record_fatal(fault, address, info);
     sdos_halt();
 }
 

@@ -173,6 +173,11 @@ def inspect(path: Path, core: dict[str, Any], require_trace: bool = False, runti
     traces = [r for r in report.resources if r["type"] == "trace"]
     if require_trace and not traces:
         report.problems.append("resource table has no trace buffer")
+    elif require_trace and all(t.get("format") == "ti-64" for t in traces):
+        # The course kernel logs "unsupported resource 65538" and creates no
+        # trace file for it (seen on the board, Task 021).
+        report.problems.append("the trace buffer uses TI's 64-bit trace entry, which the course kernel ignores; "
+                               "use the standard entry (a 32-bit address)")
     ranges = load_ranges(core, runtime)
     for trace in traces:
         if not any(lo <= trace["address"] and trace["address"] + trace["length"] <= hi for _n, lo, hi in ranges):

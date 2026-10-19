@@ -1,0 +1,1 @@
+unavailable: [Errno 2] No such file or directory: '/sys/kernel/debug/remoteproc/remoteproc2/trace0'

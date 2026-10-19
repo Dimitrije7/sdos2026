@@ -52,7 +52,7 @@ class KernelLog(contextlib.AbstractContextManager):
     streamed here are then the only record of what happened."""
 
     def __init__(self, host: str, key: Path | None, path: Path) -> None:
-        self.argv = ssh_command(host, key) + ["dmesg", "--follow", "--time-format", "iso"]
+        self.argv = ssh_command(host, key) + ["dmesg", "--follow-new", "--time-format", "iso"]
         self.path = path
         self.process: subprocess.Popen | None = None
 
@@ -170,7 +170,8 @@ def evaluate(steps: dict[str, dict[str, Any]], token: str) -> dict[str, bool]:
 
 
 def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: Runner = _run,
-        build: Path = ROOT / "build", follow_kernel: bool = False) -> list[dict[str, Any]]:
+        build: Path = ROOT / "build", follow_kernel: bool = False,
+        runtimes: Sequence[str] = RUNTIMES) -> list[dict[str, Any]]:
     found = artifacts(build)
     problems = check_artifacts(found)
     if problems:
@@ -179,7 +180,7 @@ def run(host: str, key: Path | None, out: Path, cores: Sequence[Core], runner: R
     results = []
     out.mkdir(parents=True, exist_ok=True)
     for core in cores:
-        for runtime in RUNTIMES:
+        for runtime in runtimes:
             local = found[f"{core.name}-{runtime}"]
             remote = f"{REMOTE_DIR}/{local.name}"
             upload(host, key, local, remote, "0644", runner)

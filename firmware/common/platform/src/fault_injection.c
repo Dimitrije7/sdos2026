@@ -62,24 +62,32 @@ static sdos_status fi_read_foreign(const sdos_run_args *args, uint32_t *output_l
     return no_output(output_length);
 }
 
+/* Write `value` back over `address` so the write itself reaches the memory
+ * controller. Reading the word pulls its line into the cache, and the C66x
+ * checks the CPU's own access, not a later cache writeback: so the line leaves
+ * the cache before the write (board, Task 042), as in the start-up self-test. */
+static void write_through(volatile uint32_t *address)
+{
+    uint32_t value = *address;
+    sdos_cache_writeback((void *)(uintptr_t)address, 64u);
+    *address = value; /* same value: harmless if the protection failed */
+    sdos_cache_writeback((void *)(uintptr_t)address, 64u);
+}
+
 static sdos_status fi_write_code(const sdos_run_args *args, uint32_t *output_length)
 {
-    volatile uint32_t *code = (volatile uint32_t *)(void *)zone_code_start;
     (void)args;
-    *code = *code; /* same value: harmless if the protection failed */
+    write_through((volatile uint32_t *)(void *)zone_code_start);
     return no_output(output_length);
 }
 
 static sdos_status fi_write_l2_code(const sdos_run_args *args, uint32_t *output_length)
 {
-    volatile uint32_t *code = (volatile uint32_t *)(void *)zone_l2code_start;
     (void)args;
     if (zone_l2code_end == zone_l2code_start) {
         return SDOS_E_ALGORITHM; /* this layout runs nothing from L2 */
     }
-    sdos_cache_writeback((void *)zone_l2code_start, 64u); /* the write must reach L2 */
-    *code = *code;
-    sdos_cache_writeback((void *)zone_l2code_start, 64u);
+    write_through((volatile uint32_t *)(void *)zone_l2code_start);
     return no_output(output_length);
 }
 

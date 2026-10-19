@@ -77,6 +77,8 @@ void sdos_runtime_ready(sdos_runtime *runtime);
 
 /* Periodic supervision, from a monitor task or the bare-metal loop: advances
  * the heartbeat and faults a RUN that has exceeded SDOS_WATCHDOG_US. */
+/* A RUN is in progress and has exceeded SDOS_WATCHDOG_US. */
+int sdos_runtime_overdue(const sdos_runtime *runtime);
 void sdos_runtime_monitor(sdos_runtime *runtime);
 
 /* Algorithms every course firmware carries. */

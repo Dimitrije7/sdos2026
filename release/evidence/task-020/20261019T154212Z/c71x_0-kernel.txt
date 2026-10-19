@@ -1,0 +1,10 @@
+[   52.356112] BeagleBone kernel: remoteproc remoteproc2: powering up 64800000.dsp
+[   52.380134] BeagleBone kernel: remoteproc remoteproc2: Booting fw image sdos/ti-ipc/ipc_echo_test_freertos_c7x_1_release_strip.xe71, size 10488888
+[   52.380978] BeagleBone kernel: remoteproc remoteproc2: unsupported resource 65538
+[   52.384075] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a8000000
+[   52.394133] BeagleBone kernel: virtio_rpmsg_bus virtio1: rpmsg host is online
+[   52.395076] BeagleBone kernel: rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
+[   52.395780] BeagleBone kernel: remoteproc remoteproc2: remote processor 64800000.dsp is now up
+[   52.404405] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel ti.ipc4.ping-pong addr 0xd
+[   52.405418] BeagleBone kernel: virtio_rpmsg_bus virtio1: creating channel rpmsg_chrdev addr 0xe
+[   54.424123] BeagleBone kernel: remoteproc remoteproc2: stopped remote processor 64800000.dsp

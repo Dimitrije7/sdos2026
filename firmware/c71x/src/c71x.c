@@ -24,6 +24,7 @@
 #include <ti/osal/HwiP.h>
 #include <ti/osal/soc/osal_soc.h>
 #include "Exception.h" /* csl/arch/c7x, from the installed PDK */
+#include "Hwi.h"
 #include "Mmu.h"
 
 #include "memory_map_defines.inc"
@@ -157,6 +158,10 @@ void InitMmu(void)
 
 /* After an exception the core cannot safely continue: record and halt. A
  * page fault inside a stack's guard page is a stack overflow. */
+/* Exceptions record the fault, then leave exception context into
+ * exception_halted, which idles. A C71x idling inside its exception handler
+ * could not be powered off by Linux (board, Task 021); one idling in normal
+ * context can, so dspctl recover works after any fault. */
 static void exception_hook(void)
 {
     uint64_t ierr = __IERR;
@@ -164,9 +169,27 @@ static void exception_hook(void)
     uint64_t iesr = __IESR;
     uint32_t info = (uint32_t)(ierr & 0xFFFFu) | ((uint32_t)(iesr & 0xFFFFu) << 16);
     if ((ierr & IERR_PAGE_FAULT) != 0u) {
-        sdos_monitor_fatal(sdos_monitor_guarded(iear) >= 0 ? SDOS_FAULT_STACK : SDOS_FAULT_ACCESS, iear, info);
+        sdos_monitor_record_fatal(sdos_monitor_guarded(iear) >= 0 ? SDOS_FAULT_STACK : SDOS_FAULT_ACCESS, iear,
+                                  info);
+    } else {
+        sdos_monitor_record_fatal(SDOS_FAULT_EXCEPTION, Exception_Module_state.nrp, info);
     }
-    sdos_monitor_fatal(SDOS_FAULT_EXCEPTION, Exception_Module_state.nrp, info);
+}
+
+void exception_halted(void);
+void exception_halted(void)
+{
+    sdos_halt();
+}
+
+/* TI's return hook contract (Exception_asm.asm): return from the exception
+ * with RETE to an address of our choice, with the TSR saved at the exception
+ * (ECSP[1]), as TI's c7x_mma_error_injection example does. */
+static void exception_return(void)
+{
+    __asm(" addkpc.d1 $PCR_OFFSET(exception_halted), a0");
+    __asm(" ldd.d1 *ECSP[1], a1");
+    __asm(" rete.s1 a0, a1");
 }
 
 /* After the load/run copies: the L2 code zone read-only and executable, the
@@ -213,7 +236,7 @@ static int remap_read_only(uint64_t start, uint64_t end)
 
 uint32_t sdos_protection_init(sdos_runtime *runtime)
 {
-    static const Exception_Hooks hooks = {exception_hook, NULL, NULL};
+    static const Exception_Hooks hooks = {exception_hook, NULL, exception_return};
     uint64_t tables = (uintptr_t)mmu_tables_start;
     uint64_t tables_end = ((uintptr_t)mmu_tables_end + PAGE - 1u) & ~(uint64_t)(PAGE - 1u);
 
@@ -266,9 +289,130 @@ void sdos_protection_guard(const sdos_stack *stacks, size_t count)
 
 void sdos_halt(void)
 {
+    sdos_idle_forever(); /* idle, not a busy loop: Linux can then power the core off */
+}
+
+#define TICK_TIMER_BASE 0x02420000u /* DM timer 2: OSAL_FREERTOS_OS_TIMER_ID_C7X_1 */
+/* DM timer registers (TI osal TimerP_nonos.c, TIMERP_DM_*). */
+#define TIMER_REG(offset) (*(volatile uint32_t *)(TICK_TIMER_BASE + (offset)))
+#define TIMER_TIOCP_CFG 0x10u
+#define TIMER_SOFTRESET 0x1u
+
+void sdos_tick_timer_reset(void)
+{
+    uint32_t spins = 100000u; /* the reset completes within a few timer clocks */
+    TIMER_REG(TIMER_TIOCP_CFG) = TIMER_SOFTRESET;
+    while ((TIMER_REG(TIMER_TIOCP_CFG) & TIMER_SOFTRESET) != 0u && spins > 0u) {
+        spins--;
+    }
+}
+
+#if defined(BAREMETAL)
+#include <ti/csl/arch/csl_arch.h> /* the C7x CLEC API */
+#include <ti/osal/TimerP.h>
+
+/* The wake tick is wired the way TI's C7x FreeRTOS port wires its own tick
+ * (port_c7x.c): DM timer 2, through the CLEC straight to CPU interrupt 16, no
+ * device-manager route. Bare metal runs no scheduler, so the timer is free. */
+#define WAKE_TIMER_ID 2u      /* OSAL_FREERTOS_OS_TIMER_ID_C7X_1 */
+#define WAKE_INTERRUPT 16u    /* configTIMER_INT_NUM, FreeRTOSConfig_c7x_1.h */
+#define WAKE_EVENT (992u + CSLR_COMPUTE_CLUSTER0_CLEC_SOC_EVENTS_IN_TIMER2_INTR_PEND_0)
+#define WAKE_PERIOD_US 1000u
+
+static volatile uint32_t wake_ms; /* wall time while idling: the TSC stops in idle (board, Task 021) */
+static int wake_state;            /* 0: not set up, 1: running, -1: unavailable */
+
+/* Also the bare-metal watchdog: it stays enabled while a request runs, so a
+ * runaway algorithm is halted here, the only place bare metal can preempt it. */
+static void wake_tick(uintptr_t arg)
+{
+    (void)arg;
+    wake_ms += WAKE_PERIOD_US / 1000u;
+    sdos_monitor_watchdog();
+}
+
+/* Start the wake tick and wait, busy, for its first interrupt. After a fault
+ * halt the first tick sometimes never came (board, Task 042: 1 start in 3 to 4,
+ * with the timer's interrupt pending and never taken; root cause open), and a
+ * core idling on a tick that never comes is lost. */
+static TimerP_Handle wake_start(void)
+{
+    CSL_CLEC_EVTRegs *clec = (CSL_CLEC_EVTRegs *)CSL_COMPUTE_CLUSTER0_CLEC_REGS_BASE;
+    CSL_ClecEventConfig event;
+    TimerP_Params params;
+    TimerP_Handle timer;
+    uint32_t key;
+    uint64_t deadline;
+    event.secureClaimEnable = 0u;
+    event.evtSendEnable = 1u;
+    event.rtMap = CSL_CLEC_RTMAP_CPU_4;
+    event.extEvtNum = 0u;
+    event.c7xEvtNum = WAKE_INTERRUPT;
+    CSL_clecClearEvent(clec, WAKE_EVENT);
+    (void)CSL_clecConfigEventLevel(clec, WAKE_EVENT, 0u); /* pulse, as TI's port */
+    (void)CSL_clecConfigEvent(clec, WAKE_EVENT, &event);
+    TimerP_Params_init(&params);
+    params.runMode = TimerP_RunMode_CONTINUOUS;
+    params.startMode = TimerP_StartMode_USER;
+    params.periodType = TimerP_PeriodType_MICROSECS;
+    params.period = WAKE_PERIOD_US;
+    params.intNum = WAKE_INTERRUPT;
+    params.eventId = TimerP_USE_DEFAULT;
+    timer = TimerP_create(WAKE_TIMER_ID, wake_tick, &params);
+    if (timer == NULL) {
+        return NULL;
+    }
+    wake_ms = sdos_uptime_ms(); /* continue from the busy start-up time */
+    key = Hwi_enable();
+    if (TimerP_start(timer) == TimerP_OK) {
+        uint32_t before = wake_ms;
+        deadline = sdos_cycles() + (uint64_t)20u * 1000u * sdos_cycles_per_us();
+        while (wake_ms == before && sdos_cycles() < deadline) {
+        }
+        if (wake_ms != before) {
+            return timer; /* interrupts stay enabled: only the wake tick is */
+        }
+    }
+    Hwi_restore(key);
+    (void)TimerP_stop(timer);
+    (void)TimerP_delete(timer);
+    sdos_tick_timer_reset();
+    return NULL;
+}
+
+void sdos_wait_for_event(void)
+{
+    if (wake_state == 0) {
+        int attempt;
+        wake_state = -1;
+        for (attempt = 1; attempt <= 3 && wake_state < 0; attempt++) {
+            if (wake_start() != NULL) {
+                wake_state = 1;
+            } else {
+                sdos_trace("wake tick: no interrupt on attempt %d", attempt);
+            }
+        }
+        if (wake_state < 0) {
+            sdos_trace("wake tick unavailable: this core polls without idling and Linux cannot stop it");
+        }
+    }
+    if (wake_state > 0) {
+        (void)Hwi_enable(); /* idle only with the wake tick able to end it */
+        __asm(" idle");
+    }
+}
+#else
+void sdos_wait_for_event(void)
+{
+    /* FreeRTOS: the idle task idles the CPU */
+}
+#endif
+
+void sdos_idle_forever(void)
+{
     (void)HwiP_disable();
     for (;;) {
-        /* fatal fault: Linux restarts the core */
+        __asm(" idle");
     }
 }
 
@@ -298,5 +442,10 @@ uint32_t sdos_cycles_per_us(void)
 
 uint32_t sdos_uptime_ms(void)
 {
+#if defined(BAREMETAL)
+    if (wake_state > 0) {
+        return wake_ms;
+    }
+#endif
     return (uint32_t)(sdos_cycles() / (CPU_HZ / 1000u));
 }

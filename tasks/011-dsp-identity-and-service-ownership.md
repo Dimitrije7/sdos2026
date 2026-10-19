@@ -2,7 +2,28 @@
 
 ## Status
 
-pending
+done
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: done.
+- Done:
+  - Identities resolve by device-tree unit address: `4d80800000.dsp` (C66x_0,
+    `j7-c66_0-fw`), `4d81800000.dsp` (C66x_1), `64800000.dsp` (C71x_0).
+    `remoteproc0`, `1`, and `2` held across about 15 reboots on 2026-10-19,
+    but nothing relies on the numbering.
+  - Ownership: no package, unit, or firmware file on the image claims a DSP;
+    all three are offline after boot, and `board-report` checks this. The
+    only rpmsg devices present at boot belong to the MCU R5F running TI's
+    device-manager firmware. Course-image policy: ship no DSP firmware under
+    the kernel's default names and start no DSP at boot. Nothing needs
+    disabling on this image.
+  - Evidence: [`release/evidence/task-011/20261019T094327Z/`](../release/evidence/task-011/20261019T094327Z/).
+- Next: none.
+- Decisions: none.
+- Verification, 2026-10-19: the inventory and three board reports on
+  separate boots.
 
 ## Depends on
 

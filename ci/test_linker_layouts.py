@@ -71,8 +71,8 @@ class LinkerLayoutTests(unittest.TestCase):
 
     def test_a_misaligned_entry_point_is_refused(self) -> None:
         result = self.link("entry", lambda s: s.replace(
-            ".text:_c_int00 : {} > DDR_CODE, align = 0x400",
-            ".text:_c_int00 : {} load = SDOS_DDR_ORIGIN + 0x00300200"))
+            ".text:sdos_entry : {} > DDR_CODE, align = 0x400",
+            ".text:sdos_entry : {} load = SDOS_DDR_ORIGIN + 0x00300200"))
         self.assert_refused(result, "is not 0x400-aligned")
 
     def test_writable_data_in_the_read_only_zone_is_refused(self) -> None:

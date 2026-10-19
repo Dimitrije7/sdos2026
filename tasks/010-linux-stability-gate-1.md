@@ -2,7 +2,13 @@
 
 ## Status
 
-pending
+ready
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: ready; Task 009 is done.
+- Next: needs a network cable for Ethernet and time synchronization.
 
 ## Depends on
 

@@ -1,10 +1,10 @@
 /*
- * Mailbox polling for the bare-metal runtime.
+ * Mailbox polling, for both runtimes on every DSP.
  *
- * TI's IPC library normally learns about new messages from a mailbox
- * interrupt. Its bare-metal OSAL cannot register interrupts on the C7x (the
- * HwiP code is a TODO in PDK 11.02), so this runtime polls on every DSP, which
- * keeps C66x and C71x behavior identical. The loop below does what TI's own
+ * The firmware links TI's bare-metal IPC library in both runtimes, which
+ * routes no mailbox interrupt: the RTOS library's route was refused to the C66x
+ * by this board's device manager, and TI's bare-metal OSAL cannot register C7x
+ * interrupts at all (Task 021). The loop below does what TI's own
  * Mailbox_Poll_Task does for RTOS builds.
  *
  * TI keeps its mailbox bookkeeping private to ipc_mailbox.c. The structures

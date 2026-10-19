@@ -27,21 +27,22 @@ says so and gives the reason.
 | ID | Mechanism | Where | Reaction |
 |---|---|---|---|
 | SM-1 | **C71x MMU partition.** Only the core's own memory and the device windows its drivers use are mapped. Code is read-only, data is never executable, and Linux's and the other cores' memory, MSMC, and every other peripheral fault. After start the L2 code zone is read-only and the rest of L2 is not executable. | [`c71x.c`](../firmware/c71x/src/c71x.c) | Exception, then halt with a fault record |
-| SM-2 | **C66x MPAX partition.** Only the core's own DDR, its vring pool, and the device windows its drivers use are reachable; everything else, above and below 2 GiB, MSMC included, is denied. The code zone is read-only and executable, the constant zone read-only, and nothing else executable. | [`c66x.c`](../firmware/c66x/src/c66x.c) | The access is blocked; the monitor reads the fault registers and enters the safe state |
+| SM-2 | **C66x MPAX partition.** Only the core's own DDR, its vring pool, and the device windows its drivers use are writable; everything else, above and below 2 GiB, MSMC included, is denied. The code zone is read-only and executable, the constant zone read-only, and nothing else executable. On this SoC the XMC refuses and records writes outside the grants but lets reads through (board, 2026-10-19): it prevents corruption, not reading. | [`c66x.c`](../firmware/c66x/src/c66x.c) | The write is blocked; the monitor reads the fault registers and enters the safe state |
 | SM-2a | **C66x L2 page protection.** Every 16 KiB page of usable L2 gets explicit attributes: the L2 code zone read-only and executable, the rest writable and never executable. No other bus master (the A72, the other DSPs, DMA) may access this core's L2 at all. | `c66x.c` | The access is blocked and recorded; the monitor enters the safe state, naming the address and the master |
-| SM-3 | **Protection self-tests.** At start, the C66x reads the other C66x's memory and MSMC, and writes into its own L2 code zone; each must be blocked and recorded. | `c66x.c` | Safe state with fault `self-test` |
+| SM-3 | **Protection self-tests.** At start, the C66x writes into MSMC and into its own L2 code zone, each writing back the value it read; both must be refused and recorded. A read of the other C66x's memory is traced for the record. | `c66x.c` | A refusal that does not happen withholds the protection capability in HELLO; the board suites check it |
 | SM-4 | **Read-only page tables.** After start, the C71x maps its own MMU tables read-only. | `c71x.c` | Exception on any write |
-| SM-5 | **Stack guards.** Each guarded stack is filled with 0xA5. On the C71x its lowest page becomes read-only after start; on both families the monitor requires its lowest 256 bytes to keep the fill. Peak use is reported. | [`monitor.c`](../firmware/common/platform/src/monitor.c) | C71x: exception and halt, fault `stack`. C66x: safe state, fault `stack` |
+| SM-5 | **Stack guards.** Each guarded stack is filled with 0xA5. On the C71x its lowest page becomes read-only after start; on both families the monitor requires its lowest 256 bytes to keep the fill. Peak use is reported. | [`monitor.c`](../firmware/common/platform/src/monitor.c) | C66x: safe state, fault `stack`. C71x: the overflow is stopped, but the core hangs without a record, see [residual risks](#residual-risks) |
 | SM-6 | **Image integrity.** After linking, [`firmware_postlink.py`](../ci/firmware_postlink.py) writes a CRC-32C record of every read-only loaded segment into the ELF. The firmware checks the whole image at start, then 16 KiB per monitor period. This covers code, constants, and load/run copies such as the FIR in L2. | `monitor.c`, [`safety.c`](../firmware/common/safety/src/safety.c) | Safe state, fault `integrity` |
 | SM-7 | **No C heap.** Builds link with `-heap 0`, and the post-link step refuses `malloc()` and its relatives. FreeRTOS's own heap may change only during start-up. | linker files, `monitor.c` | Build failure; at run time, safe state with fault `heap` |
 | SM-8 | **Write xor execute.** No loaded segment is both writable and executable. Code lies only in the code zone or local L2, and nothing writable lies in a read-only zone. | `firmware_postlink.py`, [`firmware_elf.py`](../ci/firmware_elf.py) | Build failure |
 | SM-9 | **RUN time budget.** Every RUN carries a budget in microseconds, at most the 2 s watchdog limit, and the runtime measures it in cycles. | [`runtime.c`](../firmware/common/runtime/src/runtime.c) | `deadline missed`; the late output is discarded |
-| SM-10 | **Watchdog.** Under FreeRTOS, a monitor task above every other task faults a RUN that runs past 2 s. | `runtime.c`, FreeRTOS `main.c` | Safe state, fault `watchdog` |
+| SM-10 | **Watchdog.** A RUN past 2 s halts the core. Under FreeRTOS the monitor task, above every other task, checks it; on the bare-metal C71x the 1 ms wake tick does, from its interrupt. The bare-metal C66x has no interrupt; its heartbeat stops and SM-12 restarts it. | `runtime.c`, `monitor.c`, `c71x.c` | Halt with fault `watchdog`; Linux recovers the core |
 | SM-11 | **Heartbeat and health line.** The monitor advances a heartbeat every 20 ms and rewrites a fixed health line at the start of the trace buffer. Linux reads it through remoteproc, without IPC. | `monitor.c`, [`trace.c`](../firmware/common/platform/src/trace.c) | Read by `dspctl health` and `supervise` |
 | SM-12 | **Supervisor.** `dspctl supervise` restarts a core whose heartbeat stops or that reports a fault, after saving its trace. | [`dspctl`](dspctl.md) | Restart of that core alone |
 | SM-13 | **End-to-end message protection.** A CRC-32C covers every message header and payload. Request ids are matched, lengths and descriptors are checked, and sample data has its own CRC. | [`protocol.c`](../firmware/common/protocol/src/protocol.c) | `message corrupted`, counted |
 | SM-14 | **Sender check.** The firmware serves only Linux on the A72. | [`ipc_service.c`](../firmware/common/platform/src/ipc_service.c) | Message dropped, counted |
 | SM-15 | **Start-up checks.** The integrity pass, the protection self-test, and the layout check all pass before RUN is accepted. Until then RUN answers `busy`. | `main.c`, `monitor.c` | Safe state on failure |
+| SM-16 | **Clean restart.** A stopped core leaves nothing that disturbs its next start or another core: each start resets the core's DM timer, the C66x reset entry discards the caches its powered subsystem kept, the C66x tick route left in the interrupt router is verified and reused, and no IPC interrupt route is requested at all (both runtimes poll the mailbox). A fatal fault halts in the idle state, outside exception context, so Linux can always power the core off. | [`entry.c`](../firmware/c66x/src/entry.c), `main.c`, `c71x.c`, `ipc_service.c` | Restart by Linux at any time |
 
 ## Interference analysis
 
@@ -50,6 +51,7 @@ says so and gives the reason.
 | Fault | Mechanism | Status |
 |---|---|---|
 | DSP code writes another core's or Linux's memory, MSMC, or a peripheral its drivers do not use | SM-1, SM-2 | Prevented on both families; the device windows are the exception, see [residual risks](#residual-risks) |
+| DSP code reads another core's or Linux's memory | SM-1, SM-2 | Prevented on the C71x; not on the C66x, whose XMC does not refuse reads |
 | DSP code corrupts its own code or constants | SM-1, SM-2, SM-2a, SM-6 | Prevented in DDR and in the L2 code zone. Constants placed in writable L2 are checked by SM-6 |
 | Executing data | SM-1, SM-2, SM-2a, SM-8 | Prevented in DDR and L2 on both families |
 | Another master writes a C66x's L2 | SM-2a | Prevented and recorded |
@@ -63,7 +65,7 @@ says so and gives the reason.
 | Fault | Mechanism | Status |
 |---|---|---|
 | An algorithm runs too long | SM-9 | Detected at completion; the output is discarded |
-| An algorithm never returns | SM-10, SM-11, SM-12 | FreeRTOS: watchdog fault within 2 s. Bare metal: the heartbeat stops and the supervisor restarts the core |
+| An algorithm never returns | SM-10, SM-11, SM-12 | FreeRTOS and bare-metal C71x: watchdog halt within 2 s. Bare-metal C66x: the heartbeat stops and the supervisor restarts the core |
 | The firmware stops serving | SM-11, SM-12 | Restart by the supervisor |
 | Starvation of the monitor | The FreeRTOS monitor has the second-highest priority, below only the kernel timer task | Bare metal runs the monitor between requests only |
 
@@ -141,8 +143,11 @@ because they are usually consequences. A restart clears it.
 | halted | a fatal fault stopped the core | no answer | no answer; the health line remains |
 
 The C71x halts on every MMU fault and CPU exception, because the core cannot
-safely continue after one. The C66x reports MPAX violations without stopping,
-since the hardware blocked the access, so it can stay in `faulted`.
+safely continue after one. It records the fault, leaves exception context
+through TI's return hook, and idles: a C71x idling inside its exception
+handler, or one that never idles, cannot be powered off by Linux. The C66x
+reports MPAX violations without stopping, since the hardware blocked the
+write, so it can stay in `faulted`.
 
 ## Health line
 
@@ -194,16 +199,21 @@ firmware reported, and restarts the core.
 | Case | C66x | C71x |
 |---|---|---|
 | write into the other C66x's memory | access | access, halted |
-| read Linux's memory | access | access, halted |
+| read Linux's memory | not detected (reads pass the XMC) | access, halted |
 | write into the code zone | access | access, halted |
-| execute from the data zone | access, exception, or stopped heartbeat | access or exception, halted |
-| recurse into the stack guard | stack | stack, halted |
-| never return | FreeRTOS: watchdog; bare metal: stopped heartbeat | the same |
+| execute from the data zone | stopped heartbeat | access, halted |
+| recurse into the stack guard | stack | not recorded; the core hangs (open) |
+| never return | FreeRTOS: watchdog, halted; bare metal: stopped heartbeat | watchdog, halted |
 | run 5 ms on a 1 ms budget | deadline missed | deadline missed |
 | change read-only data the CRC record covers | integrity | integrity |
 | allocate from the kernel heap after start | FreeRTOS: heap; bare metal: not applicable | the same |
 | write into the L2 code zone | access | access, halted |
-| read MSMC | access | access, halted |
+| read MSMC | not detected (reads pass the XMC) | access, halted |
+
+The table is the board result of 2026-10-19 for every core and runtime
+([evidence](../release/evidence/task-042/)); every case recovered with
+`dspctl recover`, except the C71x stack case, which needs a board reboot.
+The stack case runs last for that reason.
 
 ## Residual risks
 
@@ -217,10 +227,20 @@ Each of these needs hardware, a decision, or both:
 - **Hardware watchdog.** The RTI watchdogs report through the ESM, which can
   reset the whole SoC. Routing one per DSP is a maintainer decision. The
   software watchdog and the Linux supervisor cover a stuck core.
+- **C66x reads.** The C66x XMC does not refuse reads outside the MPAX grants,
+  so a C66x can read Linux's and the other cores' memory. That is a
+  confidentiality gap, not interference: writes, which corrupt, are refused.
+- **C71x stack overflow.** TI's C7x exception entry runs the handler on the
+  faulting stack, so an overflow into the guard page faults again inside the
+  handler and the core hangs: the overflow is contained but neither reported
+  nor recoverable without a reboot. Fixing it needs an exception stack of its
+  own, which means changing TI's exception entry. Until then the stacks are
+  sized with room to spare (peak use is reported).
 - **Device windows.** They are derived from the PDK sources the firmware
-  links, not yet confirmed on a board. A peripheral the drivers use but the
-  list misses shows up at once as an `access` fault naming its address; add a
-  window to the manifest. Inside a window, the core can still write registers
+  links and confirmed on the board by the course smoke test and every
+  fault-injection run (2026-10-19). A peripheral a driver needs that the list
+  misses shows up as a start-up failure, as the MCU secure proxy did on the
+  first run; add a window to the manifest. Inside a window, the core can still write registers
   it does not use: the C66x local window spans the whole CorePac space below
   256 MiB, and the C71x keeps TI's 128 MiB CLEC window.
 - **Protection registers.** The MPAX and L2 attribute registers are not
@@ -244,11 +264,11 @@ The following runs in every `make quality` and in CI:
 - the real-linker negative tests in
   [`test_linker_layouts.py`](../ci/test_linker_layouts.py).
 
-The following waits for the board session in Task 042:
+On the board, 2026-10-19 (Tasks 021 and 042):
 
-- that the MPAX, L2, and MMU maps boot on the hardware, with the device
-  windows complete;
-- that every fault-injection case is detected;
-- that every core recovers after its fault.
-
-Evidence goes to `release/evidence/task-042/`.
+- the MPAX, L2, and MMU maps boot on every core and runtime, and the course
+  smoke test passes twice in a row
+  ([evidence](../release/evidence/task-021/));
+- every fault-injection case behaves as the table above states, and every
+  core recovers after its fault except the C71x stack case
+  ([evidence](../release/evidence/task-042/)).

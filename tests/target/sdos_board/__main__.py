@@ -177,7 +177,8 @@ def cmd_dsp_ipc(args: argparse.Namespace) -> int:
 def cmd_course_smoke(args: argparse.Namespace) -> int:
     try:
         selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
-        results = course_smoke.run(args.host, args.key, args.out, selected, follow_kernel=True)
+        results = course_smoke.run(args.host, args.key, args.out, selected, follow_kernel=True,
+                                   runtimes=args.runtime or course_smoke.RUNTIMES)
     except (ValueError, RuntimeError) as exc:
         print(f"course-smoke: {exc}", file=sys.stderr)
         return 1
@@ -191,7 +192,8 @@ def cmd_course_smoke(args: argparse.Namespace) -> int:
 def cmd_fault_injection(args: argparse.Namespace) -> int:
     try:
         selected = dsp_ipc.resolve(args.core or list(dsp_ipc.CORES))
-        results = fault_injection.run(args.host, args.key, args.out, selected, follow_kernel=True)
+        results = fault_injection.run(args.host, args.key, args.out, selected, follow_kernel=True,
+                                      runtimes=args.runtime or course_smoke.RUNTIMES)
     except (ValueError, RuntimeError) as exc:
         print(f"fault-injection: {exc}", file=sys.stderr)
         return 1
@@ -256,6 +258,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--host", default="192.168.7.2")
     sub.add_argument("--key", type=Path, help="SSH private key for root on the board")
     sub.add_argument("--core", action="append", help="c66x_0, c66x_1, or c71x_0; repeat; default all")
+    sub.add_argument("--runtime", action="append", choices=course_smoke.RUNTIMES,
+                     help="freertos or baremetal; repeat; default both")
     sub.add_argument("--out", type=Path, required=True, help="directory for per-core, per-runtime results")
     sub.set_defaults(handler=cmd_course_smoke)
 
@@ -263,6 +267,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     sub.add_argument("--host", default="192.168.7.2")
     sub.add_argument("--key", type=Path, help="SSH private key for root on the board")
     sub.add_argument("--core", action="append", help="c66x_0, c66x_1, or c71x_0; repeat; default all")
+    sub.add_argument("--runtime", action="append", choices=course_smoke.RUNTIMES,
+                     help="freertos or baremetal; repeat; default both")
     sub.add_argument("--out", type=Path, required=True, help="directory for per-core, per-runtime results")
     sub.set_defaults(handler=cmd_fault_injection)
 

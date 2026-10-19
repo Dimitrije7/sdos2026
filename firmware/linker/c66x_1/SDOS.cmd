@@ -16,6 +16,11 @@
  */
 #include "sdos_memory.cmd"
 
+/* MANDATORY: start at the reset entry, which discards stale caches before TI's
+ * C runtime (_c_int00) runs; see firmware/c66x/src/entry.c. */
+-e sdos_entry
+--diag_suppress=10063   /* "entry point other than _c_int00": intended, see above */
+
 #if defined(SDOS_RTOS_FREERTOS)
 /* MANDATORY: TI's FreeRTOS C66x port refers to its vector table by this name. */
 --symbol_map _Hwi_intcVectorTable=Hwi_intcVectorTable
@@ -75,6 +80,10 @@ SECTIONS
 
     /* MANDATORY: the K3 remoteproc driver boots a C66x only from a 1 KiB-aligned
      * entry point. */
+    /* MANDATORY: the reset entry discards the caches a previous run left
+     * (firmware/c66x/src/entry.c); first in the code zone, 1 KiB-aligned for
+     * the boot vector, and nothing else ever at this address. */
+    .text:sdos_entry : {} > DDR_CODE, align = 0x400
     .text:_c_int00 : {} > DDR_CODE, align = 0x400
     .text:csl_entry : {} > DDR_CODE
 

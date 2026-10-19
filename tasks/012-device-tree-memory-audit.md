@@ -2,7 +2,30 @@
 
 ## Status
 
-pending
+done
+
+## Handoff
+
+- Updated: 2026-10-19, claude.
+- State: done.
+- Done:
+  - `live.dtb` captured and archived; [`ci/dt_memory.py`](../ci/dt_memory.py)
+    extracts its memory facts to JSON (`dt-memory.json`) and checks them
+    against [`manifest/memory-map.json`](../manifest/memory-map.json), the
+    owner, reason, and source of every reservation, and against
+    `manifest/dsp-cores.json`: carve-outs, pools, local memories, MSMC, and
+    shared DDR. It runs in `make quality`.
+    [`ci/test_dt_memory.py`](../ci/test_dt_memory.py) covers the parser and
+    deliberate overlap, alignment, range, ownership, and mismatch failures.
+  - Findings, in [`docs/memory-map.md`](../docs/memory-map.md): 0xAA000000
+    is used at run time by the device-manager firmware on MCU R5F 0, though
+    no device-tree node names it. MSMC beyond ATF's 128 KiB has no owner. C71x
+    L2 is 512 KiB in the device tree; the contract keeps TI's 448 KiB and marks
+    it not loadable.
+- Next: none. A partition of MSMC per core is a design choice for Task 042.
+- Decisions: none.
+- Verification, 2026-10-19: `python3 ci/dt_memory.py` passes on the
+  committed extraction; `ci.test_dt_memory` passes 14 tests.
 
 ## Depends on
 
