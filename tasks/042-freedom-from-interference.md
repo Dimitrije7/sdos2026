@@ -44,22 +44,20 @@ in-progress
     example DDR layout boots
     ([evidence](../release/evidence/task-042/20261019T164820Z/)).
 - Next:
-  1. Maintainer decision: let the C71x firmware claim firewall 264 at start
-     and admit only its own priv-id (21) to its L2. The code is ready on the
-     local, unpushed branch `task-042-c71x-l2-firewall` (f9e277b); it
-     changes SoC bus state, so running it on the board needs the
-     maintainer's approval. Prove it with a readback
-     and with the C66x survey being refused for that firewall.
-  2. Maintainer decision: the DDR carve-outs. NAVSS firewalls 4762 and 4763
-     (main-domain masters) need an unowned allow-all background region plus
-     one foreground region per DSP carve-out, owned by that DSP; the MCU path
-     (1280) and the A72 (257) cannot be closed without cutting the device
-     manager or the Linux loader off.
-  3. Maintainer decisions still open: RTI watchdogs through the ESM; the
-     MISRA subset (Task 024).
+  1. Board-test the C71x L2 firewall (approved, decision below): the C71x
+     firmware claims firewall 264 at start and admits only its own priv-id
+     (21) to its L2. The code is on the local, unpushed branch
+     `task-042-c71x-l2-firewall` (f9e277b) in this clone. Rebase it on main, build, and prove it on the board with
+     the start-up readback, `course-smoke` and `fault-injection` on the C71x,
+     and the C66x firewall survey (`0xFA00000D`) being refused for 264. If
+     it misbehaves or grows beyond small work, drop it and record why.
+  2. Maintainer decision still open: RTI watchdogs through the ESM.
 - Decisions: on 2026-10-19 the maintainer asked for the MPLK lock and the
   SoC firewalls after all pending board work, then for the C71x exception
-  stack as the remaining fix that matters for students.
+  stack as the remaining fix that matters for students. Later the same day:
+  the DDR carve-out firewalls (4762, 4763) are not pursued; the C71x L2
+  firewall may be tried on the board because it is small; MISRA is dropped
+  (Task 024).
 - Verification, 2026-10-19: `course-smoke` (twice) and `fault-injection` on
   the board, and the firewall survey on C66x_0 and C71x_0; after the
   exception stack, `fault-injection` and `course-smoke` (twice) again on the

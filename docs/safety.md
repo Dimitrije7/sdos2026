@@ -250,8 +250,9 @@ Each of these needs hardware, a decision, or both:
   96 and 97, main R5F 212 to 215. Linux loads the firmware, so the A72 must
   keep write access to the carve-outs; the C71x L2 needs no other master.
   Programming a firewall changes the whole SoC's bus, and a wrong region can
-  cut Linux or the device manager off, so the change waits for the
-  maintainer.
+  cut Linux or the device manager off. The maintainer decided on 2026-10-19
+  not to program the DDR firewalls; only the C71x L2 firewall, which no
+  other master needs, is being tried.
 - **Hardware watchdog.** The RTI watchdogs report through the ESM, which can
   reset the whole SoC. Routing one per DSP is a maintainer decision. The
   software watchdog and the Linux supervisor cover a stuck core.
@@ -279,8 +280,9 @@ Each of these needs hardware, a decision, or both:
   overflow check, method 2, covers the task stacks at each context switch.
 - **Kernel heap.** TI's FreeRTOS kernel allocates during start-up. The heap
   cannot be removed without rebuilding that library; SM-7 freezes it instead.
-- **Static analysis.** MISRA C:2012 checking awaits the subset decision in
-  Task 024. A free MISRA-oriented check is not MISRA compliance.
+- **Static analysis.** Cppcheck and the compilers' warnings, as errors, are
+  the static analysis. The maintainer decided on 2026-10-19 against MISRA
+  checking; the project makes no MISRA claim.
 
 ## Verification status
 
