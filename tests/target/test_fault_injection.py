@@ -90,6 +90,17 @@ class FaultInjectionTests(unittest.TestCase):
         self.assertEqual(fi.classify(steps, case), "undetected")
         self.assertEqual(fi.classify({}, case), "unreadable")
 
+    def test_prevented_needs_a_clean_run_and_a_clean_health_line(self) -> None:
+        case = next(c for c in fi.CASES if c.name == "rewrite_protection")
+        clean = {f"{case.name}:run": {"status": 0, "output": ["0xfa00000c: no data, 9 DSP cycles"]},
+                 f"{case.name}:health": {"output": [health()]},
+                 f"{case.name}:later": {"output": [health(heartbeat=9)]}}
+        self.assertEqual(fi.classify(clean, case), "prevented")
+        took_effect = dict(clean, **{f"{case.name}:run": {"status": 1, "output": ["dspctl: run: internal error"]}})
+        self.assertEqual(fi.classify(took_effect, case), "undetected")
+        detected = dict(took_effect, **{f"{case.name}:health": {"output": [health("faulted", "protection")]}})
+        self.assertEqual(fi.classify(detected, case), "protection")
+
     def test_expectations_differ_by_runtime_where_the_mechanism_does(self) -> None:
         hang = next(c for c in fi.CASES if c.name == "hang")
         self.assertEqual(hang.expects("c6000", "freertos"), {"watchdog"})

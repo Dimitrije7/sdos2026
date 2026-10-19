@@ -41,6 +41,9 @@ class Case:
     params: str = ""  # hexadecimal bytes
     budget_us: int = 0
     run_timeout_ms: int = 3000
+    # The algorithm answers OK only when the hardware refused the fault: a
+    # clean run with a clean health line then means "prevented".
+    prevented_when_clean: bool = False
     # Acceptable outcomes by "family-runtime", runtime, family, or "*".
     expected: tuple[tuple[str, frozenset[str]], ...] = ()
 
@@ -75,6 +78,12 @@ CASES = (
     Case("heap", 0xFA000009, expected=_e(freertos={"heap"}, baremetal={"unsupported"})),
     Case("write_l2_code", 0xFA00000A, expected=_e(**{"*": {"access"}})),
     Case("read_shared", 0xFA00000B, expected=_e(c6000={"undetected"}, c7000={"access"})),
+    # The C66x lock refuses the write and records it at the register's
+    # address (access); a write that took effect would be reported by the
+    # monitor's register readback (protection). The C71x page tables are
+    # read-only, so the write faults.
+    Case("rewrite_protection", 0xFA00000C, prevented_when_clean=True,
+         expected=_e(c6000={"access"}, c7000={"access"})),
     # Last: on the C71x an overflow into the guard page still hangs the core
     # beyond recovery (Task 042 handoff), which would fail every later case.
     Case("stack", 0xFA000005, expected=_e(**{"*": {"stack"}})),
@@ -154,6 +163,9 @@ def classify(steps: dict[str, dict[str, Any]], case: Case) -> str:
         return str(later.get("fault"))
     if later is not None and later.get("heartbeat") == health.get("heartbeat"):
         return "stale"
+    run_status = steps.get(f"{case.name}:run", {}).get("status")
+    if case.prevented_when_clean and run_status == 0 and health.get("state") == "ok":
+        return "prevented"
     if "deadline missed" in run_output:
         return "deadline"
     if "unknown algorithm" in run_output:
