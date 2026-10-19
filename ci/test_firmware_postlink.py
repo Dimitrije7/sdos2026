@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import unittest
 
-from ci import firmware_postlink
+from ci import firmware_elf, firmware_postlink
 
 
 class PlannerTests(unittest.TestCase):
@@ -14,6 +14,12 @@ class PlannerTests(unittest.TestCase):
         self.assertEqual(firmware_postlink.mpax_split(0xA6100000, 0xA7000000), 4)
         self.assertEqual(firmware_postlink.mpax_split(0, 1 << 32), 1)
         self.assertEqual(firmware_postlink.mpax_split(0xA6100000, 0xA6100000), 0)
+
+    def test_the_default_c66x_layout_fits_the_mpax_with_its_device_windows(self) -> None:
+        core = firmware_elf.load_core("c66x_0")
+        zones = {"code": (0xA6400000, 0xA6800000), "rodata": (0xA6200000, 0xA6400000), "l2code": (0x800000, 0x804000)}
+        # 7 window segments, 4 for the carve-out, 1 pool, 1 read-only data, 1 code.
+        self.assertEqual(firmware_postlink.mpax_segments(core, zones), 14 - 1)
 
     def test_mmu_tables_count_split_blocks_and_gigabytes(self) -> None:
         class Elf:

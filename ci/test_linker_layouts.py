@@ -72,7 +72,7 @@ class LinkerLayoutTests(unittest.TestCase):
     def test_a_misaligned_entry_point_is_refused(self) -> None:
         result = self.link("entry", lambda s: s.replace(
             ".text:_c_int00 : {} > DDR_CODE, align = 0x400",
-            ".text:_c_int00 : {} load = SDOS_DDR_ORIGIN + 0x00100200"))
+            ".text:_c_int00 : {} load = SDOS_DDR_ORIGIN + 0x00300200"))
         self.assert_refused(result, "is not 0x400-aligned")
 
     def test_writable_data_in_the_read_only_zone_is_refused(self) -> None:
@@ -84,18 +84,21 @@ class LinkerLayoutTests(unittest.TestCase):
         self.assert_refused(result, "outside the code zone")
 
     def test_a_misaligned_zone_is_refused(self) -> None:
-        result = self.link("zone", lambda s: s.replace("#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00500000)",
-                                                       "#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00500800)"))
+        result = self.link("zone", lambda s: s.replace("#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00100000)",
+                                                       "#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00100800)"))
         self.assert_refused(result, "is not a 4 KiB-aligned range")
+
+    def test_an_l2_code_zone_off_the_protection_page_is_refused(self) -> None:
+        result = self.link("l2page", lambda s: s.replace("#define L2CODE_LENGTH 0x4000", "#define L2CODE_LENGTH 0x2000"))
+        self.assert_refused(result, "is not a 16 KiB-aligned range")
 
     def test_zones_beyond_the_mpax_segments_are_refused(self) -> None:
         # Page-granular boundaries need many power-of-two segments each.
-        result = self.link("mpax", lambda s: s.replace("#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00500000)",
-                                                       "#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x004ff000)")
-                           .replace("#define DATA_ORIGIN   (SDOS_DDR_ORIGIN + 0x00600000)",
-                                    "#define DATA_ORIGIN   (SDOS_DDR_ORIGIN + 0x005ff000)"))
+        result = self.link("mpax", lambda s: s.replace("#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00100000)",
+                                                       "#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00101000)")
+                           .replace("#define CODE_ORIGIN   (SDOS_DDR_ORIGIN + 0x00300000)",
+                                    "#define CODE_ORIGIN   (SDOS_DDR_ORIGIN + 0x00301000)"))
         self.assert_refused(result, "MPAX segments")
-
 
 if __name__ == "__main__":
     unittest.main()

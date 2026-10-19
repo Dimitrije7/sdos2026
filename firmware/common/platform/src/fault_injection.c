@@ -27,9 +27,14 @@
 #define FOREIGN_DDR SDOS_C66X_0_DDR_BASE
 #endif
 #define LINUX_DDR 0x80000000u /* start of DDR: Linux's memory on the BeagleBone AI-64 */
+#define MSMC 0x70020000u      /* shared on-chip SRAM, past the part ATF and the DMSC hold */
 
 extern char sdos_zone_code_start[];
+extern char sdos_zone_l2code_start[];
+extern char sdos_zone_l2code_end[];
 static char *const zone_code_start = sdos_zone_code_start;
+static char *const zone_l2code_start = sdos_zone_l2code_start;
+static char *const zone_l2code_end = sdos_zone_l2code_end;
 
 /* Read-only data in writable memory, covered by the integrity record: the
  * one place an image change can be injected past the write protection. */
@@ -62,6 +67,26 @@ static sdos_status fi_write_code(const sdos_run_args *args, uint32_t *output_len
     volatile uint32_t *code = (volatile uint32_t *)(void *)zone_code_start;
     (void)args;
     *code = *code; /* same value: harmless if the protection failed */
+    return no_output(output_length);
+}
+
+static sdos_status fi_write_l2_code(const sdos_run_args *args, uint32_t *output_length)
+{
+    volatile uint32_t *code = (volatile uint32_t *)(void *)zone_l2code_start;
+    (void)args;
+    if (zone_l2code_end == zone_l2code_start) {
+        return SDOS_E_ALGORITHM; /* this layout runs nothing from L2 */
+    }
+    sdos_cache_writeback((void *)zone_l2code_start, 64u); /* the write must reach L2 */
+    *code = *code;
+    sdos_cache_writeback((void *)zone_l2code_start, 64u);
+    return no_output(output_length);
+}
+
+static sdos_status fi_read_shared(const sdos_run_args *args, uint32_t *output_length)
+{
+    (void)args;
+    (void)*(volatile uint32_t *)(uintptr_t)MSMC;
     return no_output(output_length);
 }
 
@@ -143,7 +168,7 @@ static sdos_status fi_heap(const sdos_run_args *args, uint32_t *output_length)
 }
 
 #define BUILTINS 3u
-static sdos_algorithm algorithms[BUILTINS + 9u] = {
+static sdos_algorithm algorithms[BUILTINS + 11u] = {
     {0u, "", NULL}, {0u, "", NULL}, {0u, "", NULL},
     {SDOS_ALG_FI_WRITE_FOREIGN, "fi_write_foreign", fi_write_foreign},
     {SDOS_ALG_FI_READ_FOREIGN, "fi_read_foreign", fi_read_foreign},
@@ -154,6 +179,8 @@ static sdos_algorithm algorithms[BUILTINS + 9u] = {
     {SDOS_ALG_FI_OVERRUN, "fi_overrun", fi_overrun},
     {SDOS_ALG_FI_CORRUPT_IMAGE, "fi_corrupt_image", fi_corrupt_image},
     {SDOS_ALG_FI_HEAP, "fi_heap", fi_heap},
+    {SDOS_ALG_FI_WRITE_L2_CODE, "fi_write_l2_code", fi_write_l2_code},
+    {SDOS_ALG_FI_READ_SHARED, "fi_read_shared", fi_read_shared},
 };
 
 void sdos_fault_injection_install(sdos_runtime *runtime)

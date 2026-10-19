@@ -8,8 +8,11 @@
  *   read-only data zone read-only, not executable, cached
  *   rest of carve-out   read-write, not executable, cached
  *   vring pool          read-write, not executable, uncached
- *   local L2 SRAM       read-write, executable (load/run copies land here)
- *   device windows      read-write, not executable, device memory
+ *   L2 code zone        read-only, executable, after start (load/run copies
+ *                       land here before main(), when it is still writable)
+ *   rest of L2 SRAM     read-write, not executable
+ *   device windows      read-write, not executable, device memory: only the
+ *                       peripherals the drivers use (manifest/dsp-cores.json)
  *
  * Every other address, including Linux's memory and the other cores', is
  * unmapped and faults. After start-up the page tables become read-only and
@@ -46,12 +49,16 @@ extern char sdos_zone_rodata_start[];
 extern char sdos_zone_rodata_end[];
 extern char sdos_mmu_tables_start[];
 extern char sdos_mmu_tables_end[];
+extern char sdos_zone_l2code_start[];
+extern char sdos_zone_l2code_end[];
 static char *const zone_code_start = sdos_zone_code_start;
 static char *const zone_code_end = sdos_zone_code_end;
 static char *const zone_rodata_start = sdos_zone_rodata_start;
 static char *const zone_rodata_end = sdos_zone_rodata_end;
 static char *const mmu_tables_start = sdos_mmu_tables_start;
 static char *const mmu_tables_end = sdos_mmu_tables_end;
+static char *const zone_l2code_start = sdos_zone_l2code_start;
+static char *const zone_l2code_end = sdos_zone_l2code_end;
 
 /* Device windows from manifest/dsp-cores.json: {base, size}. */
 typedef struct window {
@@ -68,16 +75,18 @@ static const sdos_span pool = {SDOS_C71X_0_DMA_POOL_BASE,
  * initialization does not touch. */
 static volatile uint32_t mmu_status __attribute__((section(".sdos.noinit")));
 
-typedef enum kind { DEVICE, LOCAL, CODE, RODATA, DATA, UNCACHED } kind;
+typedef enum kind { DEVICE, LOCAL, LOCAL_CODE, LOCAL_DATA, CODE, RODATA, DATA, UNCACHED } kind;
 
 static void attributes(Mmu_MapAttrs *a, kind k, bool secure)
 {
+    int local = k == LOCAL || k == LOCAL_CODE || k == LOCAL_DATA;
     Mmu_initMapAttrs(a);
     a->ns = secure ? false : true;
-    a->privExecute = k == LOCAL || k == CODE;
-    a->accessPerm = k == CODE || k == RODATA ? Mmu_AccessPerm_PRIV_RO_USER_NONE : Mmu_AccessPerm_PRIV_RW_USER_NONE;
+    a->privExecute = k == LOCAL || k == LOCAL_CODE || k == CODE;
+    a->accessPerm = k == CODE || k == RODATA || k == LOCAL_CODE ? Mmu_AccessPerm_PRIV_RO_USER_NONE
+                                                                : Mmu_AccessPerm_PRIV_RW_USER_NONE;
     /* Device type for peripherals and, as in TI's map, for local L2 SRAM. */
-    a->attrIndx = k == DEVICE || k == LOCAL ? Mmu_AttrIndx_MAIR0
+    a->attrIndx = k == DEVICE || local ? Mmu_AttrIndx_MAIR0
                   : k == UNCACHED          ? Mmu_AttrIndx_MAIR4
                                            : Mmu_AttrIndx_MAIR7;
 }
@@ -121,7 +130,7 @@ static int map_all(bool secure)
             failures += map(pieces[i].start, pieces[i].end, DEVICE, secure);
         }
     }
-    failures += map(l2.start, l2.end, LOCAL, secure);
+    failures += map(l2.start, l2.end, LOCAL, secure); /* split by sdos_protection_init after the copies */
     zones[0] = clip(zone_code_start, zone_code_end, carveout);
     zones[1] = clip(zone_rodata_start, zone_rodata_end, carveout);
     n = sdos_span_subtract(carveout, zones, 2u, pieces, 4u);
@@ -160,10 +169,36 @@ static void exception_hook(void)
     sdos_monitor_fatal(SDOS_FAULT_EXCEPTION, Exception_Module_state.nrp, info);
 }
 
+/* After the load/run copies: the L2 code zone read-only and executable, the
+ * rest of L2 writable and not executable. */
+static int split_l2(void)
+{
+    sdos_span code;
+    sdos_span pieces[2];
+    size_t n;
+    size_t i;
+    int failures = 0;
+    int pass;
+    code.start = (uintptr_t)zone_l2code_start;
+    code.end = (uintptr_t)zone_l2code_end;
+    n = sdos_span_subtract(l2, &code, 1u, pieces, 2u);
+    if (n == SIZE_MAX) {
+        return 1;
+    }
+    for (pass = 0; pass < 2; pass++) {
+        bool secure = pass == 1;
+        for (i = 0u; i < n; i++) {
+            failures += map(pieces[i].start, pieces[i].end, LOCAL_DATA, secure);
+        }
+        failures += map(code.start, code.end, LOCAL_CODE, secure);
+    }
+    return failures;
+}
+
 static int remap_read_only(uint64_t start, uint64_t end)
 {
     int failures = 0;
-    kind k = start >= l2.start && end <= l2.end ? LOCAL : RODATA;
+    kind k = start >= l2.start && end <= l2.end ? LOCAL_DATA : RODATA;
     Mmu_MapAttrs a;
     int pass;
     for (pass = 0; pass < 2; pass++) {
@@ -192,8 +227,14 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
         sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, tables, 0x100u);
         return 0u;
     }
-    sdos_trace("mmu: only this core's memory and device windows mapped; code read-only, data not executable, "
-               "page tables 0x%08lx..0x%08lx read-only", (unsigned long)tables, (unsigned long)(tables_end - 1u));
+    if (split_l2() != 0) {
+        sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, l2.start, 0x300u);
+        return 0u;
+    }
+    sdos_trace("mmu: only this core's memory and %lu device windows mapped; code read-only, data not executable, "
+               "L2 code 0x%08lx..0x%08lx read-only, page tables 0x%08lx..0x%08lx read-only",
+               (unsigned long)SDOS_C71X_0_MMIO_COUNT, (unsigned long)(uintptr_t)zone_l2code_start,
+               (unsigned long)(uintptr_t)zone_l2code_end, (unsigned long)tables, (unsigned long)(tables_end - 1u));
     return SDOS_CAP_PROTECTION;
 }
 

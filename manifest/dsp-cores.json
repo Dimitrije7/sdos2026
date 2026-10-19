@@ -1,6 +1,6 @@
 {
   "schema": "sdos-dsp-cores/2",
-  "revision": 3,
+  "revision": 4,
   "updated": "2026-10-19",
   "description": "Stable logical identity and memory contract of each DSP. Tools resolve a core by its device-tree unit address, never by remoteprocN. Every region a DSP can address is listed with its owner, whether remoteproc can load ELF segments into it, how much of it the runtime reserves as cache, and the reason for each limit. Linker command files, the C core table, and the ELF validators are generated from or checked against this file (Task 041); section placement itself stays in the editable linker files.",
   "evidence": "release/evidence/task-008/20261018T175900Z-dmesg.txt lists every reserved-memory node and the dma_pool each DSP is assigned. The firmware regions follow TI's PDK memory_map_defines.inc, which swaps the two C66x IPC pools on purpose; TI's pinned echo firmware links inside them. Task 012 confirms every region against the live device tree.",
@@ -106,7 +106,39 @@
         }
       ],
       "boot_alignment": "0x400",
-      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 1 KiB-aligned address on the C66x; it refuses to start firmware whose entry point is not aligned."
+      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 1 KiB-aligned address on the C66x; it refuses to start firmware whose entry point is not aligned.",
+      "mmio_windows": [
+        {
+          "base": "0x00000000",
+          "size": "0x10000000",
+          "reason": "CorePac-local space and SoC configuration below 256 MiB: L2 and L1 memory, the interrupt controller, cache, XMC, and RAT registers, this subsystem's interrupt router (0x00AC0000 or 0x00AD0000), and the DM timer the FreeRTOS tick uses (0x02400000 or 0x02410000).",
+          "source": "TI PDK 11.02.01.08 csl/soc/j721e/src/cslr_soc.h, cslr_soc_c66_baseaddress.h, osal/soc/j721e/osal_soc.h (OSAL_FREERTOS_OS_TIMER_ID_C66X_*)"
+        },
+        {
+          "base": "0x20ac0000",
+          "size": "0x00001000",
+          "reason": "This subsystem's interrupt router as Sciclient maps it through the C66x RAT (0x00AC0000 plus the RAT region base 0x20000000).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/src/sciclient/sciclient.c (Sciclient_C66xRatMap)"
+        },
+        {
+          "base": "0x285b0000",
+          "size": "0x00001000",
+          "reason": "MCU NAVSS secure proxy configuration, which Sciclient uses to reach the system firmware.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (CSL_MCU_NAVSS0_SEC_PROXY0_CFG_BASE)"
+        },
+        {
+          "base": "0x2a380000",
+          "size": "0x00180000",
+          "reason": "MCU NAVSS secure proxy real-time, configuration, and target-data regions (0x2A380000 to 0x2A4FFFFF).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
+        },
+        {
+          "base": "0x31f80000",
+          "size": "0x00010000",
+          "reason": "NAVSS main mailbox clusters 0 to 11 (0x31F80000 to 0x31F8BFFF), which carry the IPC notifications.",
+          "source": "TI PDK 11.02.01.08 drv/ipc/soc/V1/ipc_soc.c, csl/src/ip/navss/V1/cslr_navss_main.h"
+        }
+      ]
     },
     {
       "name": "c66x_1",
@@ -209,7 +241,39 @@
         }
       ],
       "boot_alignment": "0x400",
-      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 1 KiB-aligned address on the C66x; it refuses to start firmware whose entry point is not aligned."
+      "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 1 KiB-aligned address on the C66x; it refuses to start firmware whose entry point is not aligned.",
+      "mmio_windows": [
+        {
+          "base": "0x00000000",
+          "size": "0x10000000",
+          "reason": "CorePac-local space and SoC configuration below 256 MiB: L2 and L1 memory, the interrupt controller, cache, XMC, and RAT registers, this subsystem's interrupt router (0x00AC0000 or 0x00AD0000), and the DM timer the FreeRTOS tick uses (0x02400000 or 0x02410000).",
+          "source": "TI PDK 11.02.01.08 csl/soc/j721e/src/cslr_soc.h, cslr_soc_c66_baseaddress.h, osal/soc/j721e/osal_soc.h (OSAL_FREERTOS_OS_TIMER_ID_C66X_*)"
+        },
+        {
+          "base": "0x20ad0000",
+          "size": "0x00001000",
+          "reason": "This subsystem's interrupt router as Sciclient maps it through the C66x RAT (0x00AD0000 plus the RAT region base 0x20000000).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/src/sciclient/sciclient.c (Sciclient_C66xRatMap)"
+        },
+        {
+          "base": "0x285b0000",
+          "size": "0x00001000",
+          "reason": "MCU NAVSS secure proxy configuration, which Sciclient uses to reach the system firmware.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c (CSL_MCU_NAVSS0_SEC_PROXY0_CFG_BASE)"
+        },
+        {
+          "base": "0x2a380000",
+          "size": "0x00180000",
+          "reason": "MCU NAVSS secure proxy real-time, configuration, and target-data regions (0x2A380000 to 0x2A4FFFFF).",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
+        },
+        {
+          "base": "0x31f80000",
+          "size": "0x00010000",
+          "reason": "NAVSS main mailbox clusters 0 to 11 (0x31F80000 to 0x31F8BFFF), which carry the IPC notifications.",
+          "source": "TI PDK 11.02.01.08 drv/ipc/soc/V1/ipc_soc.c, csl/src/ip/navss/V1/cslr_navss_main.h"
+        }
+      ]
     },
     {
       "name": "c71x_0",
@@ -285,34 +349,34 @@
       "boot_alignment_reason": "The K3 DSP remoteproc driver writes the ELF entry point into the core's boot vector register, which takes a 2 MiB-aligned address on the C71x; it refuses to start firmware whose entry point is not aligned.",
       "mmio_windows": [
         {
-          "base": "0x00000000",
-          "size": "0x20000000",
-          "reason": "Peripheral space: timers, interrupt routers, mailboxes, and the system-firmware proxies the IPC and Sciclient drivers use.",
-          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+          "base": "0x02400000",
+          "size": "0x00200000",
+          "reason": "Main-domain DM timers; the FreeRTOS tick uses DM timer 2 (0x02420000). Rounded to one 2 MiB MMU block, which needs no page table.",
+          "source": "TI PDK 11.02.01.08 osal/soc/j721e/osal_soc.h (OSAL_FREERTOS_OS_TIMER_ID_C7X_1), csl/soc/j721e/src/cslr_soc_baseaddress.h"
         },
         {
-          "base": "0x20000000",
-          "size": "0x20000000",
-          "reason": "Peripheral space (navigator subsystem and secure proxies).",
-          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+          "base": "0x28400000",
+          "size": "0x00200000",
+          "reason": "MCU NAVSS secure proxy configuration (0x285B0000), for Sciclient. Rounded to one 2 MiB MMU block.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
         },
         {
-          "base": "0x40000000",
-          "size": "0x20000000",
-          "reason": "MCU-domain peripherals.",
-          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+          "base": "0x2a200000",
+          "size": "0x00400000",
+          "reason": "MCU NAVSS secure proxy real-time, configuration, and target-data regions (0x2A380000 to 0x2A4FFFFF). Rounded to two 2 MiB MMU blocks.",
+          "source": "TI PDK 11.02.01.08 drv/sciclient/soc/V1/sciclient_secureProxyCfg.c"
         },
         {
-          "base": "0x60000000",
-          "size": "0x10000000",
-          "reason": "Compute-cluster space; holds this core's L2 SRAM, which the firmware maps separately as executable memory.",
-          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+          "base": "0x31e00000",
+          "size": "0x00200000",
+          "reason": "NAVSS main mailbox clusters (0x31F80000 to 0x31F8BFFF) for IPC. Rounded to one 2 MiB MMU block.",
+          "source": "TI PDK 11.02.01.08 drv/ipc/soc/V1/ipc_soc.c"
         },
         {
           "base": "0x78000000",
           "size": "0x08000000",
-          "reason": "CLEC, the C7x interrupt event controller.",
-          "source": "TI PDK 11.02.01.08 ti/drv/ipc/examples/common/src/c7x_mmu.c (the windows TI's examples map); the strict map is firmware/c71x/src/c71x.c"
+          "reason": "CLEC, the C7x interrupt event controller, which the port, IPC, and Sciclient program.",
+          "source": "TI PDK 11.02.01.08 csl/soc/j721e/src/cslr_soc_baseaddress.h (CSL_COMPUTE_CLUSTER0_CLEC_REGS_BASE), drv/ipc/soc/V1/ipc_soc.c"
         }
       ]
     }
@@ -322,6 +386,6 @@
     "runtime_use": "any: code and data; none: firmware must not use it; audit: usable only after Task 012 confirms nothing else owns it, and then only at run time (NOLOAD or copied in).",
     "cache_reserve": "bytes at the top of a local SRAM that the runtime configures as cache; firmware may not place anything there under that runtime.",
     "boot_alignment": "Required alignment of the ELF entry point, with the loader's reason.",
-    "mmio_windows": "C71x only: address windows the MMU maps as device memory, never executable, so drivers can reach peripherals. Every other address outside the core's own memory faults (docs/safety.md)."
+    "mmio_windows": "Address windows outside the core's own memory that its drivers need, mapped read-write and never executable: by the MPAX on the C66x, by the MMU on the C71x. Every other address outside the core's own memory is denied (docs/safety.md). Derived from the PDK sources the firmware links; Task 042's board session confirms them."
   }
 }

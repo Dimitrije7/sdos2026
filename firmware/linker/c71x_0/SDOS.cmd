@@ -36,6 +36,10 @@
 #define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00a00000)
 #define DATA_ORIGIN   (SDOS_DDR_ORIGIN + 0x00b00000)
 #define DDR_END       (SDOS_DDR_ORIGIN + SDOS_DDR_USABLE)
+/* Local L2 SRAM: code that runs from L2 (load/run copies) first, data after.
+ * PROTECTION: a multiple of 16 KiB, the L2 protection page on the C66x, kept
+ * the same here. */
+#define L2CODE_LENGTH 0x4000
 
 MEMORY
 {
@@ -44,16 +48,20 @@ MEMORY
     DDR_RODATA (R)    : origin = RODATA_ORIGIN, length = DATA_ORIGIN - RODATA_ORIGIN
     DDR_DATA   (RW)   : origin = DATA_ORIGIN,   length = DDR_END - DATA_ORIGIN
     /* Local L2 SRAM, private to this core. */
-    L2SRAM     (RWIX) : origin = SDOS_L2SRAM_ORIGIN, length = SDOS_L2SRAM_USABLE
+    L2CODE     (RX)   : origin = SDOS_L2SRAM_ORIGIN,                 length = L2CODE_LENGTH
+    L2SRAM     (RW)   : origin = SDOS_L2SRAM_ORIGIN + L2CODE_LENGTH, length = SDOS_L2SRAM_USABLE - L2CODE_LENGTH
 }
 
-/* PROTECTION: the zones the MMU maps read-only and executable (code) and
- * read-only (constants). The rest of the carve-out is writable and never
- * executable; nothing else in DDR is mapped. */
+/* PROTECTION: the zones the MMU maps read-only and executable (code, in DDR
+ * and in L2) and read-only (constants). The rest of the carve-out and of L2 is
+ * writable and never executable; nothing else in DDR is mapped. */
 sdos_zone_code_start   = CODE_ORIGIN;
 sdos_zone_code_end     = RODATA_ORIGIN;
 sdos_zone_rodata_start = RODATA_ORIGIN;
 sdos_zone_rodata_end   = DATA_ORIGIN;
+sdos_zone_l2code_start = SDOS_L2SRAM_ORIGIN;
+sdos_zone_l2code_end   = SDOS_L2SRAM_ORIGIN + L2CODE_LENGTH;
+sdos_zone_l2_end       = SDOS_L2SRAM_ORIGIN + SDOS_L2SRAM_USABLE;
 
 SECTIONS
 {

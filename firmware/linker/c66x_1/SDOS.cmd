@@ -25,32 +25,42 @@
 -heap  0x0      /* PROTECTION: no C heap; the post-link check refuses malloc() */
 
 /* Split of the 15 MiB DDR carve-out. Move the boundaries freely: the
- * protection zones below follow them. PROTECTION: keep them 4 KiB-aligned;
- * boundaries on larger powers of two need fewer of the 14 MPAX segments. */
+ * protection zones below follow them. PROTECTION: keep them 4 KiB-aligned.
+ * The MPAX has 14 segments for this core's memory and device windows; a zone
+ * that is a naturally aligned power of two takes one, as these defaults do:
+ * read-only data 2 MiB at +1 MiB, code 4 MiB at +3 MiB. */
 #define META_ORIGIN   (SDOS_DDR_ORIGIN)
-#define CODE_ORIGIN   (SDOS_DDR_ORIGIN + 0x00100000)
-#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00500000)
-#define DATA_ORIGIN   (SDOS_DDR_ORIGIN + 0x00600000)
+#define RODATA_ORIGIN (SDOS_DDR_ORIGIN + 0x00100000)
+#define CODE_ORIGIN   (SDOS_DDR_ORIGIN + 0x00300000)
+#define DATA_ORIGIN   (SDOS_DDR_ORIGIN + 0x00700000)
 #define DDR_END       (SDOS_DDR_ORIGIN + SDOS_DDR_USABLE)
+/* Local L2 SRAM: code that runs from L2 (load/run copies) first, data after.
+ * PROTECTION: a multiple of the 16 KiB L2 protection page. */
+#define L2CODE_LENGTH 0x4000
 
 MEMORY
 {
-    DDR_META   (RW)   : origin = META_ORIGIN,   length = CODE_ORIGIN - META_ORIGIN    /* resource table, trace, integrity record */
-    DDR_CODE   (RX)   : origin = CODE_ORIGIN,   length = RODATA_ORIGIN - CODE_ORIGIN
-    DDR_RODATA (R)    : origin = RODATA_ORIGIN, length = DATA_ORIGIN - RODATA_ORIGIN
+    DDR_META   (RW)   : origin = META_ORIGIN,   length = RODATA_ORIGIN - META_ORIGIN  /* resource table, trace, integrity record */
+    DDR_RODATA (R)    : origin = RODATA_ORIGIN, length = CODE_ORIGIN - RODATA_ORIGIN
+    DDR_CODE   (RX)   : origin = CODE_ORIGIN,   length = DATA_ORIGIN - CODE_ORIGIN
     DDR_DATA   (RW)   : origin = DATA_ORIGIN,   length = DDR_END - DATA_ORIGIN
     /* Local L2 SRAM, fast and private to this core; FreeRTOS keeps the top
      * 64 KiB as cache, so USABLE depends on the runtime. */
-    L2SRAM     (RWIX) : origin = SDOS_L2SRAM_ORIGIN, length = SDOS_L2SRAM_USABLE
+    L2CODE     (RX)   : origin = SDOS_L2SRAM_ORIGIN,                 length = L2CODE_LENGTH
+    L2SRAM     (RW)   : origin = SDOS_L2SRAM_ORIGIN + L2CODE_LENGTH, length = SDOS_L2SRAM_USABLE - L2CODE_LENGTH
 }
 
-/* PROTECTION: the zones the MPAX maps read-only and executable (code) and
- * read-only (constants). The rest of the carve-out is writable and never
- * executable; the rest of DDR is denied. */
+/* PROTECTION: the zones mapped read-only and executable (code) and read-only
+ * (constants): by the MPAX in DDR, by the L2 page protection in L2. The rest
+ * of the carve-out and of L2 is writable and never executable; other DDR and
+ * everything outside the device windows is denied. */
 sdos_zone_code_start   = CODE_ORIGIN;
-sdos_zone_code_end     = RODATA_ORIGIN;
+sdos_zone_code_end     = DATA_ORIGIN;
 sdos_zone_rodata_start = RODATA_ORIGIN;
-sdos_zone_rodata_end   = DATA_ORIGIN;
+sdos_zone_rodata_end   = CODE_ORIGIN;
+sdos_zone_l2code_start = SDOS_L2SRAM_ORIGIN;
+sdos_zone_l2code_end   = SDOS_L2SRAM_ORIGIN + L2CODE_LENGTH;
+sdos_zone_l2_end       = SDOS_L2SRAM_ORIGIN + SDOS_L2SRAM_USABLE;
 
 SECTIONS
 {

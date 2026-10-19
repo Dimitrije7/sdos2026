@@ -26,9 +26,10 @@ says so and gives the reason.
 
 | ID | Mechanism | Where | Reaction |
 |---|---|---|---|
-| SM-1 | **C71x MMU partition.** Only the core's own memory and the device windows are mapped. Code is read-only, data is never executable, and Linux's and the other cores' memory faults. | [`c71x.c`](../firmware/c71x/src/c71x.c) | Exception, then halt with a fault record |
-| SM-2 | **C66x MPAX partition.** DDR outside the carve-out and vring pool is denied. The code zone is read-only and executable, and the constant zone is read-only. Nothing in DDR is executable except the code zone. | [`c66x.c`](../firmware/c66x/src/c66x.c) | The access is blocked; the monitor reads the fault registers and enters the safe state |
-| SM-3 | **Protection self-test.** At start, the C66x reads the other C66x's memory and requires the MPAX to block and record it. | `c66x.c` | Safe state with fault `self-test` |
+| SM-1 | **C71x MMU partition.** Only the core's own memory and the device windows its drivers use are mapped. Code is read-only, data is never executable, and Linux's and the other cores' memory, MSMC, and every other peripheral fault. After start the L2 code zone is read-only and the rest of L2 is not executable. | [`c71x.c`](../firmware/c71x/src/c71x.c) | Exception, then halt with a fault record |
+| SM-2 | **C66x MPAX partition.** Only the core's own DDR, its vring pool, and the device windows its drivers use are reachable; everything else, above and below 2 GiB, MSMC included, is denied. The code zone is read-only and executable, the constant zone read-only, and nothing else executable. | [`c66x.c`](../firmware/c66x/src/c66x.c) | The access is blocked; the monitor reads the fault registers and enters the safe state |
+| SM-2a | **C66x L2 page protection.** Every 16 KiB page of usable L2 gets explicit attributes: the L2 code zone read-only and executable, the rest writable and never executable. No other bus master (the A72, the other DSPs, DMA) may access this core's L2 at all. | `c66x.c` | The access is blocked and recorded; the monitor enters the safe state, naming the address and the master |
+| SM-3 | **Protection self-tests.** At start, the C66x reads the other C66x's memory and MSMC, and writes into its own L2 code zone; each must be blocked and recorded. | `c66x.c` | Safe state with fault `self-test` |
 | SM-4 | **Read-only page tables.** After start, the C71x maps its own MMU tables read-only. | `c71x.c` | Exception on any write |
 | SM-5 | **Stack guards.** Each guarded stack is filled with 0xA5. On the C71x its lowest page becomes read-only after start; on both families the monitor requires its lowest 256 bytes to keep the fill. Peak use is reported. | [`monitor.c`](../firmware/common/platform/src/monitor.c) | C71x: exception and halt, fault `stack`. C66x: safe state, fault `stack` |
 | SM-6 | **Image integrity.** After linking, [`firmware_postlink.py`](../ci/firmware_postlink.py) writes a CRC-32C record of every read-only loaded segment into the ELF. The firmware checks the whole image at start, then 16 KiB per monitor period. This covers code, constants, and load/run copies such as the FIR in L2. | `monitor.c`, [`safety.c`](../firmware/common/safety/src/safety.c) | Safe state, fault `integrity` |
@@ -48,13 +49,14 @@ says so and gives the reason.
 
 | Fault | Mechanism | Status |
 |---|---|---|
-| DSP code writes another core's or Linux's memory | SM-1, SM-2 | C71x: prevented. C66x: prevented in DDR. MSMC and the other cores' local memories are reachable on the C66x through MPAX segment 0, see [residual risks](#residual-risks) |
-| DSP code corrupts its own code or constants | SM-1, SM-2, SM-6 | Prevented in DDR. Local L2 is checked by SM-6 only |
-| Executing data | SM-1, SM-2, SM-8 | Prevented in DDR on both families. On the C66x, local L2 stays executable |
+| DSP code writes another core's or Linux's memory, MSMC, or a peripheral its drivers do not use | SM-1, SM-2 | Prevented on both families; the device windows are the exception, see [residual risks](#residual-risks) |
+| DSP code corrupts its own code or constants | SM-1, SM-2, SM-2a, SM-6 | Prevented in DDR and in the L2 code zone. Constants placed in writable L2 are checked by SM-6 |
+| Executing data | SM-1, SM-2, SM-2a, SM-8 | Prevented in DDR and L2 on both families |
+| Another master writes a C66x's L2 | SM-2a | Prevented and recorded |
 | Stack overflow | SM-5 | C71x: trapped at the guard page. C66x: detected afterwards by the fill check |
 | Heap exhaustion or fragmentation | SM-7 | No C heap; the kernel heap is frozen after start |
 | Corruption of the protection itself | SM-4, SM-6, SM-3 | The C71x page tables are read-only and the C66x MPAX is self-tested. Code changes are found by the CRC check |
-| Another master (Linux, DMA, the other cores) writes this core's memory | SM-6 detects changes to code and constants | Not prevented: that needs SoC firewalls, see [residual risks](#residual-risks) |
+| Another master (Linux, DMA, the other cores) writes this core's DDR or C71x L2 | SM-6 detects changes to code and constants | Not prevented: that needs SoC firewalls, see [residual risks](#residual-risks) |
 
 ### Timing and execution
 
@@ -87,9 +89,26 @@ boundary, and the protection follows
 | Read-only data, `DDR_RODATA` | read | read, cached |
 | Rest of the carve-out: metadata, data, stacks | read, write | read, write, cached |
 | Vring pool | read, write | read, write, uncached |
-| Local L2 SRAM | not covered by MPAX: read, write, execute | read, write, execute, device type as TI maps it |
-| Device windows, below 0x80000000 | read, write, no execute (segment 0) | read, write, no execute, device memory, the five windows in [`dsp-cores.json`](../manifest/dsp-cores.json) |
-| Any other DDR: Linux, the other cores | denied | unmapped |
+| L2 code zone, `L2CODE` | read, execute; no other master (L2 page protection) | read, execute after start |
+| Rest of usable L2 | read, write; no other master | read, write |
+| Device windows | read, write, never execute: the six windows in [`dsp-cores.json`](../manifest/dsp-cores.json) | the same, device memory: five windows |
+| Everything else: Linux's and the other cores' memory, MSMC, other peripherals | denied | unmapped |
+
+The device windows come from the PDK sources the firmware links, each with
+its source in the manifest:
+
+| Window | Used by | C66x | C71x |
+|---|---|---|---|
+| CorePac-local space below 256 MiB: L2, L1, interrupt controller, cache, XMC, RAT, interrupt router, DM timers | everything on the core | 0x00000000, 256 MiB | — |
+| DM timers | FreeRTOS tick | in the local window | 0x02400000, 2 MiB |
+| Interrupt router through the C66x RAT | Sciclient | 0x20AC0000 or 0x20AD0000, 4 KiB | — |
+| MCU NAVSS secure proxy configuration | Sciclient | 0x285B0000, 4 KiB | 0x28400000, 2 MiB |
+| MCU NAVSS secure proxy data and status | Sciclient | 0x2A380000, 1.5 MiB | 0x2A200000, 4 MiB |
+| NAVSS mailboxes | IPC | 0x31F80000, 64 KiB | 0x31E00000, 2 MiB |
+| CLEC interrupt controller | port, IPC, Sciclient | — | 0x78000000, 128 MiB |
+
+The C71x windows are rounded to whole 2 MiB MMU blocks, so they cost no page
+table.
 
 ## Fault codes
 
@@ -101,11 +120,11 @@ because they are usually consequences. A restart clears it.
 | 1 | integrity | a read-only range differs from its CRC | start of the range | range index; bit 31 set: the record itself is missing or damaged |
 | 2 | stack | a stack reached its guard | base of the stack | index of the stack |
 | 3 | protection | the MPAX or MMU could not be configured | | 1: MPAX segment 1 does not cover the carve-out; 2: too many segments; other values count failed MMU mappings |
-| 4 | access | the protection blocked an access | the faulting address | C66x: XMPFSR; C71x: IERR and IESR |
+| 4 | access | the protection blocked an access | the faulting address | C66x: XMPFSR, or for an L2 page fault bit 16 set and L2MPFSR (bits 9 to 15 name the master); C71x: IERR and IESR |
 | 5 | exception | the C71x raised another exception | the faulting instruction | IERR and IESR |
 | 6 | watchdog | a RUN ran past 2 s (FreeRTOS) | | algorithm id |
 | 7 | layout | the load/run copy check failed | | |
-| 8 | self-test | the MPAX self-test did not see its blocked read | XMPFAR | XMPFSR |
+| 8 | self-test | a protection self-test was not blocked | the probe address | 1: the other C66x's DDR; 2: MSMC; bit 16: the L2 code zone write |
 | 9 | heap | the kernel heap changed after start | | bytes allocated |
 | 10 | ipc | Sciclient or RPMsg could not start | | 1: Sciclient; 2: RPMsg |
 
@@ -144,8 +163,11 @@ breaks one, naming it:
 - Define `sdos_zone_code_start/end` and `sdos_zone_rodata_start/end` on 4 KiB
   boundaries inside loadable memory. The default files derive them from
   `#define`d region boundaries.
-- Place executable sections only in the code zone or in local L2.
-- Place nothing writable in the code or read-only data zone. TI's C71x port
+- Define `sdos_zone_l2code_start/end` on 16 KiB boundaries, the C66x L2
+  protection page, and `sdos_zone_l2_end` at the end of usable L2. Code that
+  runs from L2, such as a load/run copy, goes in that zone.
+- Place executable sections only in the code zones.
+- Place nothing writable in a code or read-only data zone. TI's C71x port
   puts two writable pointers in `.const` sections, which
   [`c71x_runtime.cmd`](../firmware/linker/common/c71x_runtime.cmd) places with
   the data.
@@ -154,8 +176,9 @@ breaks one, naming it:
 - On the C71x, keep guarded stacks on 4 KiB pages. Keep the MMU map within
   TI's 16 page tables: each zone boundary that is not on a 2 MiB boundary
   costs one table.
-- On the C66x, the zones must fit 14 MPAX segments. Boundaries on larger
-  powers of two need fewer.
+- On the C66x, the device windows and the zones must fit 14 MPAX segments.
+  The defaults use 13. Zones that are naturally aligned powers of two take one
+  segment each.
 
 ## Fault injection
 
@@ -176,27 +199,30 @@ firmware reported, and restarts the core.
 | run 5 ms on a 1 ms budget | deadline missed | deadline missed |
 | change read-only data the CRC record covers | integrity | integrity |
 | allocate from the kernel heap after start | FreeRTOS: heap; bare metal: not applicable | the same |
+| write into the L2 code zone | access | access, halted |
+| read MSMC | access | access, halted |
 
 ## Residual risks
 
 Each of these needs hardware, a decision, or both:
 
 - **Other bus masters.** Linux, DMA engines, and the other cores can still
-  write a DSP's memory. Blocking them needs the SoC firewalls, which TI's
+  write a DSP's DDR and the C71x's L2; the C66x L2 now refuses them. Blocking
+  the rest needs the SoC firewalls, which TI's
   boot firmware configures. Changing them changes the boot chain, so it is a
   maintainer decision. SM-6 detects changes to code and constants.
 - **Hardware watchdog.** The RTI watchdogs report through the ESM, which can
   reset the whole SoC. Routing one per DSP is a maintainer decision. The
   software watchdog and the Linux supervisor cover a stuck core.
-- **C66x local memory and MPAX segment 0.** The MPAX guards only accesses that
-  leave the core. L2 SRAM is not covered: its page-protection registers are
-  not yet configured. Segment 0, which keeps everything below 0x80000000
-  readable and writable, still reaches MSMC and other cores' local memories.
-  Narrowing it needs the peripheral list that Task 012's board survey
-  provides.
-- **C71x device windows.** They keep TI's wide windows, now without execute
-  permission. Narrowing them to the peripherals the drivers use needs the same
-  survey.
+- **Device windows.** They are derived from the PDK sources the firmware
+  links, not yet confirmed on a board. A peripheral the drivers use but the
+  list misses shows up at once as an `access` fault naming its address; add a
+  window to the manifest. Inside a window, the core can still write registers
+  it does not use: the C66x local window spans the whole CorePac space below
+  256 MiB, and the C71x keeps TI's 128 MiB CLEC window.
+- **Protection registers.** The MPAX and L2 attribute registers are not
+  locked, so code running on the core could rewrite them. The C66x
+  memory-protection lock (MPLK) could prevent that; it is not used yet.
 - **Unguarded stacks.** These are FreeRTOS's idle and timer task stacks and
   the C71x interrupt stack, all inside TI's prebuilt kernel. FreeRTOS's own
   overflow check, method 2, covers the task stacks at each context switch.
@@ -217,7 +243,8 @@ The following runs in every `make quality` and in CI:
 
 The following waits for the board session in Task 042:
 
-- that the MPAX and MMU maps boot on the hardware;
+- that the MPAX, L2, and MMU maps boot on the hardware, with the device
+  windows complete;
 - that every fault-injection case is detected;
 - that every core recovers after its fault.
 

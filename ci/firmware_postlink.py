@@ -12,11 +12,15 @@ Rules:
 - The linker files define the protection zones ``sdos_zone_code_start/end``
   and ``sdos_zone_rodata_start/end``; each is 4 KiB-aligned and inside memory
   the core may load.
-- Executable code lies in the code zone, or runs from local L2 SRAM.
-- Nothing writable lies in the code or read-only data zone.
+- The L2 code zone ``sdos_zone_l2code_start/end`` is aligned to the L2
+  protection page (16 KiB on the C66x) and inside usable L2, which ends at
+  ``sdos_zone_l2_end``.
+- Executable code is loaded and runs only in the code zones.
+- Nothing writable lies in a code or read-only data zone.
 - No loaded segment is both writable and executable.
 - No C heap: ``malloc`` and its relatives are not linked.
-- C66x: the zones fit the MPAX segments available to the firmware.
+- C66x: the device windows from manifest/dsp-cores.json and the zones fit the
+  14 MPAX segments the firmware programs.
 - C71x: guarded stacks start on a 4 KiB page, whose first page becomes their
   read-only guard, and the MMU map fits TI's 16 page tables. TI's Mmu_map
   dereferences a null table pointer when the tables run out, so this limit is
@@ -39,8 +43,8 @@ except ImportError:  # run as a script from ci/
 PAGE = 0x1000
 SHF_WRITE, SHF_ALLOC, SHF_EXECINSTR = 1, 2, 4
 HEAP_SYMBOLS = ("malloc", "calloc", "realloc", "free", "memalign", "aligned_alloc")
-# MPAX segments 0 and 1 stay TI's (peripheral and DDR windows, restricted);
-# the firmware programs 2 to 15 (firmware/c66x/src/c66x.c).
+# MPAX segments 0 and 1 deny everything below and above 2 GiB; the firmware
+# programs its grants into segments 2 to 15 (firmware/c66x/src/c66x.c).
 MPAX_SEGMENTS = 14
 # The C71x MMU: 4 KiB pages, 2 MiB blocks, 1 GiB tables; TI's pool holds 16.
 BLOCK, GIGABYTE, MMU_TABLES = 0x200000, 0x40000000, 16
@@ -63,40 +67,66 @@ def _region(core: dict, name: str) -> tuple[int, int]:
     return int(r["base"], 16), int(r["base"], 16) + int(r["size"], 16)
 
 
-def zones(elf: fe.ElfFile) -> tuple[dict[str, tuple[int, int]], list[str]]:
+L2_PAGE = {"c6000": 0x4000, "c7000": PAGE}  # C66x L2 protection page; C71x MMU page
+
+
+def zones(elf: fe.ElfFile, family: str = "c7000") -> tuple[dict[str, tuple[int, int]], list[str]]:
     found, problems = {}, []
-    for zone in ("code", "rodata"):
+    for zone in ("code", "rodata", "l2code"):
         start = elf.symbols.get(f"sdos_zone_{zone}_start")
         end = elf.symbols.get(f"sdos_zone_{zone}_end")
+        align = L2_PAGE[family] if zone == "l2code" else PAGE
         if start is None or end is None:
             problems.append(f"the linker files do not define sdos_zone_{zone}_start and _end (docs/safety.md)")
             continue
-        if start % PAGE or end % PAGE or end < start:
-            problems.append(f"the {zone} zone {start:#x}..{end:#x} is not a 4 KiB-aligned range")
+        if start % align or end % align or end < start:
+            problems.append(f"the {zone} zone {start:#x}..{end:#x} is not a {align // 1024} KiB-aligned range")
             continue
         found[zone] = (start, end)
+    if "sdos_zone_l2_end" not in elf.symbols:
+        problems.append("the linker files do not define sdos_zone_l2_end, the end of usable L2 (docs/safety.md)")
     return found, problems
 
 
+def windows(core: dict) -> list[tuple[int, int]]:
+    return [(int(w["base"], 16), int(w["base"], 16) + int(w["size"], 16)) for w in core.get("mmio_windows", [])]
+
+
+def mpax_segments(core: dict, found: dict[str, tuple[int, int]]) -> int:
+    """Segments 2 to 15 the C66x firmware programs (c66x.c): device windows,
+    the carve-out, the vring pool, and the DDR parts of the zones."""
+    ddr, pool = _region(core, "ddr"), _region(core, "dma_pool")
+    needed = sum(mpax_split(lo, hi) for lo, hi in windows(core)) + mpax_split(*ddr) + mpax_split(*pool)
+    for zone in ("code", "rodata"):
+        lo, hi = found.get(zone, (0, 0))
+        lo, hi = max(lo, ddr[0]), min(hi, ddr[1])
+        if hi > lo:
+            needed += mpax_split(lo, hi)
+    return needed
+
+
 def check(elf: fe.ElfFile, core: dict, runtime: str) -> list[str]:
-    found, problems = zones(elf)
+    found, problems = zones(elf, core["family"])
     loadable = fe.load_ranges(core, runtime)
     for zone, (start, end) in found.items():
         if end > start and not any(lo <= start and end <= hi for _n, lo, hi in loadable):
             problems.append(f"the {zone} zone {start:#x}..{end:#x} is not inside memory {core['name']} may load")
     l2 = _region(core, "l2sram")
+    l2_end = elf.symbols.get("sdos_zone_l2_end", l2[1])
+    l2code = found.get("l2code", (0, 0))
+    if l2code[1] > l2code[0] and not (l2[0] <= l2code[0] and l2code[1] <= l2_end):
+        problems.append(f"the l2code zone {l2code[0]:#x}..{l2code[1]:#x} is not inside usable L2")
 
     def inside(start: int, end: int, *spans: tuple[int, int]) -> bool:
         return any(lo <= start and end <= hi for lo, hi in spans)
 
     code = found.get("code", (0, 0))
-    rodata = found.get("rodata", (0, 0))
     for s in elf.sections:
         if not s.flags & SHF_ALLOC or not s.size:
             continue
         end = s.address + s.size
-        if s.flags & SHF_EXECINSTR and found and not inside(s.address, end, code, l2):
-            problems.append(f"code section {s.name} at {s.address:#x} is outside the code zone and local L2")
+        if s.flags & SHF_EXECINSTR and found and not inside(s.address, end, code, l2code):
+            problems.append(f"code section {s.name} at {s.address:#x} is outside the code zones")
         if s.flags & SHF_WRITE:
             for zone, (lo, hi) in found.items():
                 if s.address < hi and lo < end:
@@ -107,21 +137,18 @@ def check(elf: fe.ElfFile, core: dict, runtime: str) -> list[str]:
             continue
         if seg.flags & 3 == 3:
             problems.append(f"segment {seg.paddr:#x} is both writable and executable")
-        if seg.flags & 1 and found and not inside(seg.paddr, seg.paddr + seg.memory_size, code, l2):
-            problems.append(f"code is loaded at {seg.paddr:#x}, outside the code zone and local L2")
+        if seg.flags & 1 and found:
+            for address in {seg.paddr, seg.vaddr}:
+                if not inside(address, address + seg.memory_size, code, l2code):
+                    problems.append(f"code is loaded or runs at {address:#x}, outside the code zones")
     heap = [name for name in HEAP_SYMBOLS if name in elf.symbols]
     if heap:
         problems.append(f"the C heap is linked ({', '.join(heap)}); course firmware allocates statically")
     if core["family"] == "c6000" and found:
-        ddr, pool = _region(core, "ddr"), _region(core, "dma_pool")
-        needed = mpax_split(*ddr) + mpax_split(*pool)
-        for lo, hi in (code, rodata):
-            lo, hi = max(lo, ddr[0]), min(hi, ddr[1])
-            if hi > lo:
-                needed += mpax_split(lo, hi)
+        needed = mpax_segments(core, found)
         if needed > MPAX_SEGMENTS:
-            problems.append(f"the zones need {needed} MPAX segments, but the firmware has {MPAX_SEGMENTS}: align "
-                            f"zone boundaries to larger powers of two")
+            problems.append(f"the device windows and zones need {needed} MPAX segments, but the firmware has "
+                            f"{MPAX_SEGMENTS}: align zone boundaries to larger powers of two")
     if core["family"] == "c7000":
         guarded = [(s.name, s.address) for s in elf.sections if s.name.startswith(".sdos.stack.") and s.size]
         top, size = elf.symbols.get("__TI_STACK_END"), elf.symbols.get("__TI_STACK_SIZE")
@@ -142,11 +169,11 @@ def mmu_tables(elf: fe.ElfFile, core: dict, found: dict[str, tuple[int, int]], g
 
     One level-1 table, one level-2 table per GiB touched, and one level-3 table
     per 2 MiB block that a mapping boundary splits."""
-    spans = [(int(w["base"], 16), int(w["base"], 16) + int(w["size"], 16)) for w in core.get("mmio_windows", [])]
-    spans += [_region(core, "l2sram"), _region(core, "ddr"), _region(core, "dma_pool")]
-    ddr = _region(core, "ddr")
-    for lo, hi in found.values():
-        lo, hi = max(lo, ddr[0]), min(hi, ddr[1])
+    spans = windows(core) + [_region(core, "l2sram"), _region(core, "ddr"), _region(core, "dma_pool")]
+    ddr, l2 = _region(core, "ddr"), _region(core, "l2sram")
+    for zone, (lo, hi) in found.items():
+        bound = l2 if zone == "l2code" else ddr
+        lo, hi = max(lo, bound[0]), min(hi, bound[1])
         if hi > lo:
             spans.append((lo, hi))
     start, end = elf.symbols.get("sdos_mmu_tables_start"), elf.symbols.get("sdos_mmu_tables_end")

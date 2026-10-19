@@ -34,7 +34,10 @@ Each default `SDOS.cmd` defines the carve-out split as `#define`d boundaries
 regions and the protection zones from them, so moving a boundary moves the
 protection with it. The regions are `DDR_META` (resource table, trace, and
 integrity record), `DDR_CODE`, `DDR_RODATA` (constants and initialization
-tables), `DDR_DATA`, and `L2SRAM`.
+tables), `DDR_DATA`, `L2CODE` (code that runs from L2, such as the FIR copy),
+and `L2SRAM`. On the C66x the default places read-only data at +1 MiB (2 MiB)
+and code at +3 MiB (4 MiB), naturally aligned, so each takes one MPAX
+segment.
 
 `SDOS.cmd` serves both runtimes of its core. The build defines
 `SDOS_RTOS_FREERTOS` or `SDOS_RTOS_BAREMETAL` for `#if` blocks. The fragments
@@ -121,12 +124,13 @@ default files serve them:
 | Rule | Reason |
 |---|---|
 | `sdos_zone_code_start/end` and `sdos_zone_rodata_start/end` defined, 4 KiB-aligned, in loadable memory | The MPAX and MMU map these ranges read-only |
-| Executable sections only in the code zone or local L2 | Everything else is mapped without execute permission |
-| Nothing writable in the code or read-only data zone | Writes there fault |
+| `sdos_zone_l2code_start/end` on the 16 KiB L2 protection page (4 KiB on the C71x), and `sdos_zone_l2_end` at the end of usable L2 | After start the L2 code zone is read-only and the rest of L2 is not executable |
+| Executable sections loaded and run only in the code zones | Everything else is mapped without execute permission |
+| Nothing writable in a code or read-only data zone | Writes there fault |
 | `.sdos.integrity` in loaded memory | The firmware checks its image against this record |
 | `-heap 0`, no `malloc()` | Static allocation only |
 | C71x: guarded stacks (`.stack`, `.sdos.stack.*`) on 4 KiB pages; the MMU tables in a page-padded group | The lowest page of each stack, and the tables, become read-only after start |
-| C71x: the map within TI's 16 page tables; C66x: the zones within 14 MPAX segments | TI's MMU code has no tables to spare; the MPAX has 16 segments, 2 kept for TI's windows |
+| C71x: the map within TI's 16 page tables; C66x: the device windows and zones within 14 MPAX segments | TI's MMU code has no tables to spare; the MPAX has 16 segments, and segments 0 and 1 deny everything not granted |
 
 [`ci/firmware_postlink.py`](../ci/firmware_postlink.py) checks every rule after
 linking and names the one a layout breaks. The full list, with what each

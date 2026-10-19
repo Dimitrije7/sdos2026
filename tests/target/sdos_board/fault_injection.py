@@ -69,6 +69,8 @@ CASES = (
          expected=_e(**{"*": {"deadline"}})),
     Case("corrupt_image", 0xFA000008, expected=_e(**{"*": {"integrity"}})),
     Case("heap", 0xFA000009, expected=_e(freertos={"heap"}, baremetal={"unsupported"})),
+    Case("write_l2_code", 0xFA00000A, expected=_e(**{"*": {"access"}})),
+    Case("read_shared", 0xFA00000B, expected=_e(**{"*": {"access"}})),
 )
 
 

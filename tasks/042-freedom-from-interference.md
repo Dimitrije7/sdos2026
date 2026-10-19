@@ -45,6 +45,15 @@ in-progress
     nine cases; board suite `fault-injection`
     (`tests/target/sdos_board/fault_injection.py`) with offline tests;
     `course-smoke` now checks the health line.
+  - On the maintainer's request of 2026-10-19 ("do this first, then I connect
+    the board"): device windows narrowed to the peripherals the linked PDK
+    drivers use, in `manifest/dsp-cores.json` with sources (C66x MPAX segment
+    0 now denies; C71x five windows of 2 MiB blocks and the CLEC); C66x L2
+    page protection (L2 code zone read-only, rest not executable, no other bus
+    master); C71x L2 split after the load/run copy; `L2CODE` region and
+    `sdos_zone_l2code_*` in every layout; C66x layout realigned to fit 13 of 14
+    MPAX segments; self-tests for MSMC and the L2 code zone; two new
+    fault-injection cases.
   - Documents: `docs/safety.md` (mechanisms, interference analysis, partition,
     fault codes, rules, residual risks); protocol, dspctl, firmware, linker,
     commands, README; Task 027 records protocol 2.0.
@@ -53,9 +62,9 @@ in-progress
      `fault-injection --out release/evidence/task-042/<timestamp>/`. Record the
      `mpax:` and `mmu:` trace lines. If a protection map stops a core from
      booting, the trace and health line name the address; adjust the map.
-  2. With Task 012's survey: narrow C66x MPAX segment 0 and the C71x device
-     windows to the peripherals the drivers use; configure C66x L2 page
-     protection.
+  2. Confirm the device windows on the board (`mpax:` and `mmu:` trace lines,
+     no `access` faults in course-smoke); add any window a driver turns out to
+     need, with its source, to `manifest/dsp-cores.json`.
   3. Maintainer decisions to present, each with a recommendation: SoC
      firewalls in TI's boot configuration; per-DSP RTI watchdogs through the
      ESM; the MISRA subset (Task 024).
@@ -64,7 +73,7 @@ in-progress
   accepted (Task 027), so 2.0 replaces it; Task 027's recommendation now
   names 2.0.
 - Verification, 2026-10-19: `make quality` passed: validators, lint,
-  cppcheck, 158 Python tests (including 8 real-link layout cases), host tests
+  cppcheck, 160 Python tests (including 9 real-link layout cases), host tests
   in six configurations, all 20 firmware presets and the three TI reference
   builds with warnings as errors. Board checks not run.
 

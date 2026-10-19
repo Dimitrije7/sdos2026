@@ -22,6 +22,8 @@ extern "C" {
 #define SDOS_ALG_FI_OVERRUN 0xFA000007u       /* busy for params (uint32) microseconds */
 #define SDOS_ALG_FI_CORRUPT_IMAGE 0xFA000008u /* change read-only data the CRC record covers */
 #define SDOS_ALG_FI_HEAP 0xFA000009u          /* allocate from the kernel heap after start-up */
+#define SDOS_ALG_FI_WRITE_L2_CODE 0xFA00000Au /* write into the L2 code zone */
+#define SDOS_ALG_FI_READ_SHARED 0xFA00000Bu   /* read shared on-chip SRAM (MSMC), outside every device window */
 
 /* Replace the runtime's algorithm table with the built-ins plus these. */
 void sdos_fault_injection_install(sdos_runtime *runtime);

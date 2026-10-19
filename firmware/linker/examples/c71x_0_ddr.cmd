@@ -33,6 +33,10 @@ sdos_zone_code_start   = SDOS_DDR_ORIGIN + 0x700000;
 sdos_zone_code_end     = SDOS_DDR_ORIGIN + SDOS_DDR_USABLE;
 sdos_zone_rodata_start = SDOS_DDR_ORIGIN + 0x500000;
 sdos_zone_rodata_end   = SDOS_DDR_ORIGIN + 0x600000;
+/* Nothing runs from L2 in this layout: an empty L2 code zone. */
+sdos_zone_l2code_start = SDOS_L2SRAM_ORIGIN;
+sdos_zone_l2code_end   = SDOS_L2SRAM_ORIGIN;
+sdos_zone_l2_end       = SDOS_L2SRAM_ORIGIN + SDOS_L2SRAM_USABLE;
 
 SECTIONS
 {
