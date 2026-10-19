@@ -35,8 +35,9 @@ in-progress
 - Next:
   1. Maintainer decision: let the C71x firmware claim firewall 264 at start
      and admit only its own priv-id (21) to its L2. The code is ready on the
-     local, unpushed branch `task-042-c71x-l2-firewall` (f9e277b); it changes SoC bus state, so running it
-     on the board needs the maintainer's approval. Prove it with a readback
+     local, unpushed branch `task-042-c71x-l2-firewall` (f9e277b); it
+     changes SoC bus state, so running it on the board needs the
+     maintainer's approval. Prove it with a readback
      and with the C66x survey being refused for that firewall.
   2. Maintainer decision: the DDR carve-outs. NAVSS firewalls 4762 and 4763
      (main-domain masters) need an unowned allow-all background region plus
