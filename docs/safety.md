@@ -42,6 +42,7 @@ says so and gives the reason.
 | SM-13 | **End-to-end message protection.** A CRC-32C covers every message header and payload. Request ids are matched, lengths and descriptors are checked, and sample data has its own CRC. | [`protocol.c`](../firmware/common/protocol/src/protocol.c) | `message corrupted`, counted |
 | SM-14 | **Sender check.** The firmware serves only Linux on the A72. | [`ipc_service.c`](../firmware/common/platform/src/ipc_service.c) | Message dropped, counted |
 | SM-15 | **Start-up checks.** The integrity pass, the protection self-test, and the layout check all pass before RUN is accepted. Until then RUN answers `busy`. | `main.c`, `monitor.c` | Safe state on failure |
+| SM-17 | **Locked, checked protection registers.** After configuration the C66x locks its MPAX and L2 attribute registers with the memory-protection lock (MPLK), proves the lock with two harmless writes, and the monitor compares every protection register with its snapshot each period. A refused write to a locked register is recorded like a refused memory write. The C71x page tables are read-only (SM-4). | `c66x.c` | A changed register: safe state, fault `protection`; a refused write: fault `access` at the register |
 | SM-16 | **Clean restart.** A stopped core leaves nothing that disturbs its next start or another core: each start resets the core's DM timer, the C66x reset entry discards the caches its powered subsystem kept, the C66x tick route left in the interrupt router is verified and reused, and no IPC interrupt route is requested at all (both runtimes poll the mailbox). A fatal fault halts in the idle state, outside exception context, so Linux can always power the core off. | [`entry.c`](../firmware/c66x/src/entry.c), `main.c`, `c71x.c`, `ipc_service.c` | Restart by Linux at any time |
 
 ## Interference analysis
@@ -58,7 +59,7 @@ says so and gives the reason.
 | Stack overflow | SM-5 | C71x: trapped at the guard page. C66x: detected afterwards by the fill check |
 | Heap exhaustion or fragmentation | SM-7 | No C heap; the kernel heap is frozen after start |
 | Corruption of the protection itself | SM-4, SM-6, SM-3 | The C71x page tables are read-only and the C66x MPAX is self-tested. Code changes are found by the CRC check |
-| Another master (Linux, DMA, the other cores) writes this core's DDR or C71x L2 | SM-6 detects changes to code and constants | Not prevented: that needs SoC firewalls, see [residual risks](#residual-risks) |
+| Another master (Linux, DMA, the other cores) writes this core's DDR or C71x L2 | SM-6 detects changes to code and constants | Not prevented: the SoC firewalls on these paths are open, see [residual risks](#residual-risks) |
 
 ### Timing and execution
 
@@ -124,7 +125,7 @@ because they are usually consequences. A restart clears it.
 |---|---|---|---|---|
 | 1 | integrity | a read-only range differs from its CRC | start of the range | range index; bit 31 set: the record itself is missing or damaged |
 | 2 | stack | a stack reached its guard | base of the stack | index of the stack |
-| 3 | protection | the MPAX or MMU could not be configured | | 1: MPAX segment 1 does not cover the carve-out; 2: too many segments; other values count failed MMU mappings |
+| 3 | protection | the MPAX or MMU could not be configured, or a C66x protection register differs from its snapshot | the register, for a changed one | 1: MPAX segment 1 does not cover the carve-out; 2: too many segments; 0x400 + segment, or 0x500 + L2 page, for a changed register; other values count failed MMU mappings |
 | 4 | access | the protection blocked an access | the faulting address | C66x: XMPFSR, or for an L2 page fault bit 16 set and L2MPFSR (bits 9 to 15 name the master); C71x: IERR and IESR |
 | 5 | exception | the C71x raised another exception | the faulting instruction | IERR and IESR |
 | 6 | watchdog | a RUN ran past 2 s (FreeRTOS) | | algorithm id |
@@ -209,21 +210,47 @@ firmware reported, and restarts the core.
 | allocate from the kernel heap after start | FreeRTOS: heap; bare metal: not applicable | the same |
 | write into the L2 code zone | access | access, halted |
 | read MSMC | not detected (reads pass the XMC) | access, halted |
+| rewrite a protection register | access: the lock refuses and records it | access, halted: the page tables are read-only |
 
 The table is the board result of 2026-10-19 for every core and runtime
 ([evidence](../release/evidence/task-042/)); every case recovered with
 `dspctl recover`, except the C71x stack case, which needs a board reboot.
 The stack case runs last for that reason.
 
+The test firmware also carries one diagnostic that injects nothing:
+`dspctl run <dsp> 0xfa00000d - -` reads every region of the SoC firewalls on
+the paths into the DSPs' memory through TI-SCI and traces the enabled ones
+([residual risks](#residual-risks)).
+
 ## Residual risks
 
 Each of these needs hardware, a decision, or both:
 
 - **Other bus masters.** Linux, DMA engines, and the other cores can still
-  write a DSP's DDR and the C71x's L2; the C66x L2 now refuses them. Blocking
-  the rest needs the SoC firewalls, which TI's
-  boot firmware configures. Changing them changes the boot chain, so it is a
-  maintainer decision. SM-6 detects changes to code and constants.
+  write a DSP's DDR and the C71x's L2; the C66x L2 refuses them (SM-2a).
+  SM-6 detects changes to code and constants. A read-only survey through
+  TI-SCI on 2026-10-19 (fault-injection diagnostic `0xFA00000D`,
+  [evidence](../release/evidence/task-042/20261019T155359Z/firewall-survey.txt))
+  found every SoC firewall on those paths open:
+
+  | Firewall | Path | State on this board |
+  | --- | --- | --- |
+  | 257, 265, 284 | A72, C71x, C71x DMA into MSMC and DDR (initiator side) | No region enabled: passes everything |
+  | 4762, 4763 | Main-domain masters (C66x, R5F, DMA) through NAVSS into DDR | No region enabled |
+  | 1280 | MCU domain (device manager) into main and DDR | One region, all addresses, every priv-id |
+  | 264 | Anything into the C71x L2 | No region enabled |
+  | 2304, 2305 | Anything into a C66x L2 or L1D | No region enabled |
+
+  TI's system firmware leaves all of these with owner "none" (264, 2304,
+  2305, 4762, 4763 are not in its boot table at all), and any host may claim
+  an unowned firewall with `TISCI_MSG_CHANGE_FWL_OWNER` and program it, so
+  the DSP firmware can close them at run time without a boot-chain change.
+  Priv-ids (TI's J721E list): A72 1, C71x 21, C66x_0 220, C66x_1 221, MCU R5F
+  96 and 97, main R5F 212 to 215. Linux loads the firmware, so the A72 must
+  keep write access to the carve-outs; the C71x L2 needs no other master.
+  Programming a firewall changes the whole SoC's bus, and a wrong region can
+  cut Linux or the device manager off, so the change waits for the
+  maintainer.
 - **Hardware watchdog.** The RTI watchdogs report through the ESM, which can
   reset the whole SoC. Routing one per DSP is a maintainer decision. The
   software watchdog and the Linux supervisor cover a stuck core.
@@ -243,9 +270,9 @@ Each of these needs hardware, a decision, or both:
   first run; add a window to the manifest. Inside a window, the core can still write registers
   it does not use: the C66x local window spans the whole CorePac space below
   256 MiB, and the C71x keeps TI's 128 MiB CLEC window.
-- **Protection registers.** The MPAX and L2 attribute registers are not
-  locked, so code running on the core could rewrite them. The C66x
-  memory-protection lock (MPLK) could prevent that; it is not used yet.
+- **Protection registers.** Locked and checked on the C66x (SM-17); the lock
+  key is in the firmware image, so the lock stops accidents, not code that
+  sets out to unlock it.
 - **Unguarded stacks.** These are FreeRTOS's idle and timer task stacks and
   the C71x interrupt stack, all inside TI's prebuilt kernel. FreeRTOS's own
   overflow check, method 2, covers the task stacks at each context switch.

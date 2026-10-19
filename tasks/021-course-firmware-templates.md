@@ -13,7 +13,7 @@ done
     builds, link with warnings as errors.
   - Board, 2026-10-19: `course-smoke` passes on all three DSPs in both
     runtimes, twice in a row
-    ([evidence](../release/evidence/task-021/20261019T153122Z/); the failures
+    ([evidence](../release/evidence/task-021/20261019T155359Z/); the failures
     of the first run are kept in
     [`20261019T095402Z`](../release/evidence/task-021/20261019T095402Z/)).
     Each firmware reports identity and version (HELLO), echo, the trace, and a

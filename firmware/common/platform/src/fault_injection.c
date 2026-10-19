@@ -16,6 +16,9 @@
 #include "sdos/fault_injection.h"
 #include "sdos/platform.h"
 
+#include <ti/csl/csl_types.h>
+#include <ti/drv/sciclient/sciclient.h>
+
 #if !defined(BAREMETAL)
 #include "FreeRTOS.h"
 #include "portable.h"
@@ -164,6 +167,81 @@ static sdos_status fi_corrupt_image(const sdos_run_args *args, uint32_t *output_
     return no_output(output_length);
 }
 
+/* Prevented: OK. Taken effect: an error, and the monitor's readback check
+ * must record the change at its next period. */
+static sdos_status fi_rewrite_protection(const sdos_run_args *args, uint32_t *output_length)
+{
+    (void)args;
+    if (sdos_protection_tamper() != 0) {
+        return SDOS_E_INTERNAL;
+    }
+    return no_output(output_length);
+}
+
+/* Diagnostic, injects nothing: read through TI-SCI the regions of every
+ * firewall on a path into the DSP DDR carve-outs and DSP L2, and trace the
+ * enabled ones (or the refusal: this host may not read that firewall).
+ * Read-only. J721E ids, region and privilege-id counts from TI's
+ * csl_soc_firewalls.h. */
+static sdos_status fi_firewall_survey(const sdos_run_args *args, uint32_t *output_length)
+{
+    static const struct {
+        uint16_t id;
+        uint8_t regions;
+        uint8_t priv_ids;
+        const char *path;
+    } firewalls[] = {
+        {257u, 16u, 1u, "A72 to MSMC and DDR (master)"},
+        {265u, 8u, 1u, "C71x to MSMC and DDR (master)"},
+        {284u, 16u, 3u, "C71x DRU to MSMC and DDR (master)"},
+        {4762u, 24u, 3u, "NAVSS to DDR0 (main-domain masters)"},
+        {4763u, 24u, 3u, "NAVSS to DDR1 (main-domain masters)"},
+        {1280u, 8u, 3u, "MCU domain to main and DDR"},
+        {4760u, 24u, 3u, "NAVSS to MSMC SRAM"},
+        {264u, 2u, 1u, "C71x L2 SRAM"},
+        {2304u, 8u, 3u, "C66x_0 L2 and L1D SRAM"},
+        {2305u, 8u, 3u, "C66x_1 L2 and L1D SRAM"},
+    };
+    size_t f;
+    (void)args;
+    for (f = 0u; f < sizeof firewalls / sizeof firewalls[0]; f++) {
+        uint16_t region;
+        unsigned enabled = 0u;
+        int32_t status = CSL_PASS;
+        for (region = 0u; region < firewalls[f].regions; region++) {
+            struct tisci_msg_fwl_get_firewall_region_req req;
+            struct tisci_msg_fwl_get_firewall_region_resp resp;
+            (void)memset(&req, 0, sizeof req);
+            (void)memset(&resp, 0, sizeof resp);
+            req.fwl_id = firewalls[f].id;
+            req.region = region;
+            req.n_permission_regs = firewalls[f].priv_ids;
+            status = Sciclient_firewallGetRegion(&req, &resp, SCICLIENT_SERVICE_WAIT_FOREVER);
+            if (status != CSL_PASS) {
+                break;
+            }
+            if ((resp.control & 0xFu) == 0u) {
+                continue; /* region disabled */
+            }
+            enabled++;
+            sdos_trace("firewall %u region %u: control %08lx perm %08lx %08lx %08lx, %08lx%08lx..%08lx%08lx",
+                       (unsigned)req.fwl_id, (unsigned)region, (unsigned long)resp.control,
+                       (unsigned long)resp.permissions[0], (unsigned long)resp.permissions[1],
+                       (unsigned long)resp.permissions[2], (unsigned long)(uint32_t)(resp.start_address >> 32),
+                       (unsigned long)(uint32_t)resp.start_address, (unsigned long)(uint32_t)(resp.end_address >> 32),
+                       (unsigned long)(uint32_t)resp.end_address);
+        }
+        if (status != CSL_PASS) {
+            sdos_trace("firewall %u (%s): region %u refused (%ld), %u enabled before it", (unsigned)firewalls[f].id,
+                       firewalls[f].path, (unsigned)region, (long)status, enabled);
+        } else {
+            sdos_trace("firewall %u (%s): %u of %u regions enabled", (unsigned)firewalls[f].id, firewalls[f].path,
+                       enabled, (unsigned)firewalls[f].regions);
+        }
+    }
+    return no_output(output_length);
+}
+
 static sdos_status fi_heap(const sdos_run_args *args, uint32_t *output_length)
 {
     (void)args;
@@ -176,7 +254,7 @@ static sdos_status fi_heap(const sdos_run_args *args, uint32_t *output_length)
 }
 
 #define BUILTINS 3u
-static sdos_algorithm algorithms[BUILTINS + 11u] = {
+static sdos_algorithm algorithms[BUILTINS + 13u] = {
     {0u, "", NULL}, {0u, "", NULL}, {0u, "", NULL},
     {SDOS_ALG_FI_WRITE_FOREIGN, "fi_write_foreign", fi_write_foreign},
     {SDOS_ALG_FI_READ_FOREIGN, "fi_read_foreign", fi_read_foreign},
@@ -189,6 +267,8 @@ static sdos_algorithm algorithms[BUILTINS + 11u] = {
     {SDOS_ALG_FI_HEAP, "fi_heap", fi_heap},
     {SDOS_ALG_FI_WRITE_L2_CODE, "fi_write_l2_code", fi_write_l2_code},
     {SDOS_ALG_FI_READ_SHARED, "fi_read_shared", fi_read_shared},
+    {SDOS_ALG_FI_REWRITE_PROTECTION, "fi_rewrite_protection", fi_rewrite_protection},
+    {SDOS_ALG_FI_FIREWALL_SURVEY, "fi_firewall_survey", fi_firewall_survey},
 };
 
 void sdos_fault_injection_install(sdos_runtime *runtime)

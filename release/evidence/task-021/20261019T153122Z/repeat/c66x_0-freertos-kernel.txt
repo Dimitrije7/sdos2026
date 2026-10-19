@@ -1,8 +1,0 @@
-2026-10-09T20:35:48,454223+00:00 remoteproc remoteproc0: powering up 4d80800000.dsp
-2026-10-09T20:35:48,454638+00:00 remoteproc remoteproc0: Booting fw image sdos/c66x_0.xe66, size 150484
-2026-10-09T20:35:48,460869+00:00 rproc-virtio rproc-virtio.4.auto: assigned reserved memory node memory@a7000000
-2026-10-09T20:35:48,463249+00:00 virtio_rpmsg_bus virtio1: rpmsg host is online
-2026-10-09T20:35:48,463282+00:00 rproc-virtio rproc-virtio.4.auto: registered virtio1 (type 7)
-2026-10-09T20:35:48,463288+00:00 remoteproc remoteproc0: remote processor 4d80800000.dsp is now up
-2026-10-09T20:35:48,472725+00:00 virtio_rpmsg_bus virtio1: creating channel sdos-dsp addr 0x28
-2026-10-09T20:35:48,503714+00:00 remoteproc remoteproc0: stopped remote processor 4d80800000.dsp

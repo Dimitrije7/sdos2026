@@ -91,6 +91,18 @@
 
 #define MSMC_PROBE 0x70020000u /* shared on-chip SRAM: outside every device window */
 
+/* Memory protection lock (hw_dsp_icfg.h, DSP_MPLK*): with the key written,
+ * LOCK makes the protection registers read-only until UNLOCK with the same
+ * key. The key only guards against accidental writes; it is not a secret. */
+#define MPLK(n) ICFG_REG(0x84AD00u + 4u * (uint32_t)(n))
+#define MPLKCMD ICFG_REG(0x84AD10u)
+#define MPLKSTAT ICFG_REG(0x84AD14u)
+#define MPLK_UNLOCK 0x1u
+#define MPLK_LOCK 0x2u
+#define MPLK_KEYR 0x4u
+#define MPLK_LOCKED 0x1u
+#define PROTECTION_CHANGED 0x400u /* fault_info: a protection register differs from its snapshot */
+
 /* Protection zones from the linker files (docs/safety.md). */
 extern char sdos_zone_code_start[];
 extern char sdos_zone_code_end[];
@@ -208,6 +220,8 @@ void sdos_protection_report(void)
                (unsigned long)XMPFAR, (unsigned long)L2MPFSR, (unsigned long)L2MPFAR);
 }
 
+static uint32_t l2_pages; /* L2 pages with explicit attributes */
+
 static uint32_t protect_l2(sdos_runtime *runtime)
 {
     const uint32_t base = SDOS_CORE_L2SRAM_BASE;
@@ -223,6 +237,7 @@ static uint32_t protect_l2(sdos_runtime *runtime)
         L2MPPA(page) = at >= code_lo && at < code_hi ? MPPA_CODE : MPPA_DATA;
     }
     L2MPFCR = 1u;
+    l2_pages = page;
     sdos_trace("l2: %lu pages protected (page 0 was %08lx); code 0x%08lx..0x%08lx read-only, the rest not "
                "executable, no other master admitted", (unsigned long)page, (unsigned long)before,
                (unsigned long)code_lo, (unsigned long)code_hi);
@@ -243,6 +258,76 @@ static uint32_t protect_l2(sdos_runtime *runtime)
     return SDOS_CAP_PROTECTION;
 }
 
+static const uint32_t lock_key[4] = {0x534F4453u, 0x4B434F4Cu, 0x50414D2Du, 0x00000001u}; /* "SDOSLOCK-MAP" */
+
+static void lock_command(uint32_t command)
+{
+    uint32_t i;
+    MPLKCMD = MPLK_KEYR;
+    for (i = 0u; i < 4u; i++) {
+        MPLK(i) = lock_key[i];
+    }
+    MPLKCMD = command;
+}
+
+/* What the protection registers must hold from start-up on: the monitor
+ * compares them every period, locked or not. */
+static uint32_t expected_mpax[SEGMENTS][2];
+static uint32_t expected_mppa[L2_PAGES];
+static uint32_t expected_pages;
+static int snapshot_taken;
+
+static void take_snapshot(uint32_t pages)
+{
+    uint32_t i;
+    for (i = 0u; i < SEGMENTS; i++) {
+        expected_mpax[i][0] = XMPAXL(i);
+        expected_mpax[i][1] = XMPAXH(i);
+    }
+    for (i = 0u; i < pages; i++) {
+        expected_mppa[i] = L2MPPA(i);
+    }
+    expected_pages = pages;
+    snapshot_taken = 1;
+}
+
+/* Lock the configuration and prove it: a write that would change the deny
+ * segment's translation, which no access uses, and one to the attributes of
+ * a page past the end of L2 must both leave the registers unchanged. */
+static void lock_protection(uint32_t pages)
+{
+    uint32_t mpax = XMPAXL(0);
+    uint32_t spare = pages < L2_PAGES ? L2MPPA(L2_PAGES - 1u) : 0u;
+    int mpax_locked;
+    int mppa_locked = 1;
+    int recorded;
+    unsigned int key = _disable_interrupts();
+    lock_command(MPLK_LOCK);
+    XMPAXL(0) = mpax ^ 0x100u;
+    mpax_locked = XMPAXL(0) == mpax;
+    if (!mpax_locked) {
+        XMPAXL(0) = mpax; /* not covered by the lock: put it back */
+    }
+    if (pages < L2_PAGES) {
+        L2MPPA(L2_PAGES - 1u) = spare ^ 0x1u; /* UX */
+        mppa_locked = L2MPPA(L2_PAGES - 1u) == spare;
+        if (!mppa_locked) {
+            L2MPPA(L2_PAGES - 1u) = spare;
+        }
+    }
+    /* The refused write to a locked MPAX register is recorded like a refused
+     * memory write, at the register's address (board, Task 042): note it and
+     * clear it, so the monitor does not take the test for a fault. */
+    recorded = XMPFSR != 0u && XMPFAR == XMC_BASE;
+    XMPFCR = 1u;
+    L2MPFCR = 1u;
+    _restore_interrupts(key);
+    take_snapshot(pages);
+    sdos_trace("lock: %s; MPAX %s%s, L2 page attributes %s; every register is also checked against its snapshot",
+               (MPLKSTAT & MPLK_LOCKED) != 0u ? "locked" : "NOT locked", mpax_locked ? "locked" : "NOT locked",
+               recorded ? " (a write attempt is recorded)" : "", mppa_locked ? "locked" : "NOT locked");
+}
+
 uint32_t sdos_protection_init(sdos_runtime *runtime)
 {
     const uint64_t ddr_start = OWN_DDR_BASE;
@@ -251,10 +336,16 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
     const original high = found_segment(1u);
     unsigned int key;
     uint32_t value;
+    uint32_t capability;
     int enforced;
     plan p;
     size_t i;
 
+    if ((MPLKSTAT & MPLK_LOCKED) != 0u) { /* the subsystem stayed powered since a previous run */
+        lock_command(MPLK_UNLOCK);
+        sdos_trace("lock: unlocked the lock a previous run left (%s)",
+                   (MPLKSTAT & MPLK_LOCKED) == 0u ? "done" : "FAILED");
+    }
     sdos_trace("mpax: segment 0 %08lx %08lx, segment 1 %08lx %08lx (as found)", (unsigned long)XMPAXH(0),
                (unsigned long)low.low, (unsigned long)XMPAXH(1), (unsigned long)high.low);
     for (i = FIRST_SEGMENT; i < SEGMENTS; i++) {
@@ -340,7 +431,9 @@ uint32_t sdos_protection_init(sdos_runtime *runtime)
         sdos_trace("mpax: %lu segments programmed, but this C66x refused no write outside them; protection "
                    "capability withheld", (unsigned long)p.count);
     }
-    return protect_l2(runtime) & (enforced ? SDOS_CAP_PROTECTION : 0u);
+    capability = protect_l2(runtime) & (enforced ? SDOS_CAP_PROTECTION : 0u);
+    lock_protection(l2_pages);
+    return capability;
 }
 
 void sdos_protection_poll(sdos_runtime *runtime)
@@ -355,7 +448,33 @@ void sdos_protection_poll(sdos_runtime *runtime)
         sdos_runtime_fault(runtime, SDOS_FAULT_ACCESS, L2MPFAR, L2_FAULT_INFO | (status & 0xFFFFu));
         L2MPFCR = 1u;
     }
+    if (snapshot_taken) {
+        uint32_t i;
+        for (i = 0u; i < SEGMENTS; i++) {
+            if (XMPAXL(i) != expected_mpax[i][0] || XMPAXH(i) != expected_mpax[i][1]) {
+                sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, XMC_BASE + 8u * i, PROTECTION_CHANGED | i);
+            }
+        }
+        for (i = 0u; i < expected_pages; i++) {
+            if (L2MPPA(i) != expected_mppa[i]) {
+                sdos_runtime_fault(runtime, SDOS_FAULT_PROTECTION, 0x0184A200u + 4u * i,
+                                   PROTECTION_CHANGED | 0x100u | i);
+            }
+        }
+    }
 }
+
+#if defined(SDOS_FAULT_INJECTION)
+/* Fault injection: try to change a protection register. 0: the write was
+ * refused (the lock held); 1: it took effect, which the readback check must
+ * then report. The deny segment's translation is harmless to change. */
+int sdos_protection_tamper(void)
+{
+    uint32_t before = XMPAXL(0);
+    XMPAXL(0) = before ^ 0x100u;
+    return XMPAXL(0) != before;
+}
+#endif
 
 void sdos_protection_guard(const sdos_stack *stacks, size_t count)
 {

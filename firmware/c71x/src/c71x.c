@@ -266,6 +266,17 @@ void sdos_protection_poll(sdos_runtime *runtime)
     (void)runtime; /* the C71x MMU raises an exception on every violation */
 }
 
+#if defined(SDOS_FAULT_INJECTION)
+/* Fault injection: write the first page-table word back unchanged. The
+ * tables are read-only after start, so the write faults (SM-4). */
+int sdos_protection_tamper(void)
+{
+    volatile uint64_t *table = (volatile uint64_t *)(void *)mmu_tables_start;
+    *table = *table;
+    return 1;
+}
+#endif
+
 void sdos_protection_report(void)
 {
     sdos_trace("mmu: status %lu; a refused access raises an exception, which the fault record names",

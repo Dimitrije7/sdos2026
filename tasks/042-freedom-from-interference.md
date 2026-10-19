@@ -8,41 +8,41 @@ in-progress
 
 - Updated: 2026-10-19, claude.
 - State: board-proven on all three DSPs in both runtimes, with one
-  criterion open (C71x stack overflow, criterion 2) and one platform
-  limitation recorded (C66x reads). Locking the C66x protection registers and
-  the SoC firewalls come next, as the maintainer asked on 2026-10-19.
-- Done: everything in the earlier handoff (git history), and on the board
+  criterion open (C71x stack overflow, criterion 2). The C66x protection
+  registers are locked (SM-17). The SoC firewalls are surveyed: all open; a
+  run-time configuration of the C71x L2 firewall is written but waits for
+  the maintainer's approval to run on the board.
+- Done: everything in the earlier handoffs (git history), and on the board
   on 2026-10-19
-  ([evidence](../release/evidence/task-042/20261019T153122Z/)):
+  ([evidence](../release/evidence/task-042/20261019T155359Z/)):
+  - `course-smoke` passes on every core and runtime, twice in a row, with
+    the MPLK lock in place.
   - `fault-injection` passes every case on C66x_0 and C66x_1 in both runtimes
-    and on the C71x in both runtimes, except the C71x stack case. Every core
-    recovers with `dspctl recover`. The outcomes are tabulated in
+    and on the C71x in both runtimes, except the C71x stack case. The new
+    `rewrite_protection` case is refused and recorded (`access`) on every
+    core: by the MPLK lock on the C66x, by the read-only page tables on the
+    C71x. Outcomes are tabulated in
     [`docs/safety.md`](../docs/safety.md#fault-injection).
-  - C66x MPAX: the XMC refuses and records writes outside the grants (status
-    0x110) but lets reads through. The self-test now probes with a write (to
-    unowned MSMC, writing back the value it read). Reads of foreign memory
-    are a recorded confidentiality gap, not interference.
-  - C66x L2 page protection is enforced: a write into the L2 code zone is
-    refused and recorded.
-  - Writes must leave the cache before the check sees them: the C66x checks
-    the CPU's own access, not a cache writeback (`write_through` in
-    `fault_injection.c`).
-  - Device windows confirmed. The first run granted the MCU NAVSS secure proxy
-    by mistake (DSPs use the MAIN one) and `Sciclient_init` failed; fixed in
-    the manifest.
-  - C71x: exceptions record the fault, leave exception context through TI's
-    return hook (RETE, as TI's MMA example does), and idle, so Linux can
-    power the core off. The watchdog now halts a runaway RUN: the FreeRTOS
-    monitor task does it, and on bare-metal C71x the 1 ms wake tick does.
-  - SM-16 clean restart; see `docs/safety.md` and `docs/firmware.md`.
+  - SM-17: the C66x locks MPAX and the L2 page attributes with MPLK after
+    configuration, proves the lock with two harmless writes, and the monitor
+    compares every protection register with its snapshot each period.
+  - SoC firewall survey (diagnostic `0xFA00000D` in the FI builds,
+    [evidence](../release/evidence/task-042/20261019T155359Z/firewall-survey.txt)):
+    every firewall on a path into the DSPs' DDR or L2 passes everything, and
+    TI's system firmware leaves them unowned, so DSP firmware may claim and
+    program them through TI-SCI with no boot-chain change. Details, ids, and
+    priv-ids in [`docs/safety.md`](../docs/safety.md#residual-risks).
 - Next:
-  1. Lock the C66x MPAX and L2 attribute registers (MPLK) after
-     configuration; prove it with a fault-injection case that tries to
-     rewrite them.
-  2. SoC firewalls against other bus masters (Linux, DMA, the other DSPs)
-     writing a DSP's DDR and the C71x L2: investigate what the boot
-     firmware and TI-SCI allow at run time, without changing the boot chain
-     unless the maintainer approves.
+  1. Maintainer decision: let the C71x firmware claim firewall 264 at start
+     and admit only its own priv-id (21) to its L2. The code is ready (kept
+     out of the tree until approved); it changes SoC bus state, so running it
+     on the board needs the maintainer's approval. Prove it with a readback
+     and with the C66x survey being refused for that firewall.
+  2. Maintainer decision: the DDR carve-outs. NAVSS firewalls 4762 and 4763
+     (main-domain masters) need an unowned allow-all background region plus
+     one foreground region per DSP carve-out, owned by that DSP; the MCU path
+     (1280) and the A72 (257) cannot be closed without cutting the device
+     manager or the Linux loader off.
   3. C71x stack overflow (criterion 2): the handler runs on the faulting
      stack; it needs a separate exception stack, which means changing TI's
      exception entry.
@@ -51,7 +51,8 @@ in-progress
 - Decisions: on 2026-10-19 the maintainer asked for the MPLK lock and the
   SoC firewalls after all pending board work.
 - Verification, 2026-10-19: `course-smoke` (twice) and `fault-injection` on
-  the board, evidence above; `make quality`.
+  the board, and the firewall survey on C66x_0 and C71x_0; evidence above;
+  `make quality`.
 
 ## Depends on
 
@@ -80,8 +81,8 @@ and the PDK are not safety-qualified, so the project claims no ASIL. Each
 mechanism is either implemented and verified, or recorded with the reason it
 cannot be.
 
-Out of scope without a maintainer decision: SoC firewalls (they live in TI's
-boot firmware configuration), the RTI hardware watchdogs (their reaction is
+Out of scope without a maintainer decision: programming the SoC firewalls
+(unowned after boot, but SoC-wide), the RTI hardware watchdogs (their reaction is
 routed through the ESM, which can reset the SoC), and rebuilding TI's FreeRTOS
 kernel library.
 

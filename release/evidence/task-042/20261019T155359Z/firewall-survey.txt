@@ -1,0 +1,39 @@
+# fi_firewall_survey (0xFA00000D), FreeRTOS FI builds, BeagleBone AI-64, 2026-10-19
+# TISCI_MSG_GET_FWL_REGION for every region of each firewall; only enabled regions are listed.
+# J721E ids from TI csl_soc_firewalls.h; owners from TI's J721E firewall descriptions (TISCI 11.02.13).
+== c66x_0
+loaded /tmp/sdos-smoke/sdos-c66x_0-freertos-fi.xe66
+  region     0 bytes, 128-byte alignment
+0xfa00000d: no data, 15504359 DSP cycles
+[1.043] firewall 257 (A72 to MSMC and DDR (master)): 0 of 16 regions enabled
+[1.044] firewall 265 (C71x to MSMC and DDR (master)): 0 of 8 regions enabled
+[1.045] firewall 284 (C71x DRU to MSMC and DDR (master)): 0 of 16 regions enabled
+[1.047] firewall 4762 (NAVSS to DDR0 (main-domain masters)): 0 of 24 regions enabled
+[1.049] firewall 4763 (NAVSS to DDR1 (main-domain masters)): 0 of 24 regions enabled
+[1.049] firewall 1280 region 0: control 0000000a perm 00c3ffff 00c3ffff 00c3ffff, 0000000000000000..00000fffffffffff
+[1.050] firewall 1280 (MCU domain to main and DDR): 1 of 8 regions enabled
+[1.050] firewall 4760 region 0: control 0000010a perm 00c3ffff 00c3ffff 00c3ffff, 0000000070000000..00000000707effff
+[1.051] firewall 4760 (NAVSS to MSMC SRAM): region 18 refused (-1), 1 enabled before it
+[1.052] firewall 264 (C71x L2 SRAM): 0 of 2 regions enabled
+[1.052] firewall 2304 (C66x_0 L2 and L1D SRAM): 0 of 8 regions enabled
+[1.053] firewall 2305 (C66x_1 L2 and L1D SRAM): 0 of 8 regions enabled
+{"name":"c66x_0","state":"ok","fault":"none","fault_info":0,"fault_address":0,"heartbeat":51,"uptime_ms":1056,"stack_mar
+
+== c71x_0
+loaded /tmp/sdos-smoke/sdos-c71x_0-freertos-fi.xe71
+  region     0 bytes, 128-byte alignment
+0xfa00000d: no data, 11621510 DSP cycles
+[1.061] firewall 257 (A72 to MSMC and DDR (master)): 0 of 16 regions enabled
+[1.062] firewall 265 (C71x to MSMC and DDR (master)): 0 of 8 regions enabled
+[1.063] firewall 284 (C71x DRU to MSMC and DDR (master)): 0 of 16 regions enabled
+[1.065] firewall 4762 (NAVSS to DDR0 (main-domain masters)): 0 of 24 regions enabled
+[1.067] firewall 4763 (NAVSS to DDR1 (main-domain masters)): 0 of 24 regions enabled
+[1.067] firewall 1280 region 0: control 0000000a perm 00c3ffff 00c3ffff 00c3ffff, 0000000000000000..00000fffffffffff
+[1.068] firewall 1280 (MCU domain to main and DDR): 1 of 8 regions enabled
+[1.068] firewall 4760 region 0: control 0000010a perm 00c3ffff 00c3ffff 00c3ffff, 0000000070000000..00000000707effff
+[1.070] firewall 4760 (NAVSS to MSMC SRAM): region 18 refused (-1), 1 enabled before it
+[1.070] firewall 264 (C71x L2 SRAM): 0 of 2 regions enabled
+[1.070] firewall 2304 (C66x_0 L2 and L1D SRAM): 0 of 8 regions enabled
+[1.071] firewall 2305 (C66x_1 L2 and L1D SRAM): 0 of 8 regions enabled
+{"name":"c71x_0","state":"ok","fault":"none","fault_info":0,"fault_address":0,"heartbeat":47,"uptime_ms":1077,"stack_mar
+

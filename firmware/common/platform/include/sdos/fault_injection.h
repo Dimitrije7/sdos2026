@@ -24,6 +24,12 @@ extern "C" {
 #define SDOS_ALG_FI_HEAP 0xFA000009u          /* allocate from the kernel heap after start-up */
 #define SDOS_ALG_FI_WRITE_L2_CODE 0xFA00000Au /* write into the L2 code zone */
 #define SDOS_ALG_FI_READ_SHARED 0xFA00000Bu   /* read shared on-chip SRAM (MSMC), outside every device window */
+#define SDOS_ALG_FI_REWRITE_PROTECTION 0xFA00000Cu /* change a protection register (MPAX or MMU table) */
+#define SDOS_ALG_FI_FIREWALL_SURVEY 0xFA00000Du    /* diagnostic, injects nothing: trace the DDR-path firewalls */
+
+/* Per family: try to change the protection configuration; nonzero when the
+ * write took effect (c66x.c, c71x.c). */
+int sdos_protection_tamper(void);
 
 /* Replace the runtime's algorithm table with the built-ins plus these. */
 void sdos_fault_injection_install(sdos_runtime *runtime);
