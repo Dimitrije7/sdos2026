@@ -3,6 +3,6 @@
   "private": true,
   "description": "Node.js tools for the SDOS containers; package-lock.json pins the full closure.",
   "dependencies": {
-    "markdownlint-cli2": "0.23.3"
+    "markdownlint-cli2": "0.24.0"
   }
 }
